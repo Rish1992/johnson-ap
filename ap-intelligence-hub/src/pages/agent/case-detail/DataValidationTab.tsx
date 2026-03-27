@@ -15,10 +15,6 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
@@ -31,7 +27,7 @@ import {
   FileText, ZoomIn, ZoomOut, Loader2,
   GripVertical, ChevronUp, ChevronDown, UserCheck, Users,
 } from 'lucide-react';
-import { formatCurrency, formatDateTime } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { ConfidenceLevel } from '@/types/case';
@@ -407,7 +403,7 @@ export function DataValidationTab() {
       {selectedCase.status === 'RETURNED' && selectedCase.returnReason && (
         <ReturnReasonBanner
           returnedBy={selectedCase.returnedByName || 'Approver'}
-          returnedAt={selectedCase.returnedAt}
+          returnedAt={selectedCase.returnedAt ?? undefined}
           returnReason={selectedCase.returnReason}
           variant="div"
         />

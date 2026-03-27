@@ -47,7 +47,7 @@ export function CaseDetailsTab() {
       {selectedCase.status === 'RETURNED' && selectedCase.returnReason && (
         <ReturnReasonBanner
           returnedBy={selectedCase.returnedByName || 'Approver'}
-          returnedAt={selectedCase.returnedAt}
+          returnedAt={selectedCase.returnedAt ?? undefined}
           returnReason={selectedCase.returnReason}
         />
       )}

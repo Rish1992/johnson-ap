@@ -12,7 +12,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Search, Ship, Wrench, FileText, Tag, ClipboardCheck, Check, X } from 'lucide-react';
+import { Plus, Search, ClipboardCheck, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { INVOICE_TYPE_CONFIG } from '@/lib/constants';
 import { toast } from 'sonner';

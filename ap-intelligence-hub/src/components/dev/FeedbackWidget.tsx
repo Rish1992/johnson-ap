@@ -69,7 +69,7 @@ export function FeedbackWidget() {
   const [showExpected, setShowExpected] = useState(false);
   const [includeLogs, setIncludeLogs] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const dismissTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dismissTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const clickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const consoleLogRef = useRef<string[]>([]);
   const networkLogRef = useRef<string[]>([]);
@@ -190,7 +190,7 @@ export function FeedbackWidget() {
         caseStatus: caseId ? currentCase?.status : undefined,
         caseVendor: caseId ? currentCase?.vendorName : undefined,
         caseCategory: caseId ? currentCase?.category : undefined,
-        invoiceNumber: caseId ? currentCase?.invoiceNumber : undefined,
+        invoiceNumber: caseId ? currentCase?.headerData?.invoiceNumber : undefined,
         consoleLogs: includeLogs ? consoleLogRef.current.slice() : [],
         networkLogs: includeLogs ? networkLogRef.current.slice() : [],
         comment,
