@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { FeedbackWidget } from '@/components/dev/FeedbackWidget';
 
 export function AppShell() {
   return (
@@ -12,6 +13,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      {import.meta.env.DEV && <FeedbackWidget />}
     </div>
   );
 }
