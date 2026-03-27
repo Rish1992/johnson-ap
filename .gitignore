@@ -6,3 +6,4 @@ backend/.env
 backend/feedback/
 backend/.venv/
 AIM*.md
+__pycache__/
