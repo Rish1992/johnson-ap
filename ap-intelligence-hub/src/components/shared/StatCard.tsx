@@ -9,6 +9,10 @@ interface StatCardProps {
   icon: React.ReactNode;
   description?: string;
   variant?: 'default' | 'success' | 'warning' | 'danger';
+  /** Muted/secondary styling — smaller padding, reduced opacity */
+  secondary?: boolean;
+  /** Icon background/text color override (e.g. 'bg-red-50 text-red-700') */
+  iconClassName?: string;
 }
 
 const VARIANT_DOT_COLOR: Record<string, string> = {
@@ -18,10 +22,10 @@ const VARIANT_DOT_COLOR: Record<string, string> = {
   danger: 'bg-red-500',
 };
 
-export function StatCard({ title, value, trend, icon, description, variant = 'default' }: StatCardProps) {
+export function StatCard({ title, value, trend, icon, description, variant = 'default', secondary, iconClassName }: StatCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
-      <CardContent className="p-5">
+    <Card className={cn('hover:shadow-md transition-shadow duration-200', secondary && 'opacity-60')}>
+      <CardContent className={secondary ? 'p-3' : 'p-5'}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', VARIANT_DOT_COLOR[variant])} />
@@ -30,10 +34,12 @@ export function StatCard({ title, value, trend, icon, description, variant = 'de
           <div
             className={cn(
               'p-2.5 rounded-full',
-              variant === 'success' && 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400',
-              variant === 'warning' && 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
-              variant === 'danger' && 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400',
-              variant === 'default' && 'bg-primary/10 text-primary'
+              iconClassName ?? (
+                variant === 'success' ? 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400' :
+                variant === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400' :
+                variant === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400' :
+                'bg-primary/10 text-primary'
+              )
             )}
           >
             {icon}

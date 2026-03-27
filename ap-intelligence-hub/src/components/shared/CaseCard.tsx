@@ -44,7 +44,8 @@ export function CaseCard({ caseData, variant, onClick }: CaseCardProps) {
       <CardContent className="p-4">
         {/* Row 1: Case ID + Status */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-mono font-bold text-foreground">
+          <span className={cn('text-sm font-mono text-foreground', caseData.isRead === false ? 'font-extrabold' : 'font-bold')}>
+            {caseData.isRead === false && <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 align-middle" />}
             {caseData.id}
           </span>
           <div className="flex items-center gap-2">
