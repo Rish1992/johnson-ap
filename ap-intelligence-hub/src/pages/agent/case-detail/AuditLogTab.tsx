@@ -57,7 +57,7 @@ function RuleStatusBadge({ status }: { status: BusinessRuleResult['status'] }) {
   );
 }
 
-function BusinessRuleCard({ rule }: { rule: BusinessRuleResult }) {
+export function BusinessRuleCard({ rule }: { rule: BusinessRuleResult }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const hasDetails = rule.details || rule.expectedValue || rule.actualValue || rule.matchedAgainst || rule.fieldPath;

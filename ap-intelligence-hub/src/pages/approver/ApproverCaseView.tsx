@@ -5,6 +5,7 @@ import { CaseStatusBadge } from '@/components/shared/CaseStatusBadge';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
 import { AuditTimeline } from '@/components/shared/AuditTimeline';
 import { CommentThread } from '@/components/shared/CommentThread';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
-import { ArrowLeft, CheckCircle, X, RotateCcw, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, X, RotateCcw, Loader2, Shield } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ import type { AuditLogEntry } from '@/types/audit';
 import { CaseDetailsTab } from '@/pages/agent/case-detail/CaseDetailsTab';
 import { DataValidationTab } from '@/pages/agent/case-detail/DataValidationTab';
 import { ApprovalTrackingTab } from '@/pages/agent/case-detail/ApprovalTrackingTab';
+import { BusinessRuleCard } from '@/pages/agent/case-detail/AuditLogTab';
 
 export function ApproverCaseView() {
   const { caseId } = useParams<{ caseId: string }>();
@@ -36,6 +38,7 @@ export function ApproverCaseView() {
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'sendback' | null>(null);
   const [actionComment, setActionComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionFiles, setActionFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (caseId) {
@@ -80,6 +83,7 @@ export function ApproverCaseView() {
     }
     setIsSubmitting(false);
     setActionType(null);
+    setActionFiles([]);
   };
 
   return (
@@ -171,6 +175,33 @@ export function ApproverCaseView() {
         </CardContent>
       </Card>
 
+      {/* Rule Failures Summary */}
+      {(() => {
+        const failedRules = selectedCase.businessRuleResults.filter(r => r.status === 'FAIL');
+        return failedRules.length > 0 ? (
+          <Card className="mb-6 border-red-200 dark:border-red-900/30">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="h-4 w-4 text-red-600" />
+                <span className="text-sm font-semibold">Rule Failures</span>
+                <Badge className="bg-red-100 text-red-700 border-0 text-xs dark:bg-red-900/30 dark:text-red-400 ml-auto">
+                  {failedRules.length} Failed
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                {failedRules.map(rule => <BusinessRuleCard key={rule.ruleId} rule={rule} />)}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="mb-6 flex items-center gap-2">
+            <Badge className="bg-green-100 text-green-700 border-0 dark:bg-green-900/30 dark:text-green-400">
+              <CheckCircle className="h-3 w-3 mr-1" /> All rules passed
+            </Badge>
+          </div>
+        );
+      })()}
+
       {/* Tabs */}
       <Tabs defaultValue="overview" className="mb-6">
         <TabsList>
@@ -241,14 +272,30 @@ export function ApproverCaseView() {
                'The case will be returned to the AP Agent for correction.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-3 space-y-2">
-            <Label className="text-sm font-medium">{actionType === 'approve' ? 'Comment (optional)' : 'Reason (required, min 10 characters)'}</Label>
-            <Textarea
-              value={actionComment}
-              onChange={(e) => setActionComment(e.target.value)}
-              placeholder={actionType === 'approve' ? 'Optional comment...' : 'Provide a reason...'}
-              rows={4}
-            />
+          <div className="py-3 space-y-3">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">{actionType === 'approve' ? 'Comment (optional)' : 'Reason (required, min 10 characters)'}</Label>
+              <Textarea
+                value={actionComment}
+                onChange={(e) => setActionComment(e.target.value)}
+                placeholder={actionType === 'approve' ? 'Optional comment...' : 'Provide a reason...'}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Attachments (optional)</Label>
+              <input type="file" multiple className="text-sm" onChange={(e) => { if (e.target.files) setActionFiles(prev => [...prev, ...Array.from(e.target.files!)]); }} />
+              {actionFiles.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {actionFiles.map((f, i) => (
+                    <Badge key={i} variant="secondary" className="gap-1 text-xs">
+                      {f.name}
+                      <button onClick={() => setActionFiles(prev => prev.filter((_, j) => j !== i))} className="ml-1 hover:text-destructive">&times;</button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => setActionType(null)}>Cancel</Button>
