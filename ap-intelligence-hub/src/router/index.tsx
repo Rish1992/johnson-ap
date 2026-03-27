@@ -30,6 +30,8 @@ import { UserManagement } from '@/pages/admin/UserManagement';
 import { Analytics } from '@/pages/admin/Analytics';
 import { AdminCaseBrowser } from '@/pages/admin/AdminCaseBrowser';
 
+const basename = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -101,7 +103,7 @@ export const router = createBrowserRouter([
 
           // Approver routes
           {
-            element: <RoleGuard allowedRoles={['AP_REVIEWER']} />,
+            element: <RoleGuard allowedRoles={['AP_REVIEWER', 'SUPER_ADMIN']} />,
             children: [
               {
                 path: '/approver/queue',
@@ -160,4 +162,4 @@ export const router = createBrowserRouter([
     path: '*',
     element: <Navigate to="/login" replace />,
   },
-]);
+], { basename });
