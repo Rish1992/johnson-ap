@@ -8,8 +8,11 @@ import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 import { FilterBar } from '@/components/shared/FilterBar';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/shared/StatCard';
 import { Button } from '@/components/ui/button';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -25,22 +28,29 @@ import {
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import type { FilterState } from '@/types/filters';
 
-interface StatCard {
+interface StatDef {
   label: string;
   count: number;
   icon: React.ReactNode;
-  color: string;
-  bgColor: string;
+  iconClassName: string;
+  secondary?: boolean;
 }
 
 export function CaseBrowser() {
   const navigate = useNavigate();
-  const { cases, filters, isLoadingCases, fetchCases, setFilters, resetFilters } = useCaseStore();
+  const { cases, filters, isLoadingCases, fetchCases, setFilters, resetFilters, markAsRead } = useCaseStore();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [poTypeFilter, setPoTypeFilter] = useState<string>('ALL');
 
   useEffect(() => {
     fetchCases({});
   }, [fetchCases]);
+
+  // Apply PO type filter
+  const filteredCases = useMemo(() => {
+    if (poTypeFilter === 'ALL') return cases;
+    return cases.filter(c => c.poType === poTypeFilter);
+  }, [cases, poTypeFilter]);
 
   const handleFilterChange = useCallback(
     (newFilters: Partial<FilterState>) => {
@@ -50,79 +60,33 @@ export function CaseBrowser() {
   );
 
   // Compute summary stats from filtered cases
-  const stats = useMemo((): StatCard[] => {
-    const total = cases.length;
-    const received = cases.filter(c =>
-      ['RECEIVED', 'CLASSIFIED', 'CATEGORIZED', 'EXTRACTED'].includes(c.status)
+  const stats = useMemo((): StatDef[] => {
+    const total = filteredCases.length;
+    const pendingReview = filteredCases.filter(c =>
+      ['RECEIVED', 'CLASSIFIED', 'CATEGORIZED', 'EXTRACTED', 'IN_REVIEW'].includes(c.status)
     ).length;
-    const inProgress = cases.filter(c =>
-      ['IN_REVIEW', 'VALIDATED', 'APPROVAL_PENDING'].includes(c.status)
+    const pendingApproval = filteredCases.filter(c =>
+      ['VALIDATED', 'APPROVAL_PENDING'].includes(c.status)
     ).length;
-    const completed = cases.filter(c =>
+    const completed = filteredCases.filter(c =>
       ['APPROVED', 'POSTED', 'CLOSED'].includes(c.status)
     ).length;
-    const rejected = cases.filter(c => c.status === 'REJECTED').length;
-    const returned = cases.filter(c => c.status === 'RETURNED').length;
-    const failed = cases.filter(c =>
-      ['FAILED', 'DISCARDED'].includes(c.status)
-    ).length;
+    const rejected = filteredCases.filter(c => c.status === 'REJECTED').length;
+    const returned = filteredCases.filter(c => c.status === 'RETURNED').length;
 
     return [
-      {
-        label: 'Total Cases',
-        count: total,
-        icon: <Inbox className="h-4 w-4" />,
-        color: 'text-neutral-700 dark:text-neutral-300',
-        bgColor: 'bg-neutral-100 dark:bg-neutral-800',
-      },
-      {
-        label: 'Received',
-        count: received,
-        icon: <Clock className="h-4 w-4" />,
-        color: 'text-red-700 dark:text-red-300',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-      },
-      {
-        label: 'In Progress',
-        count: inProgress,
-        icon: <AlertTriangle className="h-4 w-4" />,
-        color: 'text-amber-700 dark:text-amber-300',
-        bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-      },
-      {
-        label: 'Completed',
-        count: completed,
-        icon: <CheckCircle className="h-4 w-4" />,
-        color: 'text-green-700 dark:text-green-300',
-        bgColor: 'bg-green-50 dark:bg-green-900/20',
-      },
-      {
-        label: 'Rejected',
-        count: rejected,
-        icon: <XCircle className="h-4 w-4" />,
-        color: 'text-red-700 dark:text-red-300',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-      },
-      {
-        label: 'Returned',
-        count: returned,
-        icon: <RotateCcw className="h-4 w-4" />,
-        color: 'text-orange-700 dark:text-orange-300',
-        bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-      },
-      {
-        label: 'Failed',
-        count: failed,
-        icon: <AlertTriangle className="h-4 w-4" />,
-        color: 'text-red-800 dark:text-red-300',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-      },
+      { label: 'Total Cases', count: total, icon: <Inbox className="h-4 w-4" />, iconClassName: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300' },
+      { label: 'Pending Review', count: pendingReview, icon: <Clock className="h-4 w-4" />, iconClassName: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300' },
+      { label: 'Pending Approval', count: pendingApproval, icon: <AlertTriangle className="h-4 w-4" />, iconClassName: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' },
+      { label: 'Completed', count: completed, icon: <CheckCircle className="h-4 w-4" />, iconClassName: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' },
+      { label: 'Rejected', count: rejected, icon: <XCircle className="h-4 w-4" />, iconClassName: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300', secondary: true },
+      { label: 'Returned', count: returned, icon: <RotateCcw className="h-4 w-4" />, iconClassName: 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300', secondary: true },
     ];
-  }, [cases]);
+  }, [filteredCases]);
 
   return (
     <div>
-      <PageHeader title="Case Browser" count={cases.length}>
+      <PageHeader title="Case Browser" count={filteredCases.length}>
         <div className="flex items-center gap-1 border rounded-lg p-0.5">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -153,21 +117,33 @@ export function CaseBrowser() {
         showDateRange={true}
       />
 
+      {/* Inline PO Type filter */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs text-muted-foreground">PO Type:</span>
+        <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
+          <SelectTrigger className="w-[120px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All</SelectItem>
+            <SelectItem value="PO">PO</SelectItem>
+            <SelectItem value="NON_PO">Non-PO</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Summary Stat Cards */}
-      {!isLoadingCases && cases.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-4">
+      {!isLoadingCases && filteredCases.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
           {stats.map((stat) => (
-            <Card key={stat.label} className="border transition-shadow hover:shadow-md">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`p-2 rounded-lg ${stat.bgColor} ring-1 ring-inset ring-black/5 dark:ring-white/5`}>
-                    <span className={stat.color}>{stat.icon}</span>
-                  </div>
-                </div>
-                <p className="text-2xl font-bold text-foreground tracking-tight">{stat.count}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </CardContent>
-            </Card>
+            <StatCard
+              key={stat.label}
+              title={stat.label}
+              value={stat.count}
+              icon={stat.icon}
+              secondary={stat.secondary}
+              iconClassName={stat.iconClassName}
+            />
           ))}
         </div>
       )}
@@ -178,7 +154,7 @@ export function CaseBrowser() {
             <div key={i} className="h-12 bg-accent/30 rounded animate-pulse" />
           ))}
         </div>
-      ) : cases.length === 0 ? (
+      ) : filteredCases.length === 0 ? (
         <EmptyState
           title="No cases found"
           description="Try adjusting your filters."
@@ -186,12 +162,12 @@ export function CaseBrowser() {
         />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {cases.map((c) => (
+          {filteredCases.map((c) => (
             <CaseCard
               key={c.id}
               caseData={c}
               variant="browser"
-              onClick={(id) => navigate(`/agent/cases/${id}/overview`)}
+              onClick={(id) => { markAsRead(id); navigate(`/agent/cases/${id}/overview`); }}
             />
           ))}
         </div>
@@ -211,13 +187,16 @@ export function CaseBrowser() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cases.map((c) => (
+              {filteredCases.map((c) => (
                 <TableRow
                   key={c.id}
                   className="cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={() => navigate(`/agent/cases/${c.id}/overview`)}
+                  onClick={() => { markAsRead(c.id); navigate(`/agent/cases/${c.id}/overview`); }}
                 >
-                  <TableCell className="font-mono font-medium py-3">{c.id}</TableCell>
+                  <TableCell className="font-mono font-medium py-3">
+                    {c.isRead === false && <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 align-middle" />}
+                    <span className={c.isRead === false ? 'font-extrabold' : ''}>{c.id}</span>
+                  </TableCell>
                   <TableCell className="py-3">{c.vendorName}</TableCell>
                   <TableCell className="py-3">
                     <CategoryBadge category={c.category} />

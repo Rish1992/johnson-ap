@@ -10,6 +10,7 @@ import {
   Database,
   Users,
   BarChart3,
+
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -32,7 +33,7 @@ interface NavItem {
 const NAV_ITEMS: Record<UserRole, NavItem[]> = {
   AP_AGENT: [
     { label: 'Email Review', path: '/agent/emails', icon: <Inbox className="h-5 w-5" /> },
-    { label: 'Data Validation', path: '/agent/validation', icon: <ClipboardCheck className="h-5 w-5" /> },
+    { label: 'Case Dashboard', path: '/agent/validation', icon: <ClipboardCheck className="h-5 w-5" /> },
     { label: 'Query Resolution', path: '/agent/queries', icon: <MessageSquareWarning className="h-5 w-5" /> },
     { label: 'Pending Approvals', path: '/agent/pending-approvals', icon: <Clock className="h-5 w-5" /> },
     { label: 'Case Browser', path: '/agent/cases', icon: <Search className="h-5 w-5" /> },
@@ -142,8 +143,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Collapse Toggle */}
-      <div className="p-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* Bottom actions */}
+      <div className="p-2 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <button
           className={cn(
             'flex items-center justify-center w-full h-9 rounded-lg transition-colors hover:bg-white/[0.08]'

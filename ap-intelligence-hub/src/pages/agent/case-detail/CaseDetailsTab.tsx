@@ -5,7 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, RotateCcw, Send, AtSign, MessageSquare, Clock, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle } from 'lucide-react';
+import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
+import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { formatDateTime, formatFileSize, formatCurrency } from '@/lib/formatters';
 import type { Vendor, VendorContract } from '@/types/masterData';
 
@@ -39,27 +45,162 @@ export function CaseDetailsTab() {
     <div className="space-y-6">
       {/* Return Reason Banner */}
       {selectedCase.status === 'RETURNED' && selectedCase.returnReason && (
-        <Card className="border-orange-300 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-800">
-          <CardContent className="p-4 flex items-start gap-3">
-            <RotateCcw className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">
-                  Returned by {selectedCase.returnedByName || 'Approver'}
-                </p>
-                {selectedCase.returnedAt && (
-                  <span className="text-xs text-orange-600 dark:text-orange-400">
-                    {formatDateTime(selectedCase.returnedAt)}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-orange-700 dark:text-orange-400">
-                {selectedCase.returnReason}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <ReturnReasonBanner
+          returnedBy={selectedCase.returnedByName || 'Approver'}
+          returnedAt={selectedCase.returnedAt}
+          returnReason={selectedCase.returnReason}
+        />
       )}
+
+      {/* Vendor Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Building2 className="h-5 w-5" />
+            Vendor Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {/* Left: Vendor Info */}
+            <div className="space-y-4 pb-6 md:pb-0 border-b md:border-b-0 md:border-r border-border md:pr-8">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vendor Validation</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{vendorName}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{vendorNumber}</p>
+                </div>
+                <Badge variant="outline" className={vendor?.isActive
+                  ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
+                  : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
+                }>
+                  {vendor?.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+
+              {vendor && (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm">{vendor.address}</p>
+                        <p className="text-xs text-muted-foreground">{vendor.city}, {vendor.country}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">ABN</p>
+                        <p className="text-sm font-mono">{vendor.taxId}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Bank Account</p>
+                        <p className="text-sm font-mono">{vendor.bankAccount}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Payment Terms</p>
+                        <p className="text-sm">{vendor.paymentTerms}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Right: Vendor Match */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileCheck className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium">Vendor Match</p>
+              </div>
+
+              {/* Vendor field match indicators */}
+              {vendor && (
+                <div className="space-y-1.5 mb-3">
+                  {[
+                    { label: 'Name', value: vendor.name, matched: vendorName === vendor.name },
+                    { label: 'Address', value: `${vendor.address}, ${vendor.city}`, matched: !!vendor.address },
+                    { label: 'ABN', value: vendor.taxId, matched: !!vendor.taxId },
+                  ].map(({ label, value, matched }) => (
+                    <div key={label} className="flex items-center gap-2 text-sm">
+                      {matched
+                        ? <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                        : <XCircle className="h-4 w-4 text-red-500 shrink-0" />}
+                      <span className="text-muted-foreground">{label}:</span>
+                      <span className="font-medium">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {contractNumber && matchedContract ? (
+                <div className="border rounded-lg p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold font-mono">{contractNumber}</p>
+                    <Badge variant="outline" className={
+                      contractStatus === 'ACTIVE'
+                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
+                        : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
+                    }>
+                      {contractStatus}
+                    </Badge>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Category</p>
+                      <p className="text-sm">{matchedContract.category}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Max Amount</p>
+                      <p className="text-sm font-medium">{formatCurrency(matchedContract.maxAmount, 'AUD')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> Start Date
+                      </p>
+                      <p className="text-sm">{matchedContract.startDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> End Date
+                      </p>
+                      <p className="text-sm">{matchedContract.endDate}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Vendor and contract verified against master data
+                  </div>
+                </div>
+              ) : contractNumber ? (
+                <div className="border rounded-lg p-3">
+                  <p className="text-sm font-mono">{contractNumber}</p>
+                  <Badge variant="outline" className={
+                    contractStatus === 'ACTIVE'
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                  }>
+                    {contractStatus || 'Unknown'}
+                  </Badge>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm text-amber-700 dark:text-amber-400">No contract matched for this vendor</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Email Information */}
       <Card>
@@ -142,135 +283,46 @@ export function CaseDetailsTab() {
         </CardContent>
       </Card>
 
-      {/* Vendor Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Building2 className="h-5 w-5" />
-            Vendor Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {/* Left: Vendor Info */}
-            <div className="space-y-4 pb-6 md:pb-0 border-b md:border-b-0 md:border-r border-border md:pr-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{vendorName}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{vendorNumber}</p>
-                </div>
-                <Badge variant="outline" className={vendor?.isActive
-                  ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
-                  : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                }>
-                  {vendor?.isActive ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-
-              {vendor && (
-                <>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm">{vendor.address}</p>
-                        <p className="text-xs text-muted-foreground">{vendor.city}, {vendor.country}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">ABN</p>
-                        <p className="text-sm font-mono">{vendor.taxId}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bank Account</p>
-                        <p className="text-sm font-mono">{vendor.bankAccount}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Payment Terms</p>
-                        <p className="text-sm">{vendor.paymentTerms}</p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Right: Contract Info */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileCheck className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-medium">Contract Match</p>
-              </div>
-
-              {contractNumber && matchedContract ? (
-                <div className="border rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold font-mono">{contractNumber}</p>
-                    <Badge variant="outline" className={
-                      contractStatus === 'ACTIVE'
-                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                    }>
-                      {contractStatus}
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Category</p>
-                      <p className="text-sm">{matchedContract.category}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Max Amount</p>
-                      <p className="text-sm font-medium">{formatCurrency(matchedContract.maxAmount, 'AUD')}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> Start Date
-                      </p>
-                      <p className="text-sm">{matchedContract.startDate}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> End Date
-                      </p>
-                      <p className="text-sm">{matchedContract.endDate}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Vendor and contract verified against master data
-                  </div>
-                </div>
-              ) : contractNumber ? (
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm font-mono">{contractNumber}</p>
-                  <Badge variant="outline" className={
-                    contractStatus === 'ACTIVE'
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }>
-                    {contractStatus || 'Unknown'}
-                  </Badge>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm text-amber-700 dark:text-amber-400">No contract matched for this vendor</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* SAP Download Button (Item 35) */}
+      {(selectedCase.status === 'APPROVED' || selectedCase.status === 'POSTED') && (() => {
+        const glCodes = [...new Set(selectedCase.lineItems.map(li => li.glAccount).filter(Boolean))];
+        const generateCsv = (items: typeof selectedCase.lineItems) => {
+          const header = 'LineNumber,Description,Quantity,UnitPrice,Amount,GLAccount,CostCenter\n';
+          const rows = items.map(li => `${li.lineNumber},"${li.description}",${li.quantity},${li.unitPrice},${li.totalAmount},${li.glAccount},${li.costCenter}`).join('\n');
+          return header + rows;
+        };
+        const downloadCsv = (csv: string, filename: string) => {
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+          URL.revokeObjectURL(url);
+        };
+        return glCodes.length > 1 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Download SAP File
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => downloadCsv(generateCsv(selectedCase.lineItems), `${selectedCase.id}_SAP_ALL.csv`)}>
+                Download All
+              </DropdownMenuItem>
+              {glCodes.map(gl => (
+                <DropdownMenuItem key={gl} onClick={() => downloadCsv(generateCsv(selectedCase.lineItems.filter(li => li.glAccount === gl)), `${selectedCase.id}_SAP_${gl}.csv`)}>
+                  Download GL {gl}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="outline" className="gap-2" onClick={() => downloadCsv(generateCsv(selectedCase.lineItems), `${selectedCase.id}_SAP.csv`)}>
+            <Download className="h-4 w-4" />
+            Download SAP File
+          </Button>
+        );
+      })()}
 
       {/* Missing Document Warning - only shows if genuinely missing (edge case) */}
       {(selectedCase.category === 'INSTALLATION' || selectedCase.category === 'WARRANTY') &&
@@ -368,121 +420,21 @@ export function CaseDetailsTab() {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full max-w-[520px] bg-white rounded shadow-md border border-gray-200 overflow-hidden" style={{ fontFamily: 'monospace' }}>
-                    <div className="bg-[#fafaf7]" style={{ transform: 'rotate(-0.3deg)' }}>
-                      <div className="px-6 pt-6 pb-4 border-b border-gray-300">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="w-28 h-8 bg-gray-300 rounded mb-2 flex items-center justify-center">
-                              <span className="text-[9px] text-gray-600 font-bold tracking-wider">LOGO</span>
-                            </div>
-                            <div className="text-[10px] text-gray-700 leading-tight">
-                              <div className="font-bold text-xs">{selectedCase.vendorName}</div>
-                              <div>123 Business Park, Level 5</div>
-                              <div>Sydney, NSW 2000</div>
-                              <div>ABN: 51 824 753 556</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-800 tracking-wide">
-                              {viewedAtt?.documentType === 'SUPPORTING' ? 'DELIVERY NOTE' : 'TAX INVOICE'}
-                            </div>
-                            <div className="text-[10px] text-gray-600 mt-1">Original for Recipient</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 grid grid-cols-2 gap-x-8 gap-y-1 text-[10px] text-gray-700 border-b border-gray-200">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Invoice No:</span>
-                          <span className="font-semibold">{selectedCase.headerData.invoiceNumber}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Date:</span>
-                          <span className="font-semibold">{selectedCase.headerData.invoiceDate}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">PO Number:</span>
-                          <span className="font-semibold">{selectedCase.headerData.purchaseOrderNumber || 'PO-44821'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Due Date:</span>
-                          <span className="font-semibold">{selectedCase.headerData.dueDate || 'Net 30'}</span>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 grid grid-cols-2 gap-x-8 text-[10px] text-gray-700 border-b border-gray-200">
-                        <div>
-                          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Bill To</div>
-                          <div className="font-semibold">Johnson Controls Australia</div>
-                          <div>Level 12, 100 Pacific Highway</div>
-                          <div>North Sydney, NSW 2060</div>
-                        </div>
-                        <div>
-                          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Ship To</div>
-                          <div className="font-semibold">JCI Facility - Melbourne</div>
-                          <div>45 Innovation Drive</div>
-                          <div>Scoresby, VIC 3179</div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3">
-                        <table className="w-full text-[9px] text-gray-700">
-                          <thead>
-                            <tr className="border-b border-gray-400">
-                              <th className="text-left py-1 w-6">#</th>
-                              <th className="text-left py-1">Description</th>
-                              <th className="text-right py-1 w-10">Qty</th>
-                              <th className="text-right py-1 w-16">Rate</th>
-                              <th className="text-right py-1 w-16">Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(selectedCase.lineItems.length > 0 ? selectedCase.lineItems : [
-                              { description: 'HVAC Installation - Unit A', quantity: 2, unitPrice: 45000 },
-                              { description: 'Ductwork & Fittings', quantity: 1, unitPrice: 28500 },
-                              { description: 'Control Panel Assembly', quantity: 3, unitPrice: 12750 },
-                              { description: 'Labour Charges - Electrical', quantity: 1, unitPrice: 18000 },
-                            ]).map((item, i) => (
-                              <tr key={i} className="border-b border-gray-100">
-                                <td className="py-1">{i + 1}</td>
-                                <td className="py-1">{item.description}</td>
-                                <td className="py-1 text-right">{item.quantity}</td>
-                                <td className="py-1 text-right">{item.unitPrice.toLocaleString('en-AU')}</td>
-                                <td className="py-1 text-right">{(item.quantity * item.unitPrice).toLocaleString('en-AU')}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <div className="px-6 py-3 border-t border-gray-300">
-                        <div className="flex flex-col items-end text-[10px] text-gray-700 gap-0.5">
-                          <div className="flex justify-between w-44">
-                            <span>Subtotal:</span>
-                            <span>{formatCurrency(selectedCase.headerData.netAmount || selectedCase.headerData.totalAmount * 0.9, selectedCase.headerData.currency)}</span>
-                          </div>
-                          <div className="flex justify-between w-44">
-                            <span>GST (10%):</span>
-                            <span>{formatCurrency(selectedCase.headerData.taxAmount, selectedCase.headerData.currency)}</span>
-                          </div>
-                          <div className="flex justify-between w-44 font-bold border-t border-gray-400 pt-1 mt-1 text-xs text-gray-900">
-                            <span>Total:</span>
-                            <span>{formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 border-t border-gray-200 flex items-end justify-between">
-                        <div className="text-[8px] text-gray-400 leading-snug">
-                          <div>Bank: Commonwealth Bank, Branch North Sydney</div>
-                          <div>BSB: 062-000 | A/C: 1234 5678</div>
-                          <div className="mt-1">E&OE - Subject to Australian law</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="w-20 h-10 border border-dashed border-gray-300 rounded flex items-center justify-center text-[8px] text-gray-400">
-                            Stamp & Sign
-                          </div>
-                          <div className="text-[8px] text-gray-400 mt-0.5">Authorised Signatory</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <MockInvoiceDocument
+                    vendorName={selectedCase.vendorName}
+                    invoiceNumber={selectedCase.headerData.invoiceNumber}
+                    invoiceDate={selectedCase.headerData.invoiceDate}
+                    documentTitle={viewedAtt?.documentType === 'SUPPORTING' ? 'DELIVERY NOTE' : 'TAX INVOICE'}
+                    poNumber={selectedCase.headerData.purchaseOrderNumber || 'PO-44821'}
+                    dueDate={selectedCase.headerData.dueDate || 'Net 30'}
+                    lineItems={(selectedCase.lineItems.length > 0
+                      ? selectedCase.lineItems.map(li => ({ desc: li.description, qty: li.quantity, rate: li.unitPrice }))
+                      : undefined
+                    )}
+                    subtotal={formatCurrency(selectedCase.headerData.netAmount || selectedCase.headerData.totalAmount * 0.9, selectedCase.headerData.currency)}
+                    gstAmount={formatCurrency(selectedCase.headerData.taxAmount, selectedCase.headerData.currency)}
+                    totalAmount={formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}
+                  />
                 )}
               </div>
             </div>

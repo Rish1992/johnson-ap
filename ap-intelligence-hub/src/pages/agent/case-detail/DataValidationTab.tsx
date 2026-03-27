@@ -22,14 +22,16 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
+import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
+import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
 import {
-  Save, CheckCircle, X, Plus, Trash2,
+  Save, CheckCircle, X, Plus, Trash2, Upload, Mail, AlertTriangle,
   FileText, ZoomIn, ZoomOut, Loader2,
   GripVertical, ChevronUp, ChevronDown, UserCheck, Users,
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { ConfidenceLevel } from '@/types/case';
@@ -64,144 +66,6 @@ function formatConfidencePercent(score: number): string {
   return pct.toFixed(2);
 }
 
-// ---------------------------------------------------------------------------
-// Mock Invoice SVG Document Component
-// ---------------------------------------------------------------------------
-function MockInvoiceDocument({ vendorName, invoiceNumber, invoiceDate, totalAmount }: {
-  vendorName: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  totalAmount: string;
-}) {
-  return (
-    <div className="w-full max-w-[520px] mx-auto bg-white rounded shadow-md border border-gray-200 p-0 overflow-hidden select-none" style={{ fontFamily: 'monospace' }}>
-      {/* Scanned document effect - slight rotation and noise */}
-      <div className="relative bg-[#fafaf7]" style={{ transform: 'rotate(-0.3deg)' }}>
-        {/* Header area */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-300">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="w-28 h-8 bg-gray-300 rounded mb-2 flex items-center justify-center">
-                <span className="text-[9px] text-gray-600 font-bold tracking-wider">LOGO</span>
-              </div>
-              <div className="text-[10px] text-gray-700 leading-tight">
-                <div className="font-bold text-xs">{vendorName || 'Vendor Name'}</div>
-                <div>123 Business Park, Level 5</div>
-                <div>Sydney, NSW 2000</div>
-                <div>ABN: 51 824 753 556</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-gray-800 tracking-wide">TAX INVOICE</div>
-              <div className="text-[10px] text-gray-600 mt-1">Original for Recipient</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Invoice details */}
-        <div className="px-6 py-3 grid grid-cols-2 gap-x-8 gap-y-1 text-[10px] text-gray-700 border-b border-gray-200">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Invoice No:</span>
-            <span className="font-semibold">{invoiceNumber || 'INV-2025001'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Date:</span>
-            <span className="font-semibold">{invoiceDate || '2025-01-15'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">PO Number:</span>
-            <span className="font-semibold">PO-44821</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Due Date:</span>
-            <span className="font-semibold">Net 30</span>
-          </div>
-        </div>
-
-        {/* Bill To / Ship To */}
-        <div className="px-6 py-3 grid grid-cols-2 gap-x-8 text-[10px] text-gray-700 border-b border-gray-200">
-          <div>
-            <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Bill To</div>
-            <div className="font-semibold">Johnson Controls Australia</div>
-            <div>Level 12, 100 Pacific Highway</div>
-            <div>North Sydney, NSW 2060</div>
-          </div>
-          <div>
-            <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Ship To</div>
-            <div className="font-semibold">JCI Facility - Melbourne</div>
-            <div>45 Innovation Drive</div>
-            <div>Scoresby, VIC 3179</div>
-          </div>
-        </div>
-
-        {/* Line items table */}
-        <div className="px-6 py-3">
-          <table className="w-full text-[9px] text-gray-700">
-            <thead>
-              <tr className="border-b border-gray-400">
-                <th className="text-left py-1 w-6">#</th>
-                <th className="text-left py-1">Description</th>
-                <th className="text-right py-1 w-10">Qty</th>
-                <th className="text-right py-1 w-16">Rate</th>
-                <th className="text-right py-1 w-16">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { desc: 'HVAC Installation - Unit A', qty: 2, rate: 45000 },
-                { desc: 'Ductwork & Fittings', qty: 1, rate: 28500 },
-                { desc: 'Control Panel Assembly', qty: 3, rate: 12750 },
-                { desc: 'Labour Charges - Electrical', qty: 1, rate: 18000 },
-                { desc: 'Commissioning & Testing', qty: 1, rate: 8500 },
-              ].map((row, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="py-1">{i + 1}</td>
-                  <td className="py-1">{row.desc}</td>
-                  <td className="py-1 text-right">{row.qty}</td>
-                  <td className="py-1 text-right">{row.rate.toLocaleString('en-AU')}</td>
-                  <td className="py-1 text-right">{(row.qty * row.rate).toLocaleString('en-AU')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Totals */}
-        <div className="px-6 py-3 border-t border-gray-300">
-          <div className="flex flex-col items-end text-[10px] text-gray-700 gap-0.5">
-            <div className="flex justify-between w-44">
-              <span>Subtotal:</span>
-              <span>{totalAmount || '170,500'}</span>
-            </div>
-            <div className="flex justify-between w-44">
-              <span>GST (10%):</span>
-              <span>17,050</span>
-            </div>
-            <div className="flex justify-between w-44 font-bold border-t border-gray-400 pt-1 mt-1 text-xs text-gray-900">
-              <span>Total:</span>
-              <span>187,550</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-gray-200 flex items-end justify-between">
-          <div className="text-[8px] text-gray-400 leading-snug">
-            <div>Bank: Commonwealth Bank, Branch North Sydney</div>
-            <div>BSB: 062-000 | A/C: 1234 5678</div>
-            <div className="mt-1">E&OE - Subject to Australian law</div>
-          </div>
-          <div className="text-center">
-            <div className="w-20 h-10 border border-dashed border-gray-300 rounded flex items-center justify-center text-[8px] text-gray-400">
-              Stamp & Sign
-            </div>
-            <div className="text-[8px] text-gray-400 mt-0.5">Authorised Signatory</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Mock Job Sheet SVG Document Component
@@ -328,6 +192,11 @@ export function DataValidationTab() {
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [activeDocumentType, setActiveDocumentType] = useState<'INVOICE' | 'JOB_SHEET'>('INVOICE');
   const [docPreviewOpen, setDocPreviewOpen] = useState(false);
+  const [glAccounts, setGLAccounts] = useState<{ id: string; accountNumber: string; name: string }[]>([]);
+  const [showDraftEmailDialog, setShowDraftEmailDialog] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [missingDocsDismissed, setMissingDocsDismissed] = useState(false);
 
   // Determine which document types are available based on category
   const availableDocTypes = useMemo(() => {
@@ -340,6 +209,10 @@ export function DataValidationTab() {
 
   useEffect(() => {
     initDraft();
+    // Load GL accounts
+    import('@/mock/vendors').then(({ mockGLAccounts }) => {
+      setGLAccounts(mockGLAccounts);
+    });
     // Load approvers from mock users, auto-select those within limit
     import('@/mock/users').then(({ mockUsers }) => {
       const totalAmount = selectedCase?.headerData.totalAmount ?? 0;
@@ -530,6 +403,16 @@ export function DataValidationTab() {
 
   return (
     <>
+      {/* Return Reason Banner */}
+      {selectedCase.status === 'RETURNED' && selectedCase.returnReason && (
+        <ReturnReasonBanner
+          returnedBy={selectedCase.returnedByName || 'Approver'}
+          returnedAt={selectedCase.returnedAt}
+          returnReason={selectedCase.returnReason}
+          variant="div"
+        />
+      )}
+
       <ResizablePanelGroup orientation="horizontal" className="min-h-[600px] rounded-lg border">
         {/* Left Panel - Document Viewer */}
         <ResizablePanel defaultSize={40} minSize={25}>
@@ -704,6 +587,7 @@ export function DataValidationTab() {
                         <TableHead className="w-20">Unit</TableHead>
                         <TableHead className="w-24">Rate</TableHead>
                         <TableHead className="w-24">Amount</TableHead>
+                        <TableHead className="w-40">GL Account</TableHead>
                         {!isReadOnly && <TableHead className="w-10" />}
                       </TableRow>
                     </TableHeader>
@@ -740,6 +624,24 @@ export function DataValidationTab() {
                           </TableCell>
                           <TableCell className="text-xs font-medium">
                             {formatCurrency(item.totalAmount)}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={item.glAccount || ''}
+                              onValueChange={(v) => updateDraftLineItem(item.id, 'glAccount', v)}
+                              disabled={isReadOnly}
+                            >
+                              <SelectTrigger className="h-7 text-xs border-0 bg-transparent p-0 w-36">
+                                <SelectValue placeholder="Select GL" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {glAccounts.map((gl) => (
+                                  <SelectItem key={gl.id} value={gl.accountNumber}>
+                                    {gl.accountNumber} - {gl.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           {!isReadOnly && (
                             <TableCell>
@@ -877,6 +779,61 @@ export function DataValidationTab() {
         </ResizablePanel>
       </ResizablePanelGroup>
 
+      {/* File Upload Area */}
+      {!isReadOnly && (
+        <div className="mt-4">
+          <div
+            className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 hover:bg-accent/30 transition-colors"
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setUploadedFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); }}
+            onClick={() => document.getElementById('file-upload-input')?.click()}
+          >
+            <Upload className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+            <p className="text-sm text-muted-foreground">Drag files here or click to browse</p>
+            <input id="file-upload-input" type="file" multiple className="hidden" onChange={(e) => { if (e.target.files) setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)]); }} />
+          </div>
+          {uploadedFiles.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {uploadedFiles.map((f, i) => (
+                <div key={i} className="flex items-center justify-between text-sm px-2 py-1 bg-accent/30 rounded">
+                  <span className="truncate">{f.name}</span>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => setUploadedFiles(prev => prev.filter((_, j) => j !== i))}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Missing Documents Auto-Detection Banner (Item 24) */}
+      {!isReadOnly && !missingDocsDismissed && (() => {
+        const docTypes = (selectedCase.attachments || []).map(a => a.documentType);
+        const missing: string[] = [];
+        if ((selectedCase.category === 'INSTALLATION' || selectedCase.category === 'WARRANTY') && !docTypes.includes('JOB_SHEET')) missing.push('Job Sheet');
+        if (!docTypes.includes('INVOICE')) missing.push('Tax Invoice');
+        if (missing.length === 0) return null;
+        return (
+          <div className="flex items-start gap-3 mt-4 p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+            <div className="flex-1 text-sm">
+              <p className="font-medium text-amber-800 dark:text-amber-300">Missing mandatory documents detected:</p>
+              <ul className="list-disc pl-4 mt-1 text-amber-700 dark:text-amber-400 text-xs">
+                {missing.map(d => <li key={d}>{d} (required for {selectedCase.category} category)</li>)}
+              </ul>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => {
+                setRejectReason(`Missing mandatory documents: ${missing.join(', ')}`);
+                setShowRejectDialog(true);
+              }}><Mail className="h-3 w-3" /> Auto-Draft Vendor Email</Button>
+              <Button size="sm" variant="ghost" className="text-xs" onClick={() => setMissingDocsDismissed(true)}>Dismiss</Button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Action Bar */}
       {!isReadOnly && (
         <div className="flex items-center justify-between mt-4 p-4 border rounded-lg bg-card">
@@ -887,6 +844,14 @@ export function DataValidationTab() {
             Reject
           </Button>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDraftEmailDialog(true)}
+              className="gap-1"
+            >
+              <Mail className="h-4 w-4" />
+              Draft Email
+            </Button>
             <Button
               variant="outline"
               onClick={handleSaveDraft}
@@ -935,32 +900,100 @@ export function DataValidationTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Invoice</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* Reject Dialog with Draft Email */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Reject Invoice</DialogTitle>
+            <DialogDescription>
               This action is permanent. The invoice will be rejected and cannot be reopened.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Textarea
-            placeholder="Reason for rejection (min 10 characters)..."
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            className="mt-2"
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs font-medium">Rejection Comment (min 10 characters)</Label>
+              <Textarea
+                placeholder="Reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+            {rejectReason.trim().length >= 10 && (
+              <div>
+                <Label className="text-xs font-medium">Draft Email to Vendor</Label>
+                <Textarea
+                  readOnly
+                  className="mt-1 text-xs bg-muted/50"
+                  rows={5}
+                  value={`Dear ${selectedCase.vendorName},\n\nWe are unable to process invoice ${headerData.invoiceNumber} due to:\n${rejectReason.trim()}\n\nPlease resubmit with corrected documents.\n\nRegards,\nJohnson Controls AP Team`}
+                />
+                <div className="flex gap-2 mt-1.5">
+                  <Button variant="outline" size="sm" className="text-xs" onClick={() => {
+                    navigator.clipboard.writeText(`Dear ${selectedCase.vendorName},\n\nWe are unable to process invoice ${headerData.invoiceNumber} due to:\n${rejectReason.trim()}\n\nPlease resubmit with corrected documents.\n\nRegards,\nJohnson Controls AP Team`);
+                    toast.success('Email copied to clipboard');
+                  }}>Copy Email</Button>
+                  <Button size="sm" className="text-xs gap-1" disabled={sendingEmail} onClick={() => {
+                    setSendingEmail(true);
+                    setTimeout(() => {
+                      setSendingEmail(false);
+                      toast.success(`Email sent to ${selectedCase.vendorName}`);
+                    }, 500);
+                  }}>
+                    {sendingEmail ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                    Send Email
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
               onClick={handleReject}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Reject Invoice
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Confirm Rejection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Draft Email Dialog for Validation Issues (Item 17) */}
+      <Dialog open={showDraftEmailDialog} onOpenChange={setShowDraftEmailDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Draft Email — Validation Issues</DialogTitle>
+            <DialogDescription>Auto-generated email based on business rule failures.</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            readOnly
+            className="text-xs bg-muted/50"
+            rows={10}
+            value={(() => {
+              const failures = selectedCase.businessRuleResults.filter(r => r.status === 'FAIL');
+              const issueList = failures.length > 0
+                ? failures.map((r, i) => `${i + 1}. ${r.ruleName}: ${r.message}${r.expectedValue ? ` (Expected: ${r.expectedValue}, Actual: ${r.actualValue})` : ''}`).join('\n')
+                : 'No validation issues found.';
+              return `Dear ${selectedCase.vendorName},\n\nThe following issues were found with invoice ${headerData.invoiceNumber}:\n\n${issueList}\n\nPlease address these issues and resubmit.\n\nRegards,\nJohnson Controls AP Team`;
+            })()}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDraftEmailDialog(false)}>Close</Button>
+            <Button onClick={() => {
+              const failures = selectedCase.businessRuleResults.filter(r => r.status === 'FAIL');
+              const issueList = failures.length > 0
+                ? failures.map((r, i) => `${i + 1}. ${r.ruleName}: ${r.message}${r.expectedValue ? ` (Expected: ${r.expectedValue}, Actual: ${r.actualValue})` : ''}`).join('\n')
+                : 'No validation issues found.';
+              navigator.clipboard.writeText(`Dear ${selectedCase.vendorName},\n\nThe following issues were found with invoice ${headerData.invoiceNumber}:\n\n${issueList}\n\nPlease address these issues and resubmit.\n\nRegards,\nJohnson Controls AP Team`);
+              toast.success('Email copied to clipboard');
+            }}>
+              Copy to Clipboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Document Preview Modal */}
       <Dialog open={docPreviewOpen} onOpenChange={setDocPreviewOpen}>
