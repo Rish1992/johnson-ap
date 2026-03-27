@@ -36,6 +36,7 @@ interface CaseState {
   fetchComments: (caseId: string) => Promise<void>;
   addComment: (content: string) => Promise<void>;
   clearSelectedCase: () => void;
+  markAsRead: (caseId: string) => void;
   clearDraft: () => void;
   initDraft: () => void;
 }
@@ -303,6 +304,12 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
       isDirty: false,
       businessRuleResults: [],
       comments: [],
+    });
+  },
+
+  markAsRead: (caseId: string) => {
+    set({
+      cases: get().cases.map(c => c.id === caseId ? { ...c, isRead: true } : c),
     });
   },
 

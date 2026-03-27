@@ -64,6 +64,9 @@ export interface Case {
   rejectedByName: string | null;
   rejectionReason: string | null;
   rejectedAt: string | null;
+  poType?: 'PO' | 'NON_PO';
+  entity?: 'AU' | 'NZ';
+  isRead?: boolean;
 }
 
 export interface Attachment {

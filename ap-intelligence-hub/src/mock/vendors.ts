@@ -1,6 +1,8 @@
 // Mock Vendors Data for InvoiceIQ
 // Realistic Australian vendor entries with contracts, cost centers, GL accounts, and configuration data
 
+import type { FreightRateCard, ServiceRateCard, AgreementMaster } from '@/types/masterData';
+
 // ============================================================================
 // VENDORS
 // ============================================================================
@@ -17,6 +19,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'SBIN0001234_10234567890',
+    email: 'finance@aglenergy.com.au',
+    branchCode: '001',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -51,6 +56,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'HDFC0000123_20345678901',
+    email: 'finance@originenergy.com.au',
+    branchCode: '002',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -75,6 +83,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET15',
     bankAccount: 'PUNB0015600_30456789012',
+    email: 'finance@sydneywater.com.au',
+    branchCode: '003',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -99,6 +110,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET45',
     bankAccount: 'CITI0000004_40567890123',
+    email: 'finance@telstra.com.au',
+    branchCode: '004',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -133,6 +147,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'ICIC0000056_50678901234',
+    email: 'finance@optus.com.au',
+    branchCode: '005',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -159,6 +176,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET60',
     bankAccount: 'AXIS0000789_60789012345',
+    email: 'finance@prysmian.com.au',
+    branchCode: '006',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -193,6 +213,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET45',
     bankAccount: 'SBIN0005678_70890123456',
+    email: 'finance@daikin.com.au',
+    branchCode: '007',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -227,6 +250,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'HDFC0001234_80901234567',
+    email: 'finance@olex.com.au',
+    branchCode: '008',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -251,6 +277,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET60',
     bankAccount: 'ICIC0000890_90012345678',
+    email: 'finance@downergroup.com.au',
+    branchCode: '009',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -285,6 +314,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET45',
     bankAccount: 'UTIB0002345_10123456789',
+    email: 'finance@mitsubishielectric.com.au',
+    branchCode: '010',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -321,6 +353,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'YESB0000567_11234567890',
+    email: 'finance@clipsal.com.au',
+    branchCode: '011',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -355,6 +390,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET45',
     bankAccount: 'KKBK0000678_12345678901',
+    email: 'finance@carrier.com.au',
+    branchCode: '012',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -379,6 +417,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'BARB0PIMPRI_13456789012',
+    email: 'finance@nexans.com.au',
+    branchCode: '013',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -413,6 +454,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET30',
     bankAccount: 'CNRB0000345_14567890123',
+    email: 'finance@reece.com.au',
+    branchCode: '014',
+    currency: 'AUD',
     isActive: true,
     contracts: [
       {
@@ -437,6 +481,9 @@ export const mockVendors = [
     country: 'Australia',
     paymentTerms: 'NET60',
     bankAccount: 'HSBC0400002_15678901234',
+    email: 'finance@schneider-electric.com.au',
+    branchCode: '015',
+    currency: 'AUD',
     isActive: false,
     contracts: [
       {
@@ -902,4 +949,46 @@ export const mockInvoiceCategoryConfigs = [
     approvalWorkflow: 'CONTRACT_MATCH',
     isActive: true,
   },
+];
+
+// ============================================================================
+// FREIGHT RATE CARDS
+// ============================================================================
+
+export const mockFreightRateCards: FreightRateCard[] = [
+  { id: 'FRC-001', origin: 'Taipei, Taiwan', destination: 'Sydney, Australia', containerType: '40ft', rate: 3200, currency: 'AUD', vendorId: 'VND-006', isActive: true },
+  { id: 'FRC-002', origin: 'Shanghai, China', destination: 'Melbourne, Australia', containerType: '20ft', rate: 1850, currency: 'AUD', vendorId: 'VND-006', isActive: true },
+  { id: 'FRC-003', origin: 'Shanghai, China', destination: 'Sydney, Australia', containerType: '40ft', rate: 3400, currency: 'AUD', vendorId: 'VND-008', isActive: true },
+  { id: 'FRC-004', origin: 'Los Angeles, USA', destination: 'Sydney, Australia', containerType: '40ft', rate: 4100, currency: 'AUD', vendorId: 'VND-009', isActive: true },
+  { id: 'FRC-005', origin: 'Taipei, Taiwan', destination: 'Auckland, New Zealand', containerType: 'LCL', rate: 950, currency: 'NZD', vendorId: 'VND-006', isActive: true },
+  { id: 'FRC-006', origin: 'Shanghai, China', destination: 'Auckland, New Zealand', containerType: '20ft', rate: 2100, currency: 'NZD', vendorId: 'VND-008', isActive: true },
+  { id: 'FRC-007', origin: 'Los Angeles, USA', destination: 'Melbourne, Australia', containerType: 'LCL', rate: 1200, currency: 'AUD', vendorId: 'VND-009', isActive: false },
+];
+
+// ============================================================================
+// SERVICE RATE CARDS
+// ============================================================================
+
+export const mockServiceRateCards: ServiceRateCard[] = [
+  { id: 'SRC-001', service: 'Installation', rate: 450, currency: 'AUD', vendorId: 'VND-007', isActive: true },
+  { id: 'SRC-002', service: 'Repair - Warranty', rate: 0, currency: 'AUD', vendorId: 'VND-011', isActive: true },
+  { id: 'SRC-003', service: 'Repair - Non-Warranty', rate: 285, currency: 'AUD', vendorId: 'VND-011', isActive: true },
+  { id: 'SRC-004', service: 'Maintenance', rate: 175, currency: 'AUD', vendorId: 'VND-012', isActive: true },
+  { id: 'SRC-005', service: 'Delivery', rate: 120, currency: 'AUD', vendorId: 'VND-009', isActive: true },
+  { id: 'SRC-006', service: 'Installation', rate: 520, currency: 'NZD', vendorId: 'VND-010', isActive: true },
+  { id: 'SRC-007', service: 'Maintenance', rate: 195, currency: 'NZD', vendorId: 'VND-012', isActive: false },
+];
+
+// ============================================================================
+// AGREEMENT MASTERS
+// ============================================================================
+
+export const mockAgreementMasters: AgreementMaster[] = [
+  { id: 'AGR-001', vendorId: 'VND-001', vendorName: 'AGL Energy Ltd', agreementNumber: 'AGR-UTL-2024-001', status: 'Active', startDate: '2024-04-01', endDate: '2027-03-31', isActive: true },
+  { id: 'AGR-002', vendorId: 'VND-006', vendorName: 'Prysmian Group Australia', agreementNumber: 'AGR-INST-2024-002', status: 'Active', startDate: '2024-06-01', endDate: '2026-05-31', isActive: true },
+  { id: 'AGR-003', vendorId: 'VND-011', vendorName: 'Clipsal by Schneider Electric', agreementNumber: 'AGR-WARR-2024-003', status: 'Active', startDate: '2024-04-15', endDate: '2027-04-14', isActive: true },
+  { id: 'AGR-004', vendorId: 'VND-015', vendorName: 'Schneider Electric Australia Pty Ltd', agreementNumber: 'AGR-WARR-2023-004', status: 'Expired', startDate: '2023-10-01', endDate: '2025-09-30', isActive: false },
+  { id: 'AGR-005', vendorId: 'VND-009', vendorName: 'Downer Group Ltd', agreementNumber: 'AGR-INST-2025-005', status: 'Active', startDate: '2025-01-15', endDate: '2026-07-14', isActive: true },
+  { id: 'AGR-006', vendorId: 'VND-004', vendorName: 'Telstra Corporation Ltd', agreementNumber: 'AGR-UTL-2025-006', status: 'Pending', startDate: '2025-07-01', endDate: '2028-06-30', isActive: false },
+  { id: 'AGR-007', vendorId: 'VND-007', vendorName: 'Daikin Australia Pty Ltd', agreementNumber: 'AGR-INST-2025-007', status: 'Active', startDate: '2025-02-01', endDate: '2026-01-31', isActive: true },
 ];

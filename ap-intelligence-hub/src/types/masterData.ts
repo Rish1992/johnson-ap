@@ -10,6 +10,9 @@ export interface Vendor {
   country: string;
   paymentTerms: string;
   bankAccount: string;
+  email: string;
+  branchCode: string;
+  currency: string;
   isActive: boolean;
   contracts: VendorContract[];
 }
@@ -134,6 +137,37 @@ export interface ApprovalSequenceMaster {
   name: string;
   description: string;
   steps: ApprovalSequenceStep[];
+  isActive: boolean;
+}
+
+export interface FreightRateCard {
+  id: string;
+  origin: string;
+  destination: string;
+  containerType: string;
+  rate: number;
+  currency: string;
+  vendorId: string;
+  isActive: boolean;
+}
+
+export interface ServiceRateCard {
+  id: string;
+  service: string;
+  rate: number;
+  currency: string;
+  vendorId: string;
+  isActive: boolean;
+}
+
+export interface AgreementMaster {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  agreementNumber: string;
+  status: 'Active' | 'Expired' | 'Pending';
+  startDate: string;
+  endDate: string;
   isActive: boolean;
 }
 

@@ -23,6 +23,9 @@ import type {
   ApprovalRule,
   BusinessRuleConfig,
   ApprovalSequenceMaster,
+  FreightRateCard,
+  ServiceRateCard,
+  AgreementMaster,
 } from '@/types/masterData';
 import type { User, Session } from '@/types/user';
 
@@ -39,6 +42,10 @@ import {
   mockPlantCodes,
   mockApprovalRules,
   mockBusinessRuleConfigs,
+  mockFreightRateCards,
+  mockServiceRateCards,
+  mockAgreementMasters,
+  mockInvoiceCategoryConfigs,
 } from './vendors';
 
 // ---------------------------------------------------------------------------
@@ -145,16 +152,16 @@ function generateBusinessRules(
       ruleId: 'BRC-001',
       ruleName: 'Duplicate Invoice Detection',
       description: 'Check for duplicate invoices by invoice_number + vendor within a 90-day window.',
-      status: (i % 11 === 0) ? 'FAIL' : 'PASS',
-      message: (i % 11 === 0)
+      status: (i % 11 === 0 || i === 3) ? 'FAIL' : 'PASS',
+      message: (i % 11 === 0 || i === 3)
         ? `Potential duplicate: INV-${2025000 + i} matches INV-${2025000 + i - 9} from same vendor.`
         : 'No duplicate invoices found for this vendor within the lookback window.',
       fieldPath: 'headerData.invoiceNumber',
-      severity: (i % 11 === 0) ? 'ERROR' : 'INFO',
+      severity: (i % 11 === 0 || i === 3) ? 'ERROR' : 'INFO',
       expectedValue: 'Unique invoice number per vendor',
-      actualValue: (i % 11 === 0) ? `INV-${2025000 + i} (duplicate of INV-${2025000 + i - 9})` : `INV-${2025000 + i}`,
+      actualValue: (i % 11 === 0 || i === 3) ? `INV-${2025000 + i} (duplicate of INV-${2025000 + i - 9})` : `INV-${2025000 + i}`,
       matchedAgainst: 'Invoice History (90-day window)',
-      details: (i % 11 === 0)
+      details: (i % 11 === 0 || i === 3)
         ? `Invoice INV-${2025000 + i} from ${vendor.name} matches a previously processed invoice. Original posted on ${new Date(now - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}.`
         : `Searched all invoices from ${vendor.name} within the last 90 days. No matching invoice number found.`,
     },
@@ -200,14 +207,14 @@ function generateBusinessRules(
       ruleId: 'BRC-004',
       ruleName: 'Tax Validation - GST',
       description: 'Validate GST = total tax amount, and correct tax rate (10%) is applied.',
-      status: (i % 13 === 0) ? 'FAIL' : 'PASS',
-      message: (i % 13 === 0)
+      status: (i % 13 === 0 || i === 3) ? 'FAIL' : 'PASS',
+      message: (i % 13 === 0 || i === 3)
         ? `Tax mismatch: GST (AUD ${(taxAmount + 150).toLocaleString()}) != expected AUD ${taxAmount.toLocaleString()}.`
         : `GST validation passed. GST AUD ${taxAmount.toLocaleString()} at 10%.`,
       fieldPath: 'headerData.taxAmount',
-      severity: (i % 13 === 0) ? 'ERROR' : 'INFO',
+      severity: (i % 13 === 0 || i === 3) ? 'ERROR' : 'INFO',
       expectedValue: `GST = AUD ${taxAmount.toLocaleString()} (10% of net)`,
-      actualValue: (i % 13 === 0)
+      actualValue: (i % 13 === 0 || i === 3)
         ? `GST AUD ${(taxAmount + 150).toLocaleString()}`
         : `GST AUD ${taxAmount.toLocaleString()}`,
       matchedAgainst: 'GST Tax Rules (Tax Code GST10)',
@@ -479,7 +486,32 @@ function generateMockCases(): Case[] {
         taxCode: 'GST10',
         description: `${category} invoice from ${vendor.name}`,
       },
-      lineItems: [
+      lineItems: (i === 2 || i === 4 || i === 5) ? [
+        {
+          id: `LI-${i}-1`,
+          lineNumber: 1,
+          description: `${category} service - Period ${createdDate.toISOString().split('T')[0]}`,
+          quantity: 1,
+          unitPrice: Math.round(netAmount * 0.6),
+          unit: 'EA',
+          totalAmount: Math.round(netAmount * 0.6),
+          taxAmount: Math.round(taxAmount * 0.6),
+          glAccount: '400100',
+          costCenter: 'CC1001',
+        },
+        {
+          id: `LI-${i}-2`,
+          lineNumber: 2,
+          description: `Equipment maintenance - ${createdDate.toISOString().split('T')[0]}`,
+          quantity: 1,
+          unitPrice: netAmount - Math.round(netAmount * 0.6),
+          unit: 'EA',
+          totalAmount: netAmount - Math.round(netAmount * 0.6),
+          taxAmount: taxAmount - Math.round(taxAmount * 0.6),
+          glAccount: '500100',
+          costCenter: 'CC1002',
+        },
+      ] : [
         {
           id: `LI-${i}-1`,
           lineNumber: 1,
@@ -612,6 +644,9 @@ function generateMockCases(): Case[] {
       rejectedByName: status === 'REJECTED' ? primaryApprover.name : null,
       rejectionReason: status === 'REJECTED' ? 'Duplicate invoice submission.' : null,
       rejectedAt: status === 'REJECTED' ? actionDate.toISOString() : null,
+      poType: i % 5 < 3 ? 'PO' : 'NON_PO',
+      entity: i % 7 < 5 ? 'AU' : 'NZ',
+      isRead: i % 10 < 7,
     };
 
     cases.push(caseItem);
@@ -1066,6 +1101,9 @@ export interface EmailRecord {
   classificationConfidence: number;
   linkedCaseId: string | null;
   isRead: boolean;
+  poType: 'PO' | 'NON_PO';
+  entity: 'AU' | 'NZ';
+  xeroLink?: string;
 }
 
 function generateMockEmails(): EmailRecord[] {
@@ -1141,6 +1179,10 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.88 + (i % 12) * 0.01,
       linkedCaseId: caseId,
       isRead: i <= 12,
+      poType: i % 5 < 3 ? 'PO' : 'NON_PO',
+      entity: i % 7 < 5 ? 'AU' : 'NZ',
+      ...(i === 3 ? { xeroLink: 'https://go.xero.com/AccountsPayable/View.aspx?InvoiceID=a1b2c3d4-e5f6-7890' } : {}),
+      ...(i === 8 ? { xeroLink: 'https://go.xero.com/AccountsPayable/View.aspx?InvoiceID=f9e8d7c6-b5a4-3210' } : {}),
     });
   }
 
@@ -1208,6 +1250,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.85 + (i % 10) * 0.01,
       linkedCaseId: null,
       isRead: i % 3 !== 0,
+      poType: i % 3 < 2 ? 'PO' : 'NON_PO',
+      entity: i % 5 < 4 ? 'AU' : 'NZ',
     });
   }
 
@@ -1229,6 +1273,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.95,
       linkedCaseId: null,
       isRead: false,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
     {
       from: 'noreply@zoom.us',
@@ -1246,6 +1292,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.97,
       linkedCaseId: null,
       isRead: true,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
     {
       from: 'newsletter@procurement-insider.com',
@@ -1261,6 +1309,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.99,
       linkedCaseId: null,
       isRead: true,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
     {
       from: 'mailer-daemon@smtp.johnsoncontrols.com.au',
@@ -1276,6 +1326,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.93,
       linkedCaseId: null,
       isRead: false,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
     {
       from: 'vendor.onboarding@johnsoncontrols.com.au',
@@ -1293,6 +1345,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.91,
       linkedCaseId: null,
       isRead: true,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
   ];
 
@@ -1323,6 +1377,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.34,
       linkedCaseId: null,
       isRead: false,
+      poType: 'PO',
+      entity: 'AU',
     },
     {
       from: 'accounts@hvacglobal.in',
@@ -1341,6 +1397,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.42,
       linkedCaseId: null,
       isRead: false,
+      poType: 'NON_PO',
+      entity: 'AU',
     },
     {
       from: 'info@securepowersolutions.com.au',
@@ -1359,6 +1417,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.51,
       linkedCaseId: null,
       isRead: false,
+      poType: 'PO',
+      entity: 'AU',
     },
     {
       from: 'do-not-reply@indiapost.gov.in',
@@ -1377,6 +1437,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.29,
       linkedCaseId: null,
       isRead: false,
+      poType: 'NON_PO',
+      entity: 'NZ',
     },
     {
       from: 'finance@thermalcomfort.com.au',
@@ -1395,6 +1457,8 @@ function generateMockEmails(): EmailRecord[] {
       classificationConfidence: 0.47,
       linkedCaseId: null,
       isRead: true,
+      poType: 'PO',
+      entity: 'NZ',
     },
   ];
 
@@ -2047,8 +2111,11 @@ export async function updateApprovalChain(
 // APPROVER-SPECIFIC HANDLERS
 // ============================================================================
 
-export async function fetchApproverCases(approverId: string): Promise<Case[]> {
+export async function fetchApproverCases(approverId: string, role?: string): Promise<Case[]> {
   await randomDelay();
+  if (role === 'SUPER_ADMIN') {
+    return db.cases.filter((c) => c.status === 'APPROVAL_PENDING');
+  }
   return db.cases.filter(
     (c) =>
       c.approvalChain !== null &&
@@ -2266,4 +2333,28 @@ export async function updateUser(
 export async function fetchEmails(): Promise<EmailRecord[]> {
   await randomDelay();
   return [...db.emails];
+}
+
+// ============================================================================
+// RATE CARD & AGREEMENT HANDLERS
+// ============================================================================
+
+export async function fetchFreightRateCards(): Promise<FreightRateCard[]> {
+  await delay(200);
+  return [...mockFreightRateCards];
+}
+
+export async function fetchServiceRateCards(): Promise<ServiceRateCard[]> {
+  await delay(200);
+  return [...mockServiceRateCards];
+}
+
+export async function fetchAgreementMasters(): Promise<AgreementMaster[]> {
+  await delay(200);
+  return [...mockAgreementMasters];
+}
+
+export async function fetchInvoiceCategoryConfigs(): Promise<typeof mockInvoiceCategoryConfigs> {
+  await delay(200);
+  return [...mockInvoiceCategoryConfigs];
 }

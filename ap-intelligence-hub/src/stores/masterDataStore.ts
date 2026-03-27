@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Vendor, CostCenter, GLAccount, TaxCode, CompanyCode, PlantCode, ApprovalRule, BusinessRuleConfig, ApprovalSequenceMaster } from '@/types/masterData';
+import type { Vendor, CostCenter, GLAccount, TaxCode, CompanyCode, PlantCode, ApprovalRule, BusinessRuleConfig, ApprovalSequenceMaster, FreightRateCard, ServiceRateCard, AgreementMaster } from '@/types/masterData';
 
 interface MasterDataState {
   vendors: Vendor[];
@@ -11,6 +11,10 @@ interface MasterDataState {
   approvalRules: ApprovalRule[];
   businessRuleConfigs: BusinessRuleConfig[];
   approvalSequences: ApprovalSequenceMaster[];
+  freightRateCards: FreightRateCard[];
+  serviceRateCards: ServiceRateCard[];
+  agreementMasters: AgreementMaster[];
+  invoiceCategoryConfigs: Record<string, unknown>[];
   isLoading: boolean;
 
   fetchVendors: () => Promise<void>;
@@ -22,6 +26,10 @@ interface MasterDataState {
   fetchApprovalRules: () => Promise<void>;
   fetchBusinessRuleConfigs: () => Promise<void>;
   fetchApprovalSequences: () => Promise<void>;
+  fetchFreightRateCards: () => Promise<void>;
+  fetchServiceRateCards: () => Promise<void>;
+  fetchAgreementMasters: () => Promise<void>;
+  fetchInvoiceCategoryConfigs: () => Promise<void>;
   fetchAll: () => Promise<void>;
 
   addVendor: (vendor: Omit<Vendor, 'id' | 'contracts'>) => Promise<void>;
@@ -41,6 +49,10 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
   approvalRules: [],
   businessRuleConfigs: [],
   approvalSequences: [],
+  freightRateCards: [],
+  serviceRateCards: [],
+  agreementMasters: [],
+  invoiceCategoryConfigs: [],
   isLoading: false,
 
   fetchVendors: async () => {
@@ -97,6 +109,30 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
     set({ approvalSequences });
   },
 
+  fetchFreightRateCards: async () => {
+    const { fetchFreightRateCards } = await import('@/mock/handlers');
+    const freightRateCards = await fetchFreightRateCards();
+    set({ freightRateCards });
+  },
+
+  fetchServiceRateCards: async () => {
+    const { fetchServiceRateCards } = await import('@/mock/handlers');
+    const serviceRateCards = await fetchServiceRateCards();
+    set({ serviceRateCards });
+  },
+
+  fetchAgreementMasters: async () => {
+    const { fetchAgreementMasters } = await import('@/mock/handlers');
+    const agreementMasters = await fetchAgreementMasters();
+    set({ agreementMasters });
+  },
+
+  fetchInvoiceCategoryConfigs: async () => {
+    const { fetchInvoiceCategoryConfigs } = await import('@/mock/handlers');
+    const invoiceCategoryConfigs = await fetchInvoiceCategoryConfigs();
+    set({ invoiceCategoryConfigs });
+  },
+
   fetchAll: async () => {
     set({ isLoading: true });
     const store = useMasterDataStore.getState();
@@ -110,6 +146,10 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
       store.fetchApprovalRules(),
       store.fetchBusinessRuleConfigs(),
       store.fetchApprovalSequences(),
+      store.fetchFreightRateCards(),
+      store.fetchServiceRateCards(),
+      store.fetchAgreementMasters(),
+      store.fetchInvoiceCategoryConfigs(),
     ]);
     set({ isLoading: false });
   },
