@@ -17,6 +17,10 @@ import {
 } from '@/components/ui/select';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { CategoryBadge } from '@/components/shared/CategoryBadge';
+import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
+import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
+import { StatCard } from '@/components/shared/StatCard';
 import {
   Inbox,
   Search,
@@ -34,8 +38,13 @@ import {
   ShieldQuestion,
   Eye,
   ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Download,
+  Loader2,
 } from 'lucide-react';
-import { formatRelativeTime, formatDateTime, formatFileSize, formatConfidence } from '@/lib/formatters';
+import { toast } from 'sonner';
+import { formatRelativeTime, formatDateTime, formatFileSize } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { EmailRecord } from '@/mock/handlers';
 
@@ -87,158 +96,6 @@ function ClassificationBadge({ classification }: { classification: EmailRecord['
   }
 }
 
-// ---------------------------------------------------------------------------
-// Category badge component
-// ---------------------------------------------------------------------------
-function CategoryBadge({ category }: { category: 'UTILITY' | 'INSTALLATION' | 'WARRANTY' }) {
-  const styles: Record<string, string> = {
-    UTILITY: 'bg-red-50 text-red-700 border-red-200',
-    INSTALLATION: 'bg-purple-50 text-purple-700 border-purple-200',
-    WARRANTY: 'bg-orange-50 text-orange-700 border-orange-200',
-  };
-  return (
-    <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', styles[category])}>
-      {category}
-    </Badge>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Mock Invoice Document (reused pattern from DataValidationTab)
-// ---------------------------------------------------------------------------
-function MockInvoiceDocument({ fromName, subject }: { fromName: string; subject: string }) {
-  const invoiceMatch = subject.match(/INV-\d+/);
-  const invoiceNumber = invoiceMatch ? invoiceMatch[0] : 'INV-UNKNOWN';
-  return (
-    <div
-      className="w-full max-w-[520px] mx-auto bg-white rounded shadow-md border border-gray-200 p-0 overflow-hidden select-none"
-      style={{ fontFamily: 'monospace' }}
-    >
-      <div className="relative bg-[#fafaf7]" style={{ transform: 'rotate(-0.3deg)' }}>
-        {/* Header area */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-300">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="w-28 h-8 bg-gray-300 rounded mb-2 flex items-center justify-center">
-                <span className="text-[9px] text-gray-600 font-bold tracking-wider">LOGO</span>
-              </div>
-              <div className="text-[10px] text-gray-700 leading-tight">
-                <div className="font-bold text-xs">{fromName.replace(' Accounts', '')}</div>
-                <div>123 Business Park, Level 5</div>
-                <div>Sydney, NSW 2000</div>
-                <div>ABN: 51 824 753 556</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-gray-800 tracking-wide">TAX INVOICE</div>
-              <div className="text-[10px] text-gray-600 mt-1">Original for Recipient</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Invoice details */}
-        <div className="px-6 py-3 grid grid-cols-2 gap-x-8 gap-y-1 text-[10px] text-gray-700 border-b border-gray-200">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Invoice No:</span>
-            <span className="font-semibold">{invoiceNumber}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Date:</span>
-            <span className="font-semibold">2025-01-15</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">PO Number:</span>
-            <span className="font-semibold">PO-44821</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Due Date:</span>
-            <span className="font-semibold">Net 30</span>
-          </div>
-        </div>
-
-        {/* Bill To / Ship To */}
-        <div className="px-6 py-3 grid grid-cols-2 gap-x-8 text-[10px] text-gray-700 border-b border-gray-200">
-          <div>
-            <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Bill To</div>
-            <div className="font-semibold">Johnson Controls Australia</div>
-            <div>Level 12, 100 Pacific Highway</div>
-            <div>North Sydney, NSW 2060</div>
-          </div>
-          <div>
-            <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">Ship To</div>
-            <div className="font-semibold">JCI Facility - Melbourne</div>
-            <div>45 Innovation Drive</div>
-            <div>Scoresby, VIC 3179</div>
-          </div>
-        </div>
-
-        {/* Line items table */}
-        <div className="px-6 py-3">
-          <table className="w-full text-[9px] text-gray-700">
-            <thead>
-              <tr className="border-b border-gray-400">
-                <th className="text-left py-1 w-6">#</th>
-                <th className="text-left py-1">Description</th>
-                <th className="text-right py-1 w-10">Qty</th>
-                <th className="text-right py-1 w-16">Rate</th>
-                <th className="text-right py-1 w-16">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { desc: 'HVAC Installation - Unit A', qty: 2, rate: 45000 },
-                { desc: 'Ductwork & Fittings', qty: 1, rate: 28500 },
-                { desc: 'Control Panel Assembly', qty: 3, rate: 12750 },
-                { desc: 'Labour Charges - Electrical', qty: 1, rate: 18000 },
-              ].map((row, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="py-1">{i + 1}</td>
-                  <td className="py-1">{row.desc}</td>
-                  <td className="py-1 text-right">{row.qty}</td>
-                  <td className="py-1 text-right">{row.rate.toLocaleString('en-AU')}</td>
-                  <td className="py-1 text-right">{(row.qty * row.rate).toLocaleString('en-AU')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Totals */}
-        <div className="px-6 py-3 border-t border-gray-300">
-          <div className="flex flex-col items-end text-[10px] text-gray-700 gap-0.5">
-            <div className="flex justify-between w-44">
-              <span>Subtotal:</span>
-              <span>167,250</span>
-            </div>
-            <div className="flex justify-between w-44">
-              <span>GST (10%):</span>
-              <span>16,725</span>
-            </div>
-            <div className="flex justify-between w-44 font-bold border-t border-gray-400 pt-1 mt-1 text-xs text-gray-900">
-              <span>Total:</span>
-              <span>183,975</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-gray-200 flex items-end justify-between">
-          <div className="text-[8px] text-gray-400 leading-snug">
-            <div>Bank: Commonwealth Bank, Branch North Sydney</div>
-            <div>BSB: 062-000 | A/C: 1234 5678</div>
-            <div className="mt-1">E&OE - Subject to Australian law</div>
-          </div>
-          <div className="text-center">
-            <div className="w-20 h-10 border border-dashed border-gray-300 rounded flex items-center justify-center text-[8px] text-gray-400">
-              Stamp & Sign
-            </div>
-            <div className="text-[8px] text-gray-400 mt-0.5">Authorised Signatory</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Email List Item
@@ -299,6 +156,12 @@ function EmailListItem({
       {/* Row 3: Badges */}
       <div className="flex items-center gap-1.5 pl-5 flex-wrap">
         <ClassificationBadge classification={email.classification} />
+        <Badge variant={email.poType === 'PO' ? 'default' : 'outline'} className="text-[10px] px-1.5 py-0">
+          {email.poType === 'PO' ? 'PO' : 'Non-PO'}
+        </Badge>
+        <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', email.entity === 'AU' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200')}>
+          {email.entity}
+        </Badge>
         {email.invoiceCategory && <CategoryBadge category={email.invoiceCategory} />}
         {email.attachmentCount > 0 && (
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
@@ -328,6 +191,8 @@ function EmailDetail({
 }) {
   const navigate = useNavigate();
   const [viewingAttachmentIdx, setViewingAttachmentIdx] = useState<number | null>(null);
+  const [xeroDownloading, setXeroDownloading] = useState(false);
+  const [xeroDownloaded, setXeroDownloaded] = useState(false);
   const viewedAtt = viewingAttachmentIdx !== null ? email.attachments[viewingAttachmentIdx] : null;
 
   return (
@@ -360,6 +225,68 @@ function EmailDetail({
             <span className="text-xs text-muted-foreground whitespace-nowrap">
               {formatDateTime(email.receivedAt)}
             </span>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Classification Details */}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Classification Details</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Classification</p>
+              <ClassificationBadge classification={email.classification} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Confidence</p>
+              <ConfidenceBadge
+                score={email.classificationConfidence}
+                level={email.classificationConfidence >= 0.85 ? 'HIGH' : email.classificationConfidence >= 0.6 ? 'MEDIUM' : 'LOW'}
+              />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Entity</p>
+              <Badge variant="outline" className={cn('text-xs', email.entity === 'AU' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200')}>
+                {email.entity}
+              </Badge>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">PO Type</p>
+              <Badge variant={email.poType === 'PO' ? 'default' : 'outline'} className="text-xs">
+                {email.poType === 'PO' ? 'PO' : 'Non-PO'}
+              </Badge>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Mandatory Attachment</p>
+              <div className="flex items-center gap-1 text-sm">
+                {email.attachments.length > 0 ? (
+                  <><CheckCircle className="h-4 w-4 text-emerald-600" /> <span className="text-emerald-700">Present</span></>
+                ) : (
+                  <><XCircle className="h-4 w-4 text-red-500" /> <span className="text-red-600">Missing</span></>
+                )}
+              </div>
+            </div>
+            {email.invoiceCategory && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Invoice Category</p>
+                <CategoryBadge category={email.invoiceCategory} />
+              </div>
+            )}
+            {email.linkedCaseId && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Linked Case</p>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-sm gap-1"
+                  onClick={() => navigate(`/agent/cases/${email.linkedCaseId}/overview`)}
+                >
+                  {email.linkedCaseId}
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -401,58 +328,45 @@ function EmailDetail({
                   </span>
                 </div>
               ))}
+              {xeroDownloaded && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50 dark:bg-blue-950/20 border-blue-200">
+                  {getFileIcon('PDF')}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">xero-invoice.pdf</p>
+                    <p className="text-xs text-muted-foreground">PDF &middot; Downloaded from Xero</p>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] bg-blue-100 text-blue-700 border-blue-200">Xero</Badge>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        <Separator />
-
-        {/* Classification Details */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-3">Classification Details</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Classification</p>
-              <ClassificationBadge classification={email.classification} />
+        {/* Xero Link Detection (Item 25) */}
+        {email.xeroLink && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Xero Invoice Detected</span>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Confidence</p>
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-xs',
-                  email.classificationConfidence >= 0.85
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : email.classificationConfidence >= 0.6
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-red-50 text-red-700 border-red-200'
-                )}
-              >
-                {formatConfidence(email.classificationConfidence)}%
-              </Badge>
-            </div>
-            {email.invoiceCategory && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Invoice Category</p>
-                <CategoryBadge category={email.invoiceCategory} />
-              </div>
-            )}
-            {email.linkedCaseId && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Linked Case</p>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-sm gap-1"
-                  onClick={() => navigate(`/agent/cases/${email.linkedCaseId}/overview`)}
-                >
-                  {email.linkedCaseId}
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </div>
+            <p className="text-xs text-blue-700 dark:text-blue-400 truncate">{email.xeroLink}</p>
+            {xeroDownloaded ? (
+              <div className="flex items-center gap-1 text-xs text-emerald-700"><CheckCircle className="h-3.5 w-3.5" /> Downloaded — see attachments</div>
+            ) : (
+              <Button size="sm" className="gap-1 text-xs" disabled={xeroDownloading} onClick={() => {
+                setXeroDownloading(true);
+                setTimeout(() => {
+                  setXeroDownloading(false);
+                  setXeroDownloaded(true);
+                  toast.success('Invoice downloaded from Xero');
+                }, 1000);
+              }}>
+                {xeroDownloading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                Download from Xero
+              </Button>
             )}
           </div>
-        </div>
+        )}
 
       </div>
 
@@ -471,7 +385,13 @@ function EmailDetail({
           <ScrollArea className="flex-1 bg-accent/10">
             <div className="flex items-start justify-center p-8">
               <div className="transform scale-125 origin-top">
-                <MockInvoiceDocument fromName={email.fromName} subject={email.subject} />
+                <MockInvoiceDocument
+                  vendorName={email.fromName.replace(' Accounts', '')}
+                  invoiceNumber={email.subject.match(/INV-\d+/)?.[0] ?? 'INV-UNKNOWN'}
+                  subtotal="167,250"
+                  gstAmount="16,725"
+                  totalAmount="183,975"
+                />
               </div>
             </div>
           </ScrollArea>
@@ -493,6 +413,11 @@ export function EmailReview() {
   const [readFilter, setReadFilter] = useState<string>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [attachmentFilter, setAttachmentFilter] = useState<string>('ALL');
+  const [poTypeFilter, setPoTypeFilter] = useState<string>('ALL');
+  const [entityFilter, setEntityFilter] = useState<string>('ALL');
+  const [dateFromFilter, setDateFromFilter] = useState('');
+  const [dateToFilter, setDateToFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<string>('NEWEST');
 
   useEffect(() => {
     import('@/mock/handlers').then(({ fetchEmails }) => {
@@ -513,7 +438,8 @@ export function EmailReview() {
         (e) =>
           e.subject.toLowerCase().includes(q) ||
           e.from.toLowerCase().includes(q) ||
-          e.fromName.toLowerCase().includes(q)
+          e.fromName.toLowerCase().includes(q) ||
+          (e.linkedCaseId && e.linkedCaseId.toLowerCase().includes(q))
       );
     }
 
@@ -537,13 +463,43 @@ export function EmailReview() {
       result = result.filter((e) => e.attachmentCount === 0);
     }
 
+    if (poTypeFilter !== 'ALL') {
+      result = result.filter((e) => e.poType === poTypeFilter);
+    }
+
+    if (entityFilter !== 'ALL') {
+      result = result.filter((e) => e.entity === entityFilter);
+    }
+
+    if (dateFromFilter) {
+      result = result.filter((e) => e.receivedAt >= dateFromFilter);
+    }
+
+    if (dateToFilter) {
+      const toEnd = dateToFilter + 'T23:59:59';
+      result = result.filter((e) => e.receivedAt <= toEnd);
+    }
+
+    result.sort((a, b) =>
+      sortOrder === 'NEWEST'
+        ? b.receivedAt.localeCompare(a.receivedAt)
+        : a.receivedAt.localeCompare(b.receivedAt)
+    );
+
     return result;
-  }, [emails, searchQuery, classificationFilter, readFilter, categoryFilter, attachmentFilter]);
+  }, [emails, searchQuery, classificationFilter, readFilter, categoryFilter, attachmentFilter, poTypeFilter, entityFilter, dateFromFilter, dateToFilter, sortOrder]);
 
   const selectedEmail = useMemo(
     () => emails.find((e) => e.id === selectedEmailId) ?? null,
     [emails, selectedEmailId]
   );
+
+  const emailStats = useMemo(() => {
+    const total = emails.length;
+    const invoice = emails.filter((e) => e.classification === 'INVOICE').length;
+    const nonInvoice = total - invoice;
+    return { total, invoice, nonInvoice };
+  }, [emails]);
 
   const unreadCount = useMemo(() => emails.filter((e) => !e.isRead).length, [emails]);
 
@@ -619,7 +575,59 @@ export function EmailReview() {
             <SelectItem value="WITHOUT">No Attachments</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
+          <SelectTrigger className="w-[130px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All PO Types</SelectItem>
+            <SelectItem value="PO">PO</SelectItem>
+            <SelectItem value="NON_PO">Non-PO</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={entityFilter} onValueChange={setEntityFilter}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Entities</SelectItem>
+            <SelectItem value="AU">AU</SelectItem>
+            <SelectItem value="NZ">NZ</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          value={dateFromFilter}
+          onChange={(e) => setDateFromFilter(e.target.value)}
+          className="w-[140px]"
+          placeholder="From date"
+        />
+        <Input
+          type="date"
+          value={dateToFilter}
+          onChange={(e) => setDateToFilter(e.target.value)}
+          className="w-[140px]"
+          placeholder="To date"
+        />
+        <Select value={sortOrder} onValueChange={setSortOrder}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="NEWEST">Newest First</SelectItem>
+            <SelectItem value="OLDEST">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Stat Cards */}
+      {!isLoading && emails.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <StatCard title="Total Emails" value={emailStats.total} icon={<Inbox className="h-4 w-4" />} />
+          <StatCard title="Invoice Emails" value={emailStats.invoice} icon={<ShieldCheck className="h-4 w-4" />} variant="success" />
+          <StatCard title="Non-Invoice Emails" value={emailStats.nonInvoice} icon={<ShieldAlert className="h-4 w-4" />} />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-0 border rounded-lg min-h-[600px]">
