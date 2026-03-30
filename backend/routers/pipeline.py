@@ -391,10 +391,11 @@ async def test_frontend(
 # ---------------------------------------------------------------------------
 @router.get("/jobs/{job_id}")
 def get_job(job_id: str, db: Session = Depends(get_db)):
+    from fastapi.responses import JSONResponse
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(404, f"Job {job_id} not found")
-    return job.to_dict()
+    return JSONResponse(content=job.to_dict(), headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"})
 
 
 # ---------------------------------------------------------------------------

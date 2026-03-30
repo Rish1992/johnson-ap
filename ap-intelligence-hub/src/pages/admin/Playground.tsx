@@ -79,7 +79,7 @@ async function callPlayground(
   // Poll for status every 3s
   while (true) {
     await new Promise(r => setTimeout(r, 3000));
-    const pollResp = await fetch(`${BASE}/api/jobs/${jobId}`);
+    const pollResp = await fetch(`${BASE}/api/jobs/${jobId}?_t=${Date.now()}`, { cache: 'no-store' });
     if (!pollResp.ok) throw new Error(`Poll error: ${pollResp.status}`);
     const job = await pollResp.json();
 
