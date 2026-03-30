@@ -7,3 +7,13 @@ backend/feedback/
 backend/.venv/
 AIM*.md
 __pycache__/
+backend/workspaces/
+backend/uploads/
+backend/test_cases/
+backend/*.db
+fix-agent/state/
+.env.local
+ap-intelligence-hub/.env
+ap-intelligence-hub/.env.local
+ap-intelligence-hub/.env.development
+ap-intelligence-hub/.env.production
