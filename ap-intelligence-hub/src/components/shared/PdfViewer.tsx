@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type { BoundingBox } from '@/types/case';
 
-// Vite-compatible worker setup
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
   import.meta.url,
@@ -16,40 +15,40 @@ interface PdfViewerProps {
 
 export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<{ num: number; width: number; height: number }[]>([]);
-  const [scale, setScale] = useState(1);
   const [error, setError] = useState(false);
-  const canvasMapRef = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  const renderedRef = useRef(false);
+  const pageWrappersRef = useRef<Map<number, { el: HTMLElement; w: number; h: number }>>(new Map());
 
-  // Load and render PDF
+  // Load PDF — fetch as blob first to bypass CORS
   useEffect(() => {
-    if (!url) return;
+    if (!url || renderedRef.current) return;
     let cancelled = false;
 
     (async () => {
       try {
-        const pdf = await pdfjsLib.getDocument({ url, disableAutoFetch: true }).promise;
-        if (cancelled) return;
+        // Fetch PDF as blob through same-origin proxy (bypasses CORS)
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const pdf = await pdfjsLib.getDocument(blobUrl).promise;
+        if (cancelled) { URL.revokeObjectURL(blobUrl); return; }
 
         const container = containerRef.current;
-        if (!container) return;
+        if (!container) { URL.revokeObjectURL(blobUrl); return; }
 
         const containerWidth = container.clientWidth || 500;
-        const pageInfos: { num: number; width: number; height: number }[] = [];
-
-        // Clear previous
-        container.querySelectorAll('.pdf-page').forEach(el => el.remove());
-        canvasMapRef.current.clear();
+        container.innerHTML = '';
+        pageWrappersRef.current.clear();
 
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          if (cancelled) return;
+          if (cancelled) break;
 
           const baseVp = page.getViewport({ scale: 1 });
-          const s = containerWidth / baseVp.width;
-          const vp = page.getViewport({ scale: s });
-
-          if (i === 1) setScale(s);
+          const scale = containerWidth / baseVp.width;
+          const vp = page.getViewport({ scale });
 
           const wrapper = document.createElement('div');
           wrapper.className = 'pdf-page';
@@ -57,25 +56,25 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
           wrapper.dataset.page = String(i);
 
           const canvas = document.createElement('canvas');
-          canvas.width = vp.width * window.devicePixelRatio;
-          canvas.height = vp.height * window.devicePixelRatio;
-          canvas.style.cssText = `width:${vp.width}px;height:${vp.height}px;`;
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = vp.width * dpr;
+          canvas.height = vp.height * dpr;
+          canvas.style.cssText = `width:${vp.width}px;height:${vp.height}px;display:block;`;
 
           wrapper.appendChild(canvas);
           container.appendChild(wrapper);
-          canvasMapRef.current.set(i, canvas);
+          pageWrappersRef.current.set(i, { el: wrapper, w: vp.width, h: vp.height });
 
           const ctx = canvas.getContext('2d')!;
-          ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+          ctx.scale(dpr, dpr);
           await page.render({ canvasContext: ctx, viewport: vp }).promise;
-
-          pageInfos.push({ num: i, width: vp.width, height: vp.height });
         }
 
-        setPages(pageInfos);
+        renderedRef.current = true;
         setError(false);
+        URL.revokeObjectURL(blobUrl);
       } catch (e) {
-        console.warn('PdfViewer: failed to load PDF, falling back to iframe', e);
+        console.warn('PdfViewer: failed to render PDF, falling back to iframe', e);
         if (!cancelled) setError(true);
       }
     })();
@@ -83,38 +82,38 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
     return () => { cancelled = true; };
   }, [url]);
 
-  // Draw highlight
+  // Highlight active bbox
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     // Remove old highlights
-    container.querySelectorAll('.bbox-hl').forEach(el => el.remove());
+    pageWrappersRef.current.forEach(({ el }) => {
+      el.querySelectorAll('.bbox-hl').forEach(h => h.remove());
+    });
+
     if (!activeBbox) return;
 
-    const wrapper = container.querySelector(`[data-page="${activeBbox.page}"]`) as HTMLElement;
-    if (!wrapper) return;
+    const pageInfo = pageWrappersRef.current.get(activeBbox.page);
+    if (!pageInfo) return;
 
-    const pw = parseFloat(wrapper.style.width);
-    const ph = parseFloat(wrapper.style.height);
+    const { el, w, h } = pageInfo;
 
     const hl = document.createElement('div');
     hl.className = 'bbox-hl';
     hl.style.cssText = `
       position:absolute;
-      left:${activeBbox.x * pw}px;
-      top:${activeBbox.y * ph}px;
-      width:${activeBbox.width * pw}px;
-      height:${activeBbox.height * ph}px;
+      left:${activeBbox.x * w}px;
+      top:${activeBbox.y * h}px;
+      width:${Math.max(activeBbox.width * w, 20)}px;
+      height:${Math.max(activeBbox.height * h, 12)}px;
       background:rgba(255,213,0,0.35);
       border:2px solid rgba(255,170,0,0.9);
-      border-radius:2px;
+      border-radius:3px;
       pointer-events:none;
       z-index:5;
       animation:bboxPulse 3s ease-out forwards;
+      box-shadow:0 0 8px rgba(255,170,0,0.5);
     `;
-    wrapper.appendChild(hl);
-    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.appendChild(hl);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [activeBbox]);
 
   if (error) {
@@ -131,10 +130,10 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
     <>
       <style>{`
         @keyframes bboxPulse {
-          0% { background:rgba(255,213,0,0.5); box-shadow:0 0 12px rgba(255,170,0,0.6); }
-          30% { background:rgba(255,213,0,0.25); }
-          60% { background:rgba(255,213,0,0.4); }
-          100% { background:rgba(255,213,0,0.2); box-shadow:none; }
+          0% { background:rgba(255,213,0,0.5); box-shadow:0 0 12px rgba(255,170,0,0.7); }
+          25% { background:rgba(255,213,0,0.2); box-shadow:0 0 4px rgba(255,170,0,0.3); }
+          50% { background:rgba(255,213,0,0.4); box-shadow:0 0 8px rgba(255,170,0,0.5); }
+          100% { background:rgba(255,213,0,0.15); box-shadow:none; }
         }
       `}</style>
       <div

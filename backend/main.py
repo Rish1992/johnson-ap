@@ -48,6 +48,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add CORS headers to ALL responses (including static files like PDFs)
+from starlette.middleware.base import BaseHTTPMiddleware
+class CORSStaticMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        origin = request.headers.get("origin", "")
+        if origin in ["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5191", "https://johnson.dev.fiscalix.com"]:
+            response.headers["Access-Control-Allow-Origin"] = origin
+        return response
+
+app.add_middleware(CORSStaticMiddleware)
+
 # ---------------------------------------------------------------------------
 # Mount routers
 # ---------------------------------------------------------------------------
