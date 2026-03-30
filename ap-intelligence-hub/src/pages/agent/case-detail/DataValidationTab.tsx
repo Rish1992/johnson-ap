@@ -24,7 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
 import {
   Save, CheckCircle, X, Plus, Trash2, Upload, Mail, AlertTriangle,
-  FileText, ZoomIn, ZoomOut, Loader2,
+  FileText, ZoomIn, ZoomOut, Loader2, Maximize2,
   GripVertical, ChevronUp, ChevronDown, UserCheck, Users,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
@@ -371,14 +371,15 @@ export function DataValidationTab() {
                 : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
               const fileUrl = att?.fileUrl;
               return fileUrl ? (
-                <div className="flex-1 relative group/doc cursor-pointer" onClick={() => setDocPreviewOpen(true)} title="Click to expand">
-                  <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="w-full h-full border-0 pointer-events-none" title={att?.fileName || 'Document'} />
-                  <div className="absolute inset-0 bg-black/0 group-hover/doc:bg-black/5 transition-colors flex items-center justify-center">
-                    <div className="opacity-0 group-hover/doc:opacity-100 transition-opacity bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border flex items-center gap-1.5">
-                      <ZoomIn className="h-3.5 w-3.5" />
-                      <span className="text-xs font-medium">Click to expand</span>
-                    </div>
-                  </div>
+                <div className="flex-1 relative">
+                  <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="w-full h-full border-0" title={att?.fileName || 'Document'} />
+                  <button
+                    onClick={() => setDocPreviewOpen(true)}
+                    className="absolute top-2 right-2 p-1.5 bg-background/90 backdrop-blur-sm rounded-md border shadow-sm hover:bg-accent transition-colors z-10"
+                    title="Expand document"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
                 </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center bg-accent/10 text-muted-foreground text-sm">
