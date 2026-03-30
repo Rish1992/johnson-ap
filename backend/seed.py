@@ -1,0 +1,661 @@
+"""Seed test users, master data (real Johnson data), and default prompt templates."""
+
+from sqlalchemy.orm import Session
+from models import (
+    User, Vendor, CostCenter, GLAccount, TaxCode, CompanyCode, PlantCode,
+    ApprovalRule, BusinessRuleConfig, FreightRateCard, ServiceRateCard,
+    AgreementMaster, InvoiceCategoryConfig, ApprovalSequenceMaster, PromptTemplate,
+)
+from auth import hash_password
+
+PW = hash_password("password123")
+
+
+def seed_all(db: Session):
+    """Seed everything if DB is empty."""
+    if db.query(User).count() > 0:
+        return  # Already seeded
+    _seed_users(db)
+    _seed_company_codes(db)
+    _seed_plant_codes(db)
+    _seed_cost_centers(db)
+    _seed_gl_accounts(db)
+    _seed_tax_codes(db)
+    _seed_vendors(db)
+    _seed_approval_rules(db)
+    _seed_business_rule_configs(db)
+    _seed_invoice_category_configs(db)
+    _seed_approval_sequences(db)
+    _seed_freight_rate_cards(db)
+    _seed_service_rate_cards(db)
+    _seed_agreement_masters(db)
+    _seed_prompt_templates(db)
+    db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Users (matching mock data: sarah agent, john/emma approvers, alex admin)
+# + real Johnson approvers from Process Design
+# ---------------------------------------------------------------------------
+def _seed_users(db: Session):
+    users = [
+        # Test users (match frontend mock)
+        User(id="agent-001", email="sarah.chen@company.com", password_hash=PW,
+             first_name="Sarah", last_name="Chen", role="AP_AGENT", department="Finance"),
+        User(id="agent-002", email="mike.ross@company.com", password_hash=PW,
+             first_name="Mike", last_name="Ross", role="AP_AGENT", department="Finance"),
+        User(id="approver-001", email="john.williams@company.com", password_hash=PW,
+             first_name="John", last_name="Williams", role="AP_REVIEWER", department="Operations", approval_limit=50000),
+        User(id="approver-002", email="emma.thompson@company.com", password_hash=PW,
+             first_name="Emma", last_name="Thompson", role="AP_REVIEWER", department="Finance", approval_limit=25000),
+        User(id="admin-001", email="alex.kumar@company.com", password_hash=PW,
+             first_name="Alex", last_name="Kumar", role="SUPER_ADMIN", department="IT"),
+        # Real Johnson approvers (from Process Design approval hierarchies)
+        User(id="approver-lisa", email="lisa.cubela@jhta.com.au", password_hash=PW,
+             first_name="Lisa", last_name="Cubela", role="AP_REVIEWER", department="Service", approval_limit=50000),
+        User(id="approver-haran", email="haran.ainkharan@jhta.com.au", password_hash=PW,
+             first_name="Haran", last_name="Ainkharan", role="AP_REVIEWER", department="Finance", approval_limit=999999),
+        User(id="approver-jai", email="jai.prasad@jhta.com.au", password_hash=PW,
+             first_name="Jai", last_name="Prasad", role="AP_REVIEWER", department="D&I", approval_limit=50000),
+        User(id="approver-simon", email="simon@jhta.com.au", password_hash=PW,
+             first_name="Simon", last_name="", role="AP_REVIEWER", department="D&I", approval_limit=50000),
+        User(id="approver-vinay", email="vinay.nirooban@jhta.com.au", password_hash=PW,
+             first_name="Vinay", last_name="Nirooban", role="AP_REVIEWER", department="Commercial", approval_limit=75000),
+        User(id="approver-ken", email="ken.mori@jhta.com.au", password_hash=PW,
+             first_name="Ken", last_name="Mori", role="AP_REVIEWER", department="Spare Parts", approval_limit=75000),
+        User(id="approver-sam", email="sam.forbes@jhta.com.au", password_hash=PW,
+             first_name="Sam", last_name="Forbes", role="AP_REVIEWER", department="Commercial", approval_limit=50000),
+    ]
+    db.add_all(users)
+
+
+# ---------------------------------------------------------------------------
+# Company & Plant Codes
+# ---------------------------------------------------------------------------
+def _seed_company_codes(db: Session):
+    db.add_all([
+        CompanyCode(id="COMP-AU", code="JHTA", name="Johnson Health Tech Australia Pty Ltd", country="Australia", currency="AUD"),
+        CompanyCode(id="COMP-NZ", code="JHTNZ", name="Johnson Health Tech New Zealand Ltd", country="New Zealand", currency="NZD"),
+    ])
+
+
+def _seed_plant_codes(db: Session):
+    db.add_all([
+        PlantCode(id="PLT-SYD", code="1000", name="Sydney Head Office", company_code="JHTA", address="Sydney, NSW"),
+        PlantCode(id="PLT-MEL", code="2000", name="Melbourne Warehouse", company_code="JHTA", address="Melbourne, VIC"),
+        PlantCode(id="PLT-BRI", code="3000", name="Brisbane Office", company_code="JHTA", address="Brisbane, QLD"),
+        PlantCode(id="PLT-NZ", code="4000", name="Auckland Office", company_code="JHTNZ", address="Auckland, NZ"),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Cost Centers (from Process Design: Home / Commercial / E-Commerce + Warehouse)
+# ---------------------------------------------------------------------------
+def _seed_cost_centers(db: Session):
+    db.add_all([
+        CostCenter(id="CC-HOME", code="CC-HOME", name="Home", department="Service", company_code="JHTA"),
+        CostCenter(id="CC-COMM", code="CC-COMMERCIAL", name="Commercial", department="Commercial", company_code="JHTA"),
+        CostCenter(id="CC-ECOM", code="CC-ECOMMERCE", name="E-Commerce", department="E-Commerce", company_code="JHTA"),
+        CostCenter(id="CC-WH", code="CC-WAREHOUSE", name="Warehouse", department="Warehouse", company_code="JHTA"),
+        CostCenter(id="CC-NZ", code="CC-NZ-COMMERCIAL", name="NZ Commercial", department="Commercial", company_code="JHTNZ"),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# GL Accounts (from Process Design: per category GL codes)
+# ---------------------------------------------------------------------------
+def _seed_gl_accounts(db: Session):
+    db.add_all([
+        GLAccount(id="GL-SUBCON-WAR", account_number="614100", name="Subcontractor Expense - Warranty", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-SUBCON-CHG", account_number="614200", name="Subcontractor Expense - Chargeable", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-DI", account_number="615100", name="Delivery & Installation", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-FRT-FG", account_number="616100", name="Freight - Finished Goods", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-FRT-SP", account_number="616200", name="Freight - Spare Parts", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-FRT-ADD", account_number="616300", name="Freight - Additional Charges", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-LEGAL", account_number="617100", name="Legal Expenses", type="EXPENSE", company_code="JHTA"),
+        GLAccount(id="GL-MKTG", account_number="618100", name="Marketing Expenses", type="EXPENSE", company_code="JHTA"),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Tax Codes (Australian GST)
+# ---------------------------------------------------------------------------
+def _seed_tax_codes(db: Session):
+    db.add_all([
+        TaxCode(id="TX-GST10", code="P1", description="GST 10%", rate=10.0, country="Australia"),
+        TaxCode(id="TX-FREE", code="P2", description="GST Free", rate=0.0, country="Australia"),
+        TaxCode(id="TX-NZ15", code="NZ15", description="NZ GST 15%", rate=15.0, country="New Zealand"),
+        TaxCode(id="TX-EXEMPT", code="EX", description="Tax Exempt", rate=0.0, country="Australia"),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Vendors (real Johnson vendors from Process Design)
+# ---------------------------------------------------------------------------
+def _seed_vendors(db: Session):
+    db.add_all([
+        Vendor(id="VND-REVO", vendor_number="V200001", name="RevoFit Pty Ltd ATF The NewFit Unit Trust",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-REVO-1", "vendorId": "VND-REVO", "contractNumber": "REVO-SUB-2024",
+                    "category": "SUBCONTRACTOR", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 500000, "isActive": True},
+               ]),
+        Vendor(id="VND-MAINFREIGHT", vendor_number="V200002", name="Mainfreight Air & Ocean Pty Ltd",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-MF-1", "vendorId": "VND-MAINFREIGHT", "contractNumber": "MF-FRT-2024",
+                    "category": "FREIGHT_FINISHED_GOODS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 2000000, "isActive": True},
+               ]),
+        Vendor(id="VND-GENSUBCON", vendor_number="V200003", name="General Subcontractor Services",
+               tax_id="", city="Melbourne", country="Australia",
+               payment_terms="NET30", currency="AUD", contracts=[]),
+        Vendor(id="VND-DI-01", vendor_number="V200004", name="D&I Installation Services",
+               tax_id="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD", contracts=[]),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Approval Rules (from Process Design: category -> L1/L2 approvers)
+# ---------------------------------------------------------------------------
+def _seed_approval_rules(db: Session):
+    rules = [
+        ("SUBCONTRACTOR", "Subcontractor L1+L2", ["approver-lisa", "approver-haran"]),
+        ("RUST_SUBCONTRACTOR", "Rust Subcontractor L1+L2", ["approver-lisa", "approver-haran"]),
+        ("DELIVERY_INSTALLATION", "D&I L1+L2", ["approver-jai", "approver-haran"]),
+        ("FREIGHT_FINISHED_GOODS", "Freight FG L1+L2", ["approver-vinay", "approver-haran"]),
+        ("FREIGHT_SPARE_PARTS", "Freight SP L1+L2", ["approver-ken", "approver-haran"]),
+        ("FREIGHT_ADDITIONAL_CHARGES", "Freight Add L1+L2", ["approver-sam", "approver-haran"]),
+    ]
+    for cat, name, ids in rules:
+        db.add(ApprovalRule(
+            name=name, category=cat, min_amount=0, max_amount=999999999,
+            required_approvers=2, approver_ids=ids, sla_hours=48,
+        ))
+
+
+# ---------------------------------------------------------------------------
+# Business Rule Configs
+# ---------------------------------------------------------------------------
+def _seed_business_rule_configs(db: Session):
+    configs = [
+        ("Vendor Bank Match", "Invoice bank details must match vendor master", "ALL", "bankDetails", "MATCH_VENDOR_MASTER", "ERROR"),
+        ("Invoice Amount Positive", "Invoice total must be positive", "ALL", "totalAmount", "GREATER_THAN_ZERO", "ERROR"),
+        ("Tax Calculation", "Tax amount must equal net * tax rate", "ALL", "taxAmount", "EQUALS_NET_TIMES_RATE", "WARNING"),
+        ("Worksheet Number Match", "Contractor worksheet number must match invoice reference", "SUBCONTRACTOR", "worksheetNumber", "MATCH_SUPPORTING_DOC", "ERROR"),
+        ("Quote Amount Match", "Invoice subtotal must match installation worksheet quote", "DELIVERY_INSTALLATION", "subtotal", "MATCH_QUOTE_AMOUNT", "ERROR"),
+        ("Rate Card Match", "Freight rates must match contracted rate card", "FREIGHT_FINISHED_GOODS", "rate", "MATCH_RATE_CARD", "WARNING"),
+        ("Entity Billing Match", "AU vendor must bill to AU entity; NZ vendor to NZ entity", "ALL", "entity", "MATCH_VENDOR_ENTITY", "ERROR"),
+    ]
+    for name, desc, cat, field, cond, sev in configs:
+        db.add(BusinessRuleConfig(name=name, description=desc, category=cat, field=field, condition=cond, severity=sev))
+
+
+# ---------------------------------------------------------------------------
+# Invoice Category Configs (from Process Design mandatory doc matrix)
+# ---------------------------------------------------------------------------
+def _seed_invoice_category_configs(db: Session):
+    configs = [
+        ("SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-WAR"),
+        ("RUST_SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-CHG"),
+        ("DELIVERY_INSTALLATION", ["Invoice", "Installation Worksheet"], "GL-DI"),
+        ("FREIGHT_FINISHED_GOODS", ["Invoice", "Commercial Invoice"], "GL-FRT-FG"),
+        ("FREIGHT_SPARE_PARTS", ["Invoice", "Commercial Invoice"], "GL-FRT-SP"),
+        ("FREIGHT_ADDITIONAL_CHARGES", ["Invoice"], "GL-FRT-ADD"),
+    ]
+    for name, docs, gl in configs:
+        db.add(InvoiceCategoryConfig(name=name, required_docs=docs, gl_account=gl))
+
+
+# ---------------------------------------------------------------------------
+# Approval Sequences (matching categories)
+# ---------------------------------------------------------------------------
+def _seed_approval_sequences(db: Session):
+    seqs = [
+        ("SUBCONTRACTOR", "Subcontractor Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Lisa Cubela", "approverId": "approver-lisa"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+        ("RUST_SUBCONTRACTOR", "Rust Subcontractor Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Lisa Cubela", "approverId": "approver-lisa"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+        ("DELIVERY_INSTALLATION", "D&I Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Jai Prasad", "approverId": "approver-jai"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+        ("FREIGHT_FINISHED_GOODS", "Freight FG Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Vinay Nirooban", "approverId": "approver-vinay"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+        ("FREIGHT_SPARE_PARTS", "Freight SP Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Ken Mori", "approverId": "approver-ken"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+        ("FREIGHT_ADDITIONAL_CHARGES", "Freight Additional Approval", [
+            {"stepNumber": 1, "approverRole": "L1 Approver", "approverName": "Sam Forbes", "approverId": "approver-sam"},
+            {"stepNumber": 2, "approverRole": "L2 Approver", "approverName": "Haran Ainkharan", "approverId": "approver-haran"},
+        ]),
+    ]
+    for inv_type, name, steps in seqs:
+        db.add(ApprovalSequenceMaster(invoice_type=inv_type, name=name, steps=steps))
+
+
+# ---------------------------------------------------------------------------
+# Rate Cards
+# ---------------------------------------------------------------------------
+def _seed_freight_rate_cards(db: Session):
+    db.add_all([
+        FreightRateCard(origin="Shanghai", destination="Sydney", container_type="20ft", rate=2800.0, currency="USD", vendor_id="VND-MAINFREIGHT"),
+        FreightRateCard(origin="Shanghai", destination="Sydney", container_type="40ft", rate=4200.0, currency="USD", vendor_id="VND-MAINFREIGHT"),
+        FreightRateCard(origin="Shanghai", destination="Auckland", container_type="20ft", rate=3100.0, currency="USD", vendor_id="VND-MAINFREIGHT"),
+        FreightRateCard(origin="Ningbo", destination="Sydney", container_type="40ft HC", rate=4500.0, currency="USD", vendor_id="VND-MAINFREIGHT"),
+    ])
+
+
+def _seed_service_rate_cards(db: Session):
+    db.add_all([
+        ServiceRateCard(service="Standard Service Call - Warranty", rate=165.0, currency="AUD", vendor_id="VND-REVO"),
+        ServiceRateCard(service="Standard Service Call - Chargeable", rate=195.0, currency="AUD", vendor_id="VND-REVO"),
+        ServiceRateCard(service="Delivery & Installation - Standard", rate=220.0, currency="AUD", vendor_id="VND-DI-01"),
+        ServiceRateCard(service="Delivery & Installation - Premium", rate=350.0, currency="AUD", vendor_id="VND-DI-01"),
+    ])
+
+
+def _seed_agreement_masters(db: Session):
+    db.add_all([
+        AgreementMaster(vendor_id="VND-REVO", vendor_name="RevoFit Pty Ltd", agreement_number="AGR-REVO-2024",
+                        status="Active", start_date="2024-01-01", end_date="2026-12-31"),
+        AgreementMaster(vendor_id="VND-MAINFREIGHT", vendor_name="Mainfreight Air & Ocean", agreement_number="AGR-MF-2024",
+                        status="Active", start_date="2024-01-01", end_date="2026-12-31"),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Prompt Templates (5 AI steps — real, meaningful prompts from Process Design)
+# ---------------------------------------------------------------------------
+def _seed_prompt_templates(db: Session):
+    templates = [
+        # --- Step 1: Classify ---
+        PromptTemplate(
+            step_name="classify",
+            display_name="Email Classification",
+            system_prompt="""# Email Classification Agent
+
+You are an AP invoice processing agent for Johnson Health Tech Australia. Your task is to classify incoming emails as either INVOICE or NON_INVOICE.
+
+## Classification Rules
+
+Analyze THREE signals and combine them:
+
+### Signal 1: Sender Reputation
+- Known vendor email domains (e.g., accounts@, finance@, invoices@) = strong invoice indicator
+- Internal JHTA emails = likely non-invoice
+- Payment reminder emails = NON_INVOICE
+
+### Signal 2: Email Body Keywords
+Invoice indicators: "invoice attached", "invoice for submission", "please find attached invoice", "attached invoice", "please process invoice"
+Non-invoice indicators: "payment reminder", "overdue payment", "statement of account", "meeting", "follow up"
+
+### Signal 3: Attachment Content
+- If attachment is present AND contains keywords "Tax Invoice" or "Invoice" AND email body does NOT indicate payment reminder -> INVOICE
+- No attachments or only images/signatures -> NON_INVOICE
+
+## Output
+Return a JSON object with:
+- classification: "INVOICE" or "NON_INVOICE"
+- confidence: float 0-1
+- signals: object with sender, body, attachment analysis details
+
+Read email.json in this workspace for the email content and attachments/ for attachment content.""",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "classification": {"type": "string", "enum": ["INVOICE", "NON_INVOICE"]},
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    "signals": {
+                        "type": "object",
+                        "properties": {
+                            "sender": {"type": "string"},
+                            "body": {"type": "string"},
+                            "attachment": {"type": "string"}
+                        }
+                    }
+                },
+                "required": ["classification", "confidence", "signals"]
+            },
+        ),
+        # --- Step 2: Categorize ---
+        PromptTemplate(
+            step_name="categorize",
+            display_name="Invoice Categorization & Entity ID",
+            system_prompt="""# Invoice Categorization & Entity Identification Agent
+
+You are an AP invoice processing agent for Johnson Health Tech Australia. Classify the invoice into a category and identify the billing entity.
+
+## Categories (Phase 1)
+
+### SUBCONTRACTOR
+- Vendor "RevoFit Pty Ltd ATF The NewFit Unit Trust" -> always Subcontractor/Rust
+- Job sheet references starting with "JAU" or "CNR" or "Work Order"
+- Keywords: "labour charges", "repair", "warranty repairs"
+- Email reference: service@jhta.com.au
+- Sub-type: Job Category = "Warranty Repair" AND Warranty Status = "Full Warranty"
+
+### RUST_SUBCONTRACTOR
+- Same vendor signals as Subcontractor
+- Sub-type: Job Category = "Chargeable Repairs" AND Warranty Status = "Chargeable repairs"
+
+### DELIVERY_INSTALLATION
+- Job sheet references starting with "CAS"
+- Keywords: "Delivery", "Installation", "Delivery and Installation", "D&I"
+- Email reference: dni@jhta.com.au
+- Installation Worksheet attached
+
+### FREIGHT_FINISHED_GOODS
+- Goods Description mentions Equipment/Finished Goods (NOT "Spare Parts")
+- Consignor/Consignee present, container/shipping details
+- Sea: "Ocean Bill of Lading", Container Number, Vendor "MAINFREIGHT AIR & OCEAN PTY LTD"
+- Air: Flight Number & Date
+
+### FREIGHT_SPARE_PARTS
+- Goods Description contains "Spare Parts" or "Parts"
+- Same shipping indicators as Freight FG
+
+### FREIGHT_ADDITIONAL_CHARGES
+- Charges include destination, handling, documentation, clearance, non-freight components
+- Default when freight indicators exist but no FG/SP classification
+
+## Entity Identification (AU / NZ)
+1. Bill To section: "JOHNSON HEALTH TECH. AUSTRALIA PTY LTD" -> AU; "JOHNSON HEALTH TECH NEW ZEALAND LTD" -> NZ
+2. Entity identifiers: ABN/ACN present -> AU
+3. Supporting documents: look for entity name
+
+## PO Type
+- Determine if PO or NON_PO based on presence of Purchase Order reference
+
+## Vendor Matching
+- Compare sender/invoice vendor name against vendors.json in master-data/
+- Return best match with confidence
+
+## Classification Priority
+1. Vendor-based identification (highest priority)
+2. Invoice reference numbers (JAU/CNR/CAS)
+3. Description keywords
+
+Read email.json, attachments/, and master-data/vendors.json for context.""",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "enum": ["SUBCONTRACTOR", "RUST_SUBCONTRACTOR", "DELIVERY_INSTALLATION", "FREIGHT_FINISHED_GOODS", "FREIGHT_SPARE_PARTS", "FREIGHT_ADDITIONAL_CHARGES"]},
+                    "entity": {"type": "string", "enum": ["AU", "NZ"]},
+                    "poType": {"type": "string", "enum": ["PO", "NON_PO"]},
+                    "vendorMatch": {
+                        "type": "object",
+                        "properties": {
+                            "vendorId": {"type": "string"},
+                            "vendorNumber": {"type": "string"},
+                            "vendorName": {"type": "string"},
+                            "confidence": {"type": "number"}
+                        }
+                    },
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    "reasoning": {"type": "string"}
+                },
+                "required": ["category", "entity", "poType", "confidence"]
+            },
+        ),
+        # --- Step 3: Verify Docs ---
+        PromptTemplate(
+            step_name="verify_docs",
+            display_name="Supporting Document Verification",
+            system_prompt="""# Supporting Document Verification Agent
+
+You are an AP invoice processing agent for Johnson Health Tech Australia. Verify that all mandatory supporting documents are present for the identified invoice category.
+
+## Mandatory Documents Matrix
+
+| Category | Required Documents |
+|----------|-------------------|
+| SUBCONTRACTOR | Invoice + Contractor Worksheet / Service Job Sheet / Work Order |
+| RUST_SUBCONTRACTOR | Invoice + Contractor Worksheet / Service Job Sheet / Work Order |
+| DELIVERY_INSTALLATION | Invoice + Installation Worksheet |
+| FREIGHT_FINISHED_GOODS | Invoice + Commercial Invoice |
+| FREIGHT_SPARE_PARTS | Invoice + Commercial Invoice |
+| FREIGHT_ADDITIONAL_CHARGES | Invoice only |
+
+## Verification Process
+1. Read master-data/category-config.json for the category's required documents
+2. Check each attachment in attachments/ — read content to determine document type
+3. For each required document, determine if it is present and valid
+4. Flag missing documents
+
+## Document Type Identification
+- Invoice: contains "Tax Invoice", "Invoice Number", amounts
+- Contractor Worksheet: contains "JAU"/"CNR" reference, job details, branch code
+- Service Job Sheet: contains service details, technician info
+- Work Order: contains work order reference, task descriptions
+- Installation Worksheet: contains "CAS" reference, delivery/installation details
+- Commercial Invoice: contains shipment details, goods description, origin/destination
+
+Read results/step2_categorize.json for category, then check attachments/.""",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "verified": {"type": "boolean"},
+                    "presentDocs": {"type": "array", "items": {"type": "string"}},
+                    "missingDocs": {"type": "array", "items": {"type": "string"}},
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    "details": {"type": "array", "items": {
+                        "type": "object",
+                        "properties": {
+                            "documentType": {"type": "string"},
+                            "fileName": {"type": "string"},
+                            "status": {"type": "string", "enum": ["PRESENT", "MISSING"]},
+                            "notes": {"type": "string"}
+                        }
+                    }}
+                },
+                "required": ["verified", "presentDocs", "missingDocs", "confidence"]
+            },
+        ),
+        # --- Step 4: Extract ---
+        PromptTemplate(
+            step_name="extract",
+            display_name="Data Extraction",
+            system_prompt="""# Data Extraction Agent
+
+You are an AP invoice processing agent for Johnson Health Tech Australia. Extract all required data points from the invoice and supporting documents.
+
+## Common Data Points (all categories)
+- Entity Name (from "Bill To" section)
+- Vendor Name
+- Invoice Date
+- Invoice Number (-> SAP Reference Number)
+- Invoice Amount (total including tax)
+- Subtotal (net amount before tax)
+- Tax Amount
+- ABN / GST Number
+- Bank Details
+- Currency
+
+## Category-Specific Data Points
+
+### SUBCONTRACTOR / RUST_SUBCONTRACTOR (from Invoice + Contractor Worksheet)
+- Job Sheet Number (JAU / CNR / Work Order)
+- Job Category (Warranty Repair or Chargeable Repairs -> determines GL Code)
+- Branch Code (-> determines Cost Centre: Home / Commercial / E-Commerce)
+- Description, Quantity, Unit Price per line item
+
+### DELIVERY_INSTALLATION (from Invoice + Installation Worksheet)
+- Job Sheet Number (CAS)
+- Job Category (Delivery & Installation)
+- Branch / Sales Order Number (-> determines Cost Centre)
+- Quote Amount (from worksheet, to compare with invoice)
+- Description, Quantity, Unit Price per line item
+
+### FREIGHT (FG / SP / Additional) (from Invoice + Commercial Invoice)
+- Origin, Destination
+- Container Type
+- Goods Description
+- Commercial Invoice value (USD, for on-cost calculation)
+- Cost Centre = always Commercial
+
+## GL Code Derivation
+- Subcontractor Warranty -> 614100
+- Subcontractor Chargeable (Rust) -> 614200
+- D&I -> 615100
+- Freight FG -> 616100
+- Freight SP -> 616200
+- Freight Additional -> 616300
+
+## Cost Centre Derivation
+- Subcontractor/D&I: from Branch Code on job sheet (Home/Commercial/E-Commerce)
+- RevoFit vendor: always Commercial
+- Freight: always Commercial
+
+## Confidence Scoring
+For each extracted field, provide a confidence score (0-1) and level (HIGH/MEDIUM/LOW).
+HIGH: clearly readable, unambiguous
+MEDIUM: readable but could be misread (handwriting, low quality)
+LOW: guessed or derived from context
+
+Read attachments/ for invoice and supporting document content.
+Read results/step2_categorize.json for category context.""",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "headerData": {
+                        "type": "object",
+                        "properties": {
+                            "invoiceNumber": {"type": "string"},
+                            "invoiceDate": {"type": "string"},
+                            "dueDate": {"type": "string"},
+                            "invoiceType": {"type": "string"},
+                            "currency": {"type": "string"},
+                            "totalAmount": {"type": "number"},
+                            "taxAmount": {"type": "number"},
+                            "netAmount": {"type": "number"},
+                            "purchaseOrderNumber": {"type": "string"},
+                            "deliveryNoteNumber": {"type": "string"},
+                            "paymentTerms": {"type": "string"},
+                            "companyCode": {"type": "string"},
+                            "plantCode": {"type": "string"},
+                            "costCenter": {"type": "string"},
+                            "glAccount": {"type": "string"},
+                            "taxCode": {"type": "string"},
+                            "description": {"type": "string"}
+                        }
+                    },
+                    "lineItems": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {"type": "string"},
+                                "lineNumber": {"type": "integer"},
+                                "description": {"type": "string"},
+                                "quantity": {"type": "number"},
+                                "unitPrice": {"type": "number"},
+                                "unit": {"type": "string"},
+                                "totalAmount": {"type": "number"},
+                                "taxAmount": {"type": "number"},
+                                "glAccount": {"type": "string"},
+                                "costCenter": {"type": "string"}
+                            }
+                        }
+                    },
+                    "confidenceScores": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "value": {"type": "number"},
+                                "level": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+                                "extractedValue": {"type": "string"}
+                            }
+                        }
+                    }
+                },
+                "required": ["headerData", "lineItems", "confidenceScores"]
+            },
+        ),
+        # --- Step 5: Validate ---
+        PromptTemplate(
+            step_name="validate",
+            display_name="Validation & Business Rules",
+            system_prompt="""# Validation & Business Rule Matching Agent
+
+You are an AP invoice processing agent for Johnson Health Tech Australia. Validate extracted data against supporting documents, vendor master, rate cards, and business rules.
+
+## 4-Way Matching
+
+### 1. Invoice <-> Supporting Documents
+- SUBCONTRACTOR: Contractor worksheet number on invoice must match worksheet. Unit prices should match service rate master.
+- D&I: Job number on invoice must match installation worksheet. Subtotal must match quote amount.
+- FREIGHT: Rates on invoice must match freight rate card.
+
+### 2. Invoice <-> Vendor Master
+- Bank details on invoice must match vendor master record
+- Vendor name/ABN must match
+- Payment terms should align
+
+### 3. Invoice <-> Rate Cards / Business Rules
+- Service rates must match service rate card for vendor
+- Freight rates must match freight rate card for route/container
+- Invoice amount must be positive
+- Tax calculation: tax amount should equal net * applicable rate (10% AU, 15% NZ)
+
+### 4. Invoice <-> Entity Rules
+- Australian vendor (ABN) must bill to Australian entity
+- New Zealand vendor must bill to NZ entity
+- Currency must match entity (AUD for AU, NZD for NZ)
+
+## Rule Results
+For each validation, return:
+- ruleId, ruleName, description
+- status: PASS | FAIL | WARNING | SKIPPED
+- severity: ERROR | WARNING | INFO
+- message explaining the result
+- expectedValue vs actualValue (when applicable)
+
+## Overall Status
+- All PASS -> "PASS"
+- Any FAIL with ERROR severity -> "FAIL"
+- Any WARNING but no ERROR fails -> "WARNING"
+
+Read results/step5_extract.json for extracted data.
+Read master-data/ for vendors.json, rate-cards.json, and approval-rules.json.""",
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "ruleId": {"type": "string"},
+                                "ruleName": {"type": "string"},
+                                "description": {"type": "string"},
+                                "status": {"type": "string", "enum": ["PASS", "FAIL", "WARNING", "SKIPPED"]},
+                                "message": {"type": "string"},
+                                "severity": {"type": "string", "enum": ["ERROR", "WARNING", "INFO"]},
+                                "expectedValue": {"type": "string"},
+                                "actualValue": {"type": "string"},
+                                "matchedAgainst": {"type": "string"},
+                                "details": {"type": "string"}
+                            },
+                            "required": ["ruleId", "ruleName", "status", "message", "severity"]
+                        }
+                    },
+                    "overallStatus": {"type": "string", "enum": ["PASS", "FAIL", "WARNING"]}
+                },
+                "required": ["results", "overallStatus"]
+            },
+        ),
+    ]
+    db.add_all(templates)
