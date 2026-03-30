@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from models import (
     Case, Email, Attachment, AuditLog, Notification,
@@ -239,7 +240,7 @@ def process_approval(case_id: str, action: str, user: User, db: Session,
             _notify(db, nxt["approverId"], "APPROVAL_REQUEST",
                     f"Approval needed: {case_id}", f"Case {case_id} requires your approval (step {next_idx + 1}).", case_id)
 
-        case.approval_chain = chain  # reassign for SQLAlchemy change detection
+        flag_modified(case, "approval_chain")
         case.updated_at = now
         _audit(db, case_id, "APPROVED", f"Approved by {user.first_name} {user.last_name} (step {idx + 1})",
                by_id=user.id, by_name=f"{user.first_name} {user.last_name}", by_role=user.role, category="APPROVER")
@@ -258,6 +259,7 @@ def process_approval(case_id: str, action: str, user: User, db: Session,
 
         chain["status"] = "RETURNED"
         case.approval_chain = chain
+        flag_modified(case, "approval_chain")
         assert_transition(case.status, "RETURNED")
         case.status = "RETURNED"
         case.returned_by = user.id
@@ -286,6 +288,7 @@ def process_approval(case_id: str, action: str, user: User, db: Session,
                 steps[idx]["decidedAt"] = now_iso
             chain["status"] = "REJECTED"
             case.approval_chain = chain
+            flag_modified(case, "approval_chain")
 
         assert_transition(case.status, "REJECTED")
         case.status = "REJECTED"

@@ -269,7 +269,7 @@ export function CaseDetailsTab() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={att.isMainInvoice ? 'default' : 'secondary'}>
-                    {att.documentType.replace('_', ' ')}
+                    {(att.documentType || 'OTHER').replace('_', ' ')}
                   </Badge>
                   {att.isMainInvoice && (
                     <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
@@ -352,7 +352,7 @@ export function CaseDetailsTab() {
             </DialogTitle>
             {viewedAtt && (
               <p className="text-xs text-muted-foreground mt-1">
-                {viewedAtt.documentType.replace('_', ' ')} &middot; {viewedAtt.fileType} &middot; {formatFileSize(viewedAtt.fileSize)} &middot; {selectedCase.vendorName}
+                {(viewedAtt.documentType || 'OTHER').replace('_', ' ')} &middot; {viewedAtt.fileType} &middot; {formatFileSize(viewedAtt.fileSize)} &middot; {selectedCase.vendorName}
               </p>
             )}
           </DialogHeader>
