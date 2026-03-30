@@ -2113,6 +2113,19 @@ export async function fetchApproverCases(approverId: string, role?: string): Pro
 }
 
 // ============================================================================
+// SAP EXPORT
+// ============================================================================
+
+export async function exportSap(caseId: string): Promise<{ downloadUrl: string; sapDocumentNumber: string; sapData: unknown }> {
+  await randomDelay();
+  const c = db.cases.find((c) => c.id === caseId);
+  if (!c) throw new Error('Case not found');
+  const sapDoc = `SAP-${9000000 + Math.abs(caseId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 1000000}`;
+  c.status = 'POSTED';
+  return { downloadUrl: `/workspaces/${caseId}/sap_export_${sapDoc}.json`, sapDocumentNumber: sapDoc, sapData: {} };
+}
+
+// ============================================================================
 // COMMENT HANDLERS
 // ============================================================================
 

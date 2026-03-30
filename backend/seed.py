@@ -143,6 +143,7 @@ def _seed_tax_codes(db: Session):
 # ---------------------------------------------------------------------------
 def _seed_vendors(db: Session):
     db.add_all([
+        # --- Subcontractor ---
         Vendor(id="VND-REVO", vendor_number="V200001", name="RevoFit Pty Ltd ATF The NewFit Unit Trust",
                tax_id="", address="", city="Sydney", country="Australia",
                payment_terms="NET30", currency="AUD",
@@ -151,6 +152,30 @@ def _seed_vendors(db: Session):
                     "category": "SUBCONTRACTOR", "startDate": "2024-01-01", "endDate": "2026-12-31",
                     "maxAmount": 500000, "isActive": True},
                ]),
+        Vendor(id="VND-FLEETFIT", vendor_number="V200005", name="Fleet Fitness Pty Ltd",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-FF-1", "vendorId": "VND-FLEETFIT", "contractNumber": "FF-SUB-2024",
+                    "category": "SUBCONTRACTOR", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 400000, "isActive": True},
+               ]),
+        Vendor(id="VND-GENSUBCON", vendor_number="V200003", name="General Subcontractor Services",
+               tax_id="", city="Melbourne", country="Australia",
+               payment_terms="NET30", currency="AUD", contracts=[]),
+        # --- Delivery & Installation ---
+        Vendor(id="VND-DI-01", vendor_number="V200004", name="D&I Installation Services",
+               tax_id="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD", contracts=[]),
+        Vendor(id="VND-TOYOTA", vendor_number="V200006", name="Toyota Material Handling Australia",
+               tax_id="", address="", city="Melbourne", country="Australia",
+               payment_terms="NET45", currency="AUD",
+               contracts=[
+                   {"id": "CON-TMH-1", "vendorId": "VND-TOYOTA", "contractNumber": "TMH-DI-2024",
+                    "category": "DELIVERY_INSTALLATION", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 300000, "isActive": True},
+               ]),
+        # --- Freight ---
         Vendor(id="VND-MAINFREIGHT", vendor_number="V200002", name="Mainfreight Air & Ocean Pty Ltd",
                tax_id="", address="", city="Sydney", country="Australia",
                payment_terms="NET30", currency="AUD",
@@ -159,12 +184,61 @@ def _seed_vendors(db: Session):
                     "category": "FREIGHT_FINISHED_GOODS", "startDate": "2024-01-01", "endDate": "2026-12-31",
                     "maxAmount": 2000000, "isActive": True},
                ]),
-        Vendor(id="VND-GENSUBCON", vendor_number="V200003", name="General Subcontractor Services",
-               tax_id="", city="Melbourne", country="Australia",
+        Vendor(id="VND-DHL", vendor_number="V200007", name="DHL Supply Chain (Australia) Pty Ltd",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-DHL-1", "vendorId": "VND-DHL", "contractNumber": "DHL-FRT-2024",
+                    "category": "FREIGHT_FINISHED_GOODS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 1500000, "isActive": True},
+               ]),
+        Vendor(id="VND-BOOTHS", vendor_number="V200008", name="Booths Transport Pty Ltd",
+               tax_id="", address="", city="Melbourne", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-BT-1", "vendorId": "VND-BOOTHS", "contractNumber": "BT-FRT-2024",
+                    "category": "FREIGHT_FINISHED_GOODS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 800000, "isActive": True},
+               ]),
+        Vendor(id="VND-AGGREGATOR", vendor_number="V200009", name="Aggregator Logistics Pty Ltd",
+               tax_id="", address="", city="Brisbane", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-AGG-1", "vendorId": "VND-AGGREGATOR", "contractNumber": "AGG-FRT-2024",
+                    "category": "FREIGHT_SPARE_PARTS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 600000, "isActive": True},
+               ]),
+        Vendor(id="VND-EFM", vendor_number="V200010", name="EFM Logistics Pty Ltd",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET30", currency="AUD",
+               contracts=[
+                   {"id": "CON-EFM-1", "vendorId": "VND-EFM", "contractNumber": "EFM-FRT-2024",
+                    "category": "FREIGHT_SPARE_PARTS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 500000, "isActive": True},
+               ]),
+        # --- Legal ---
+        Vendor(id="VND-MST", vendor_number="V200011", name="MST Lawyers",
+               tax_id="", address="", city="Melbourne", country="Australia",
+               payment_terms="NET14", currency="AUD", contracts=[]),
+        Vendor(id="VND-HWL", vendor_number="V200012", name="HWL Ebsworth Lawyers",
+               tax_id="", address="", city="Sydney", country="Australia",
+               payment_terms="NET14", currency="AUD", contracts=[]),
+        # --- Waste & Storage ---
+        Vendor(id="VND-NATIONWIDE", vendor_number="V200013", name="Nationwide Waste Solutions Pty Ltd",
+               tax_id="", address="", city="Melbourne", country="Australia",
                payment_terms="NET30", currency="AUD", contracts=[]),
-        Vendor(id="VND-DI-01", vendor_number="V200004", name="D&I Installation Services",
-               tax_id="", city="Sydney", country="Australia",
+        Vendor(id="VND-SUZI", vendor_number="V200014", name="Suzi's Transport & Logistics",
+               tax_id="", address="", city="Sydney", country="Australia",
                payment_terms="NET30", currency="AUD", contracts=[]),
+        # --- NZ Vendor ---
+        Vendor(id="VND-MAINFREIGHT-NZ", vendor_number="V200015", name="Mainfreight Ltd (NZ)",
+               tax_id="", address="", city="Auckland", country="New Zealand",
+               payment_terms="NET30", currency="NZD",
+               contracts=[
+                   {"id": "CON-MFNZ-1", "vendorId": "VND-MAINFREIGHT-NZ", "contractNumber": "MFNZ-FRT-2024",
+                    "category": "FREIGHT_FINISHED_GOODS", "startDate": "2024-01-01", "endDate": "2026-12-31",
+                    "maxAmount": 1000000, "isActive": True},
+               ]),
     ])
 
 

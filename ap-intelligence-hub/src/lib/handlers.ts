@@ -31,6 +31,9 @@ export const resubmitCase = src.resubmitCase;
 export const updateApprovalChain = src.updateApprovalChain;
 export const fetchApproverCases = src.fetchApproverCases;
 
+// SAP Export
+export const exportSap = src.exportSap;
+
 // Comments
 export const fetchComments = src.fetchComments;
 export const addComment = src.addComment;

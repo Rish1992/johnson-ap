@@ -204,6 +204,10 @@ export async function resubmitCase(
   return post<Case>(`/api/cases/${caseId}/resubmit`, { approverIds, comment });
 }
 
+export async function exportSap(caseId: string): Promise<{ downloadUrl: string; sapDocumentNumber: string; sapData: unknown }> {
+  return post(`/api/cases/${caseId}/export-sap`);
+}
+
 export async function updateApprovalChain(
   caseId: string,
   newSteps: { approverId: string; approverName: string; approverRole: string }[],
