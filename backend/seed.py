@@ -436,7 +436,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Verify
 ## Output
 Return a JSON object with verified, presentDocs, missingDocs, confidence, details.
 
-Read results/step2_categorize.json for category, then check attachments/.""",
+Read results/categorize.json for category, then check attachments/.""",
             business_rules="""## Mandatory Documents Matrix
 
 | Category | Required Documents |
@@ -498,7 +498,7 @@ MEDIUM: readable but could be misread (handwriting, low quality)
 LOW: guessed or derived from context
 
 Read attachments/ for invoice and supporting document content.
-Read results/step2_categorize.json for category context.""",
+Read results/categorize.json for category context.""",
             business_rules="""## Common Data Points (all categories)
 - Entity Name (from "Bill To" section)
 - Vendor Name
@@ -626,7 +626,7 @@ For each validation, return:
 - Any FAIL with ERROR severity -> "FAIL"
 - Any WARNING but no ERROR fails -> "WARNING"
 
-Read results/step5_extract.json for extracted data.
+Read results/extract.json for extracted data.
 Read master-data/ for vendors.json, rate-cards.json, and approval-rules.json.""",
             business_rules="""## 4-Way Matching
 
