@@ -2323,6 +2323,20 @@ export async function fetchEmails(): Promise<EmailRecord[]> {
   return [...db.emails];
 }
 
+export async function overrideEmailClassification(
+  emailId: string,
+  data: { classification?: string; invoiceCategory?: string; entity?: string; poType?: string },
+): Promise<EmailRecord> {
+  await randomDelay();
+  const email = db.emails.find((e) => e.id === emailId);
+  if (!email) throw new Error('Email not found');
+  if (data.classification) email.classification = data.classification as EmailRecord['classification'];
+  if (data.invoiceCategory) email.invoiceCategory = data.invoiceCategory as EmailRecord['invoiceCategory'];
+  if (data.entity) email.entity = data.entity as EmailRecord['entity'];
+  if (data.poType) email.poType = data.poType as EmailRecord['poType'];
+  return { ...email };
+}
+
 // ============================================================================
 // RATE CARD & AGREEMENT HANDLERS
 // ============================================================================

@@ -324,6 +324,24 @@ def get_audit_log(case_id: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 # Emails
 # ---------------------------------------------------------------------------
+@router.patch("/emails/{email_id}/override")
+def override_email(email_id: str, body: dict, db: Session = Depends(get_db)):
+    email = db.query(Email).filter(Email.id == email_id).first()
+    if not email:
+        raise HTTPException(404, "Email not found")
+    if "classification" in body:
+        email.classification = body["classification"]
+    if "invoiceCategory" in body:
+        email.invoice_category = body["invoiceCategory"]
+    if "entity" in body:
+        email.entity = body["entity"]
+    if "poType" in body:
+        email.po_type = body["poType"]
+    db.commit()
+    db.refresh(email)
+    return email.to_dict()
+
+
 @router.get("/emails")
 def list_emails(
     status: str = "",

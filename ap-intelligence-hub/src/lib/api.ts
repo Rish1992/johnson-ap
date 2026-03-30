@@ -346,6 +346,16 @@ export async function fetchEmails(): Promise<EmailRecord[]> {
   return get<EmailRecord[]>('/api/emails');
 }
 
+export async function overrideEmailClassification(
+  emailId: string,
+  data: { classification?: string; invoiceCategory?: string; entity?: string; poType?: string },
+): Promise<EmailRecord> {
+  return request<EmailRecord>(`/api/emails/${emailId}/override`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Prompt Templates
 // ---------------------------------------------------------------------------

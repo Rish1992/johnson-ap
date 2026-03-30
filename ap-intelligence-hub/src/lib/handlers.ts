@@ -69,6 +69,7 @@ export const fetchAuditLog = src.fetchAuditLog;
 
 // Emails
 export const fetchEmails = src.fetchEmails;
+export const overrideEmailClassification = src.overrideEmailClassification;
 
 // Prompts
 export const fetchPrompts = src.fetchPrompts;

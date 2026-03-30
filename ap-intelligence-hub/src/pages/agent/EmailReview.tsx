@@ -185,9 +185,11 @@ function EmailListItem({
 function EmailDetail({
   email,
   onBack,
+  onOverride,
 }: {
   email: EmailRecord;
   onBack: () => void;
+  onOverride: (field: string, value: string) => void;
 }) {
   const navigate = useNavigate();
   const [viewingAttachmentIdx, setViewingAttachmentIdx] = useState<number | null>(null);
@@ -236,7 +238,15 @@ function EmailDetail({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Classification</p>
-              <ClassificationBadge classification={email.classification} />
+              <Select value={email.classification} onValueChange={(v) => onOverride('classification', v)}>
+                <SelectTrigger className="h-7 w-[140px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INVOICE">Invoice</SelectItem>
+                  <SelectItem value="NON_INVOICE">Non-Invoice</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Confidence</p>
@@ -245,18 +255,34 @@ function EmailDetail({
                 level={email.classificationConfidence >= 0.85 ? 'HIGH' : email.classificationConfidence >= 0.6 ? 'MEDIUM' : 'LOW'}
               />
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Entity</p>
-              <Badge variant="outline" className={cn('text-xs', email.entity === 'AU' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200')}>
-                {email.entity}
-              </Badge>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">PO Type</p>
-              <Badge variant={email.poType === 'PO' ? 'default' : 'outline'} className="text-xs">
-                {email.poType === 'PO' ? 'PO' : 'Non-PO'}
-              </Badge>
-            </div>
+            {email.classification === 'INVOICE' && (
+              <>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Entity</p>
+                  <Select value={email.entity} onValueChange={(v) => onOverride('entity', v)}>
+                    <SelectTrigger className="h-7 w-[100px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AU">AU</SelectItem>
+                      <SelectItem value="NZ">NZ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">PO Type</p>
+                  <Select value={email.poType} onValueChange={(v) => onOverride('poType', v)}>
+                    <SelectTrigger className="h-7 w-[110px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PO">PO</SelectItem>
+                      <SelectItem value="NON_PO">Non-PO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Mandatory Attachment</p>
               <div className="flex items-center gap-1 text-sm">
@@ -267,10 +293,22 @@ function EmailDetail({
                 )}
               </div>
             </div>
-            {email.invoiceCategory && (
+            {email.classification === 'INVOICE' && (
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Invoice Category</p>
-                <CategoryBadge category={email.invoiceCategory} />
+                <Select value={email.invoiceCategory || ''} onValueChange={(v) => onOverride('invoiceCategory', v)}>
+                  <SelectTrigger className="h-7 w-[180px] text-xs">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SUBCONTRACTOR">Subcontractor</SelectItem>
+                    <SelectItem value="RUST_SUBCONTRACTOR">Rust - Subcontractor</SelectItem>
+                    <SelectItem value="DELIVERY_INSTALLATION">D&I</SelectItem>
+                    <SelectItem value="FREIGHT_FINISHED_GOODS">Freight - Finished Goods</SelectItem>
+                    <SelectItem value="FREIGHT_SPARE_PARTS">Freight - Spare Parts</SelectItem>
+                    <SelectItem value="FREIGHT_ADDITIONAL_CHARGES">Freight - Add. Charges</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
             {email.linkedCaseId && (
@@ -511,6 +549,26 @@ export function EmailReview() {
     );
   };
 
+  const handleOverride = async (field: string, value: string) => {
+    if (!selectedEmailId) return;
+    const data = { [field]: value };
+    // Optimistic update
+    setEmails((prev) =>
+      prev.map((e) => (e.id === selectedEmailId ? { ...e, ...data } : e))
+    );
+    try {
+      const { overrideEmailClassification } = await import('@/lib/handlers');
+      await overrideEmailClassification(selectedEmailId, data);
+      if (field === 'classification' && value === 'INVOICE') {
+        toast.success('Classified as Invoice. Navigate to Playground to trigger processing.');
+      } else {
+        toast.success('Override saved');
+      }
+    } catch (err) {
+      toast.error('Failed to save override');
+    }
+  };
+
   return (
     <div>
       <PageHeader title="Email Review" count={filteredEmails.length}>
@@ -679,6 +737,7 @@ export function EmailReview() {
               <EmailDetail
                 email={selectedEmail}
                 onBack={() => setSelectedEmailId(null)}
+                onOverride={handleOverride}
               />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
