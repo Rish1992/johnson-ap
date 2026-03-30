@@ -73,8 +73,9 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
         renderedRef.current = true;
         setError(false);
         URL.revokeObjectURL(blobUrl);
-      } catch (e) {
-        console.warn('PdfViewer: failed to render PDF, falling back to iframe', e);
+      } catch (e: unknown) {
+        const err = e as Error;
+        console.warn('PdfViewer: failed to render PDF, falling back to iframe', err?.message, err?.stack?.slice(0, 300));
         if (!cancelled) setError(true);
       }
     })();
