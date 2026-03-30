@@ -18,19 +18,19 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
-// MockInvoiceDocument removed — replaced with real PDF viewer
+import { PdfViewer } from '@/components/shared/PdfViewer';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
 import {
   Save, CheckCircle, X, Plus, Trash2, Upload, Mail, AlertTriangle,
-  FileText, ZoomIn, ZoomOut, Loader2, Maximize2,
+  FileText, ZoomIn, ZoomOut, Loader2, Maximize2, MapPin,
   GripVertical, ChevronUp, ChevronDown, UserCheck, Users,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
 import { toast } from 'sonner';
-import type { ConfidenceLevel } from '@/types/case';
+import type { ConfidenceLevel, BoundingBox } from '@/types/case';
 
 // ---------------------------------------------------------------------------
 // Deterministic hash for a string -> number in [0, 1)
@@ -114,6 +114,7 @@ export function DataValidationTab() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [missingDocsDismissed, setMissingDocsDismissed] = useState(false);
+  const [activeBbox, setActiveBbox] = useState<BoundingBox | null>(null);
 
   // Determine which document types are available based on category
   const availableDocTypes = useMemo(() => {
@@ -363,7 +364,7 @@ export function DataValidationTab() {
               </div>
             </div>
 
-            {/* Document content - click to expand */}
+            {/* Document content - PDF viewer with bbox highlighting */}
             {(() => {
               const atts = selectedCase.attachments || [];
               const att = activeDocumentType === 'INVOICE'
@@ -371,16 +372,11 @@ export function DataValidationTab() {
                 : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
               const fileUrl = att?.fileUrl;
               return fileUrl ? (
-                <div className="flex-1 relative">
-                  <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="w-full h-full border-0" title={att?.fileName || 'Document'} />
-                  <button
-                    onClick={() => setDocPreviewOpen(true)}
-                    className="absolute top-2 right-2 p-1.5 bg-background/90 backdrop-blur-sm rounded-md border shadow-sm hover:bg-accent transition-colors z-10"
-                    title="Expand document"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-                </div>
+                <PdfViewer
+                  url={`/johnson-api${fileUrl}`}
+                  activeBbox={activeBbox}
+                  className="flex-1"
+                />
               ) : (
                 <div className="flex-1 flex items-center justify-center bg-accent/10 text-muted-foreground text-sm">
                   No document available
@@ -410,15 +406,23 @@ export function DataValidationTab() {
                 <div className="grid grid-cols-2 gap-3">
                   {headerFields.map((field) => {
                     const confidence = getFieldConfidence(field.key);
+                    const bbox = selectedCase.confidenceScores[field.key]?.bbox ?? null;
                     const value = (headerData as unknown as Record<string, unknown>)[field.key];
                     const original = (selectedCase.headerData as unknown as Record<string, unknown>)[field.key];
                     const isModified = draftHeaderData[field.key as keyof typeof draftHeaderData] !== undefined &&
                       draftHeaderData[field.key as keyof typeof draftHeaderData] !== original;
 
                     return (
-                      <div key={field.key} className="space-y-1">
+                      <div
+                        key={field.key}
+                        className={`space-y-1 group/field${bbox ? ' cursor-pointer' : ''}`}
+                        onClick={bbox ? () => setActiveBbox(bbox) : undefined}
+                      >
                         <div className="flex items-center justify-between">
-                          <Label className="text-xs text-muted-foreground">{field.label}</Label>
+                          <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            {field.label}
+                            {bbox && <MapPin className="h-3 w-3 text-muted-foreground/50 opacity-0 group-hover/field:opacity-100 transition-opacity" />}
+                          </Label>
                           <div className="flex items-center gap-1">
                             {isModified && (
                               <Badge variant="outline" className="text-[9px] px-1 py-0 bg-amber-50 text-amber-700 border-amber-200">

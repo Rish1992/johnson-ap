@@ -5,3 +5,4 @@ sqlalchemy
 pyjwt
 python-multipart
 aiofiles
+rapidfuzz

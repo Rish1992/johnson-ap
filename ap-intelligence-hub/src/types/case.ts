@@ -113,10 +113,19 @@ export interface LineItem {
   costCenter: string;
 }
 
+export interface BoundingBox {
+  page: number;    // 1-indexed
+  x: number;       // 0-1 normalized
+  y: number;       // 0-1 normalized
+  width: number;   // 0-1 normalized
+  height: number;  // 0-1 normalized
+}
+
 export interface ConfidenceScore {
   value: number;
   level: ConfidenceLevel;
   extractedValue: string;
+  bbox?: BoundingBox;
 }
 
 export interface BusinessRuleResult {

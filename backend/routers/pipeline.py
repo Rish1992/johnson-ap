@@ -89,6 +89,21 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
             if success:
                 job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
                 flag_modified(job, "steps")
+
+                # Post-processing: locate bounding boxes after extract step
+                if step_name == "extract" and result:
+                    try:
+                        from agents.bbox_locator import locate_bboxes
+                        pdf_files = list((ws / "attachments").glob("*.pdf")) + list((ws / "attachments").glob("*.PDF"))
+                        if pdf_files:
+                            enriched = locate_bboxes(str(pdf_files[0]), result)
+                            if enriched:
+                                result["confidenceScores"] = enriched
+                                job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
+                                flag_modified(job, "steps")
+                    except Exception as e:
+                        import logging
+                        logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
             else:
                 job.steps = _update_step(job.steps, step_name, "failed", error=error, duration_ms=duration)
                 flag_modified(job, "steps")
@@ -277,6 +292,18 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 case.confidence_scores = result.get("confidenceScores", {})
                 case.status = "EXTRACTED"
                 case.updated_at = utcnow()
+                # Post-processing: locate bounding boxes (non-blocking)
+                try:
+                    from agents.bbox_locator import locate_bboxes
+                    pdf_files = list((ws / "attachments").glob("*.pdf")) + list((ws / "attachments").glob("*.PDF"))
+                    if pdf_files:
+                        enriched = locate_bboxes(str(pdf_files[0]), result)
+                        if enriched:
+                            case.confidence_scores = enriched
+                            flag_modified(case, "confidence_scores")
+                except Exception as e:
+                    import logging
+                    logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
                 db.commit()
             elif step_name == "validate" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
