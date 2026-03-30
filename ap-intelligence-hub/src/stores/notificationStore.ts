@@ -22,7 +22,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   fetchNotifications: async () => {
     set({ isLoading: true });
     try {
-      const { fetchNotifications } = await import('@/mock/handlers');
+      const { fetchNotifications } = await import('@/lib/handlers');
       const notifications = await fetchNotifications();
       const unreadCount = notifications.filter(n => !n.isRead).length;
       set({ notifications, unreadCount, isLoading: false });
@@ -33,7 +33,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
 
   markAsRead: async (id: string) => {
     try {
-      const { markNotificationRead } = await import('@/mock/handlers');
+      const { markNotificationRead } = await import('@/lib/handlers');
       await markNotificationRead(id);
       const notifications = get().notifications.map(n =>
         n.id === id ? { ...n, isRead: true } : n
@@ -47,7 +47,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
 
   markAllAsRead: async () => {
     try {
-      const { markAllNotificationsRead } = await import('@/mock/handlers');
+      const { markAllNotificationsRead } = await import('@/lib/handlers');
       await markAllNotificationsRead();
       const notifications = get().notifications.map(n => ({ ...n, isRead: true }));
       set({ notifications, unreadCount: 0 });

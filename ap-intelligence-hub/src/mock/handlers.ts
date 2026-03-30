@@ -129,6 +129,11 @@ function getAssignedAgent(i: number) {
 // Cases, audit logs, comments, and notifications are generated inline since
 // the ./cases mock file may not exist yet. We build realistic seed data here.
 
+const CATEGORY_GL: Record<string, string> = {
+  SUBCONTRACTOR: '500100', RUST_SUBCONTRACTOR: '500200', DELIVERY_INSTALLATION: '500300',
+  FREIGHT_FINISHED_GOODS: '510100', FREIGHT_SPARE_PARTS: '510200', FREIGHT_ADDITIONAL_CHARGES: '510300',
+};
+
 function generateBusinessRules(
   i: number,
   overallConfidence: number,
@@ -313,14 +318,14 @@ function generateBusinessRules(
       description: 'All mandatory fields must be present: invoice number, date, amount, vendor name.',
       status: (isLowConf && i % 7 === 0) ? 'FAIL' : 'PASS',
       message: (isLowConf && i % 7 === 0)
-        ? 'Missing required field: Purchase Order Number is empty for INSTALLATION invoice.'
+        ? 'Missing required field: Purchase Order Number is empty for this invoice.'
         : 'All required fields are present and populated.',
       fieldPath: (isLowConf && i % 7 === 0) ? 'headerData.purchaseOrderNumber' : 'headerData',
       severity: (isLowConf && i % 7 === 0) ? 'ERROR' : 'INFO',
       expectedValue: 'All mandatory fields populated',
       actualValue: (isLowConf && i % 7 === 0) ? 'purchaseOrderNumber: (empty)' : 'All fields present',
       matchedAgainst: 'Field Requirement Rules',
-      details: `Checked: invoiceNumber (INV-${2025000 + i}), invoiceDate (${createdDate.toISOString().split('T')[0]}), totalAmount (AUD ${totalAmount.toLocaleString()}), vendorName (${vendor.name}). ${(isLowConf && i % 7 === 0) ? 'PO number required for INSTALLATION but not extracted.' : 'All mandatory fields present.'}`,
+      details: `Checked: invoiceNumber (INV-${2025000 + i}), invoiceDate (${createdDate.toISOString().split('T')[0]}), totalAmount (AUD ${totalAmount.toLocaleString()}), vendorName (${vendor.name}). ${(isLowConf && i % 7 === 0) ? 'PO number required but not extracted.' : 'All mandatory fields present.'}`,
     },
     {
       ruleId: 'BRC-011',
@@ -348,14 +353,14 @@ function generateBusinessRules(
       status: (i % 19 === 0) ? 'FAIL' : 'PASS',
       message: (i % 19 === 0)
         ? 'GL Account 999999 not found in GL master for company code JC01.'
-        : `GL Account ${category === 'UTILITY' ? '400100' : category === 'INSTALLATION' ? '500100' : '600100'} is valid for ${category.toLowerCase()} expenses.`,
+        : `GL Account ${CATEGORY_GL[category] ?? '500100'} is valid for ${category.toLowerCase().replace(/_/g, ' ')} expenses.`,
       fieldPath: 'headerData.glAccount',
       severity: (i % 19 === 0) ? 'ERROR' : 'INFO',
       expectedValue: `Valid GL account for ${category} category`,
-      actualValue: (i % 19 === 0) ? '999999 (not found)' : (category === 'UTILITY' ? '400100 - Electricity Expenses' : category === 'INSTALLATION' ? '500100 - Cable Installation' : '600100 - Equipment Warranty'),
+      actualValue: (i % 19 === 0) ? '999999 (not found)' : `${CATEGORY_GL[category] ?? '500100'} - ${category.toLowerCase().replace(/_/g, ' ')} expenses`,
       matchedAgainst: 'GL Account Master (Company Code JC01)',
       details: (i % 19 === 0)
-        ? `GL 999999 not in chart of accounts for JC01. Expected for ${category}: ${category === 'UTILITY' ? '400100-400300' : category === 'INSTALLATION' ? '500100-500400' : '600100-600300'}.`
+        ? `GL 999999 not in chart of accounts for JC01. Expected for ${category}: ${CATEGORY_GL[category] ?? '500100'}-range.`
         : 'GL Account validated. Type: EXPENSE. Active and mapped to correct category.',
     },
     {
@@ -379,7 +384,7 @@ function generateBusinessRules(
 }
 
 function generateMockCases(): Case[] {
-  const categories: Case['category'][] = ['UTILITY', 'INSTALLATION', 'WARRANTY'];
+  const categories: Case['category'][] = ['SUBCONTRACTOR', 'RUST_SUBCONTRACTOR', 'DELIVERY_INSTALLATION', 'FREIGHT_FINISHED_GOODS', 'FREIGHT_SPARE_PARTS', 'FREIGHT_ADDITIONAL_CHARGES'];
 
   const vendors = mockVendors.filter((v) => v.isActive);
 
@@ -431,7 +436,7 @@ function generateMockCases(): Case[] {
         subject: `Invoice #INV-${2025000 + i} from ${vendor.name}`,
         receivedAt: createdDate.toISOString(),
         body: `Please find attached invoice #INV-${2025000 + i} for ${category.toLowerCase()} services rendered as per contract ${contract?.contractNumber ?? 'N/A'}.`,
-        attachmentCount: category === 'INSTALLATION' ? 3 : (category === 'WARRANTY' ? 2 : 1),
+        attachmentCount: (category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? 3 : (category === 'RUST_SUBCONTRACTOR') ? 2 : 1,
       },
       attachments: [
         {
@@ -444,8 +449,8 @@ function generateMockCases(): Case[] {
           isMainInvoice: true,
           uploadedAt: createdDate.toISOString(),
         },
-        // Installation and Warranty cases always have a job sheet attached
-        ...((category === 'INSTALLATION' || category === 'WARRANTY') ? [{
+        // Subcontractor, Rust, and D&I cases always have a job sheet attached
+        ...((category === 'SUBCONTRACTOR' || category === 'RUST_SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? [{
           id: `ATT-${i}-2`,
           fileName: `JobSheet-${2025000 + i}.pdf`,
           fileType: 'PDF' as const,
@@ -455,8 +460,8 @@ function generateMockCases(): Case[] {
           isMainInvoice: false,
           uploadedAt: createdDate.toISOString(),
         }] : []),
-        // Installation cases also have a supporting doc
-        ...(category === 'INSTALLATION' ? [{
+        // Subcontractor and D&I cases also have a supporting doc
+        ...((category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? [{
           id: `ATT-${i}-3`,
           fileName: `DeliveryNote-DN-${6000 + i}.pdf`,
           fileType: 'PDF' as const,
@@ -476,27 +481,27 @@ function generateMockCases(): Case[] {
         totalAmount,
         taxAmount,
         netAmount,
-        purchaseOrderNumber: category === 'INSTALLATION' ? `PO-${4000 + i}` : '',
-        deliveryNoteNumber: category === 'INSTALLATION' ? `DN-${6000 + i}` : '',
+        purchaseOrderNumber: (category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? `PO-${4000 + i}` : '',
+        deliveryNoteNumber: (category === 'DELIVERY_INSTALLATION') ? `DN-${6000 + i}` : '',
         paymentTerms: vendor.paymentTerms,
         companyCode: 'JC01',
         plantCode: 'P1001',
         costCenter: 'CC1001',
-        glAccount: category === 'UTILITY' ? '400100' : category === 'INSTALLATION' ? '500100' : '600100',
+        glAccount: CATEGORY_GL[category] ?? '500100',
         taxCode: 'GST10',
-        description: `${category} invoice from ${vendor.name}`,
+        description: `${category.toLowerCase().replace(/_/g, ' ')} invoice from ${vendor.name}`,
       },
       lineItems: (i === 2 || i === 4 || i === 5) ? [
         {
           id: `LI-${i}-1`,
           lineNumber: 1,
-          description: `${category} service - Period ${createdDate.toISOString().split('T')[0]}`,
+          description: `${category.toLowerCase().replace(/_/g, ' ')} service - Period ${createdDate.toISOString().split('T')[0]}`,
           quantity: 1,
           unitPrice: Math.round(netAmount * 0.6),
           unit: 'EA',
           totalAmount: Math.round(netAmount * 0.6),
           taxAmount: Math.round(taxAmount * 0.6),
-          glAccount: '400100',
+          glAccount: CATEGORY_GL[category] ?? '500100',
           costCenter: 'CC1001',
         },
         {
@@ -508,20 +513,20 @@ function generateMockCases(): Case[] {
           unit: 'EA',
           totalAmount: netAmount - Math.round(netAmount * 0.6),
           taxAmount: taxAmount - Math.round(taxAmount * 0.6),
-          glAccount: '500100',
+          glAccount: CATEGORY_GL[category] ?? '500200',
           costCenter: 'CC1002',
         },
       ] : [
         {
           id: `LI-${i}-1`,
           lineNumber: 1,
-          description: `${category} service - Period ${createdDate.toISOString().split('T')[0]}`,
+          description: `${category.toLowerCase().replace(/_/g, ' ')} service - Period ${createdDate.toISOString().split('T')[0]}`,
           quantity: 1,
           unitPrice: netAmount,
           unit: 'EA',
           totalAmount: netAmount,
           taxAmount,
-          glAccount: category === 'UTILITY' ? '400100' : category === 'INSTALLATION' ? '500100' : '600100',
+          glAccount: CATEGORY_GL[category] ?? '500100',
           costCenter: 'CC1001',
         },
       ],
@@ -660,7 +665,7 @@ function generateMockAuditLogs(): AuditLogEntry[] {
   let entryIndex = 0;
   const now = Date.now();
 
-  const categories: Case['category'][] = ['UTILITY', 'INSTALLATION', 'WARRANTY'];
+  const categories: Case['category'][] = ['SUBCONTRACTOR', 'RUST_SUBCONTRACTOR', 'DELIVERY_INSTALLATION', 'FREIGHT_FINISHED_GOODS', 'FREIGHT_SPARE_PARTS', 'FREIGHT_ADDITIONAL_CHARGES'];
   const activeVendors = mockVendors.filter((v) => v.isActive);
 
   type StepDef = {
@@ -693,10 +698,10 @@ function generateMockAuditLogs(): AuditLogEntry[] {
 
     // -- Steps 1-6: Always present (system intake pipeline) --
     steps.push(
-      { action: 'EMAIL_RECEIVED', category: 'SYSTEM', desc: `Email received from ${vendor.name}. Subject: "Invoice #INV-${2025000 + i}". ${category === 'INSTALLATION' ? '3 attachments' : category === 'WARRANTY' ? '2 attachments' : '1 attachment'} detected.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 0 },
+      { action: 'EMAIL_RECEIVED', category: 'SYSTEM', desc: `Email received from ${vendor.name}. Subject: "Invoice #INV-${2025000 + i}". ${(category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? '3 attachments' : category === 'RUST_SUBCONTRACTOR' ? '2 attachments' : '1 attachment'} detected.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 0 },
       { action: 'EMAIL_CLASSIFIED', category: 'SYSTEM', desc: 'Email classified as Invoice submission by LLM classifier (confidence: 94.2%). Non-invoice probability: 5.8%.', byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 1 },
       { action: 'EMAIL_CATEGORIZED', category: 'SYSTEM', desc: `Invoice sub-categorized as ${category} by LLM (confidence: ${(88 + (i % 10)).toFixed(1)}%). Category determined from invoice content and vendor profile.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 2 },
-      { action: 'DATA_EXTRACTED', category: 'SYSTEM', desc: `OCR + AI extraction completed. ${category === 'INSTALLATION' ? '15' : '12'} fields extracted from invoice PDF. Overall extraction confidence: ${(72 + (i % 25)).toFixed(0)}%.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 4 },
+      { action: 'DATA_EXTRACTED', category: 'SYSTEM', desc: `OCR + AI extraction completed. ${(category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') ? '15' : '12'} fields extracted from invoice PDF. Overall extraction confidence: ${(72 + (i % 25)).toFixed(0)}%.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 4 },
       { action: 'VENDOR_MATCHED', category: 'SYSTEM', desc: `Vendor identified and matched: ${vendor.name} (${vendor.vendorNumber}). Match confidence: 96.5%. Tax ID verified: ${vendor.taxId}.`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 5 },
       { action: 'CONTRACT_MATCHED', category: 'SYSTEM', desc: `Contract matched: ${contract?.contractNumber ?? 'N/A'} (${category}). ${contract?.isActive ? `Active until ${contract.endDate}. Max amount: AUD ${contract.maxAmount.toLocaleString()}.` : contract ? `EXPIRED on ${contract.endDate}.` : 'No matching contract found.'}`, byName: 'System', byId: 'system', byRole: 'SYSTEM', offsetMin: 6 },
     );
@@ -1086,32 +1091,15 @@ function generateMockNotifications(): Notification[] {
 // Email Records
 // ---------------------------------------------------------------------------
 
-export interface EmailRecord {
-  id: string;
-  from: string;
-  fromName: string;
-  to: string;
-  subject: string;
-  receivedAt: string;
-  body: string;
-  attachmentCount: number;
-  attachments: { fileName: string; fileType: string; fileSize: number }[];
-  classification: 'INVOICE' | 'NON_INVOICE' | 'UNCLASSIFIED';
-  invoiceCategory: 'UTILITY' | 'INSTALLATION' | 'WARRANTY' | null;
-  classificationConfidence: number;
-  linkedCaseId: string | null;
-  isRead: boolean;
-  poType: 'PO' | 'NON_PO';
-  entity: 'AU' | 'NZ';
-  xeroLink?: string;
-}
+export type { EmailRecord } from '@/types/email';
+import type { EmailRecord } from '@/types/email';
 
 function generateMockEmails(): EmailRecord[] {
   const now = Date.now();
   const emails: EmailRecord[] = [];
 
   const vendors = mockVendors.filter((v) => v.isActive);
-  const categories: Array<'UTILITY' | 'INSTALLATION' | 'WARRANTY'> = ['UTILITY', 'INSTALLATION', 'WARRANTY'];
+  const categories: Case['category'][] = ['SUBCONTRACTOR', 'RUST_SUBCONTRACTOR', 'DELIVERY_INSTALLATION', 'FREIGHT_FINISHED_GOODS', 'FREIGHT_SPARE_PARTS', 'FREIGHT_ADDITIONAL_CHARGES'];
 
   // ---------------------------------------------------------------------------
   // 1. ~20 invoice emails linked to existing cases
@@ -1152,15 +1140,15 @@ function generateMockEmails(): EmailRecord[] {
     const attachments: EmailRecord['attachments'] = [
       { fileName: `${invNumber}.pdf`, fileType: 'PDF', fileSize: 120000 + i * 4000 },
     ];
-    if (category === 'INSTALLATION') {
+    if (category === 'SUBCONTRACTOR' || category === 'DELIVERY_INSTALLATION') {
       attachments.push(
         { fileName: `JobSheet-${invNumber}.pdf`, fileType: 'PDF', fileSize: 95000 + i * 2000 },
         { fileName: `DeliveryNote-${invNumber}.pdf`, fileType: 'PDF', fileSize: 60000 + i * 1500 },
       );
     }
-    if (category === 'WARRANTY') {
+    if (category === 'RUST_SUBCONTRACTOR') {
       attachments.push(
-        { fileName: `WarrantyCard-${invNumber}.pdf`, fileType: 'PDF', fileSize: 45000 + i * 1000 },
+        { fileName: `WorkSheet-${invNumber}.pdf`, fileType: 'PDF', fileSize: 45000 + i * 1000 },
       );
     }
 
@@ -2358,3 +2346,11 @@ export async function fetchInvoiceCategoryConfigs(): Promise<typeof mockInvoiceC
   await delay(200);
   return [...mockInvoiceCategoryConfigs];
 }
+
+// Prompt stubs (admin-only, real API required)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchPrompts(): Promise<any[]> { return []; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchPromptByStep(_step: string): Promise<any> { return null; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updatePrompt(_id: string, _data: { systemPrompt: string }): Promise<any> { return null; }

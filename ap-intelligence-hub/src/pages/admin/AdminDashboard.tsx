@@ -111,7 +111,7 @@ export function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    import('@/mock/handlers').then(({ fetchAllCases }) => {
+    import('@/lib/handlers').then(({ fetchAllCases }) => {
       fetchAllCases().then((data) => {
         setAllCases(data);
       });

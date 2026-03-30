@@ -56,7 +56,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
   fetchCases: async (filterOverrides) => {
     set({ isLoadingCases: true });
     try {
-      const { fetchCases } = await import('@/mock/handlers');
+      const { fetchCases } = await import('@/lib/handlers');
       const filters = { ...get().filters, ...filterOverrides };
       const cases = await fetchCases(filters);
       set({ cases, isLoadingCases: false, filters });
@@ -68,7 +68,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
   fetchCaseById: async (id: string) => {
     set({ isLoadingDetail: true });
     try {
-      const { fetchCaseById } = await import('@/mock/handlers');
+      const { fetchCaseById } = await import('@/lib/handlers');
       const selectedCase = await fetchCaseById(id);
       set({ selectedCase, isLoadingDetail: false });
     } catch {
@@ -147,7 +147,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { saveDraft, runBusinessRules } = await import('@/mock/handlers');
+      const { saveDraft, runBusinessRules } = await import('@/lib/handlers');
       const updated = await saveDraft(selectedCase.id, {
         headerData: { ...selectedCase.headerData, ...draftHeaderData },
         lineItems: draftLineItems || selectedCase.lineItems,
@@ -168,7 +168,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { saveAndConfirm } = await import('@/mock/handlers');
+      const { saveAndConfirm } = await import('@/lib/handlers');
       const updated = await saveAndConfirm(selectedCase.id, {
         headerData: { ...selectedCase.headerData, ...draftHeaderData },
         lineItems: draftLineItems || selectedCase.lineItems,
@@ -187,7 +187,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { rejectCase } = await import('@/mock/handlers');
+      const { rejectCase } = await import('@/lib/handlers');
       const updated = await rejectCase(selectedCase.id, reason);
       set({ selectedCase: updated });
     } catch {
@@ -200,7 +200,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { submitForApproval } = await import('@/mock/handlers');
+      const { submitForApproval } = await import('@/lib/handlers');
       const updated = await submitForApproval(selectedCase.id, approverIds, comment);
       set({ selectedCase: updated });
     } catch {
@@ -213,7 +213,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { approveCaseHandler } = await import('@/mock/handlers');
+      const { approveCaseHandler } = await import('@/lib/handlers');
       const updated = await approveCaseHandler(selectedCase.id, comment);
       set({ selectedCase: updated });
     } catch {
@@ -226,7 +226,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { sendBackCase } = await import('@/mock/handlers');
+      const { sendBackCase } = await import('@/lib/handlers');
       const updated = await sendBackCase(selectedCase.id, reason);
       set({ selectedCase: updated });
     } catch {
@@ -239,7 +239,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { rejectCaseAsApprover } = await import('@/mock/handlers');
+      const { rejectCaseAsApprover } = await import('@/lib/handlers');
       const updated = await rejectCaseAsApprover(selectedCase.id, reason);
       set({ selectedCase: updated });
     } catch {
@@ -252,7 +252,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { resubmitCase } = await import('@/mock/handlers');
+      const { resubmitCase } = await import('@/lib/handlers');
       const updated = await resubmitCase(selectedCase.id, approverIds, comment);
       set({ selectedCase: updated });
     } catch {
@@ -265,7 +265,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { updateApprovalChain } = await import('@/mock/handlers');
+      const { updateApprovalChain } = await import('@/lib/handlers');
       const updated = await updateApprovalChain(selectedCase.id, newSteps, reason);
       set({ selectedCase: updated });
     } catch {
@@ -275,7 +275,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
 
   fetchComments: async (caseId: string) => {
     try {
-      const { fetchComments } = await import('@/mock/handlers');
+      const { fetchComments } = await import('@/lib/handlers');
       const comments = await fetchComments(caseId);
       set({ comments });
     } catch {
@@ -288,7 +288,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     if (!selectedCase) return;
 
     try {
-      const { addComment } = await import('@/mock/handlers');
+      const { addComment } = await import('@/lib/handlers');
       const comment = await addComment(selectedCase.id, content);
       set({ comments: [...get().comments, comment] });
     } catch {

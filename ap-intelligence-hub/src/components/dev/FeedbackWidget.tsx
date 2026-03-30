@@ -200,25 +200,28 @@ export function FeedbackWidget() {
         status: 'open',
       };
 
-      // Try POST to Vite middleware, fall back to localStorage
-      let saved = false;
+      // POST to backend, fall back to localStorage
+      let taskId: string | null = null;
       try {
         const res = await window.fetch('/johnson-api/api/feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ report, screenshot: screenshotBase64 }),
         });
-        saved = res.ok;
+        if (res.ok) {
+          const data = await res.json();
+          taskId = data.taskId;
+        }
       } catch { /* server not available */ }
 
-      if (!saved) {
+      if (!taskId) {
         // localStorage fallback
         const existing: QAReport[] = JSON.parse(localStorage.getItem('feedback-items') || '[]');
         existing.push(report);
         localStorage.setItem('feedback-items', JSON.stringify(existing));
       }
 
-      toast.success('Issue reported');
+      toast.success(taskId ? `Ticket ${taskId} created` : 'Issue saved locally');
       closePanel();
     } finally {
       setSubmitting(false);

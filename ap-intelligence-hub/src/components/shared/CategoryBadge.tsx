@@ -2,12 +2,15 @@ import { Badge } from '@/components/ui/badge';
 import { CASE_CATEGORY_CONFIG } from '@/lib/constants';
 import type { CaseCategory } from '@/types/case';
 import { cn } from '@/lib/utils';
-import { Zap, Wrench, Shield } from 'lucide-react';
+import { Wrench, Truck, Package, HardHat, AlertTriangle, Box } from 'lucide-react';
 
 const CATEGORY_ICONS: Record<CaseCategory, React.ReactNode> = {
-  UTILITY: <Zap className="h-3 w-3" />,
-  INSTALLATION: <Wrench className="h-3 w-3" />,
-  WARRANTY: <Shield className="h-3 w-3" />,
+  SUBCONTRACTOR: <HardHat className="h-3 w-3" />,
+  RUST_SUBCONTRACTOR: <AlertTriangle className="h-3 w-3" />,
+  DELIVERY_INSTALLATION: <Wrench className="h-3 w-3" />,
+  FREIGHT_FINISHED_GOODS: <Truck className="h-3 w-3" />,
+  FREIGHT_SPARE_PARTS: <Package className="h-3 w-3" />,
+  FREIGHT_ADDITIONAL_CHARGES: <Box className="h-3 w-3" />,
 };
 
 interface CategoryBadgeProps {

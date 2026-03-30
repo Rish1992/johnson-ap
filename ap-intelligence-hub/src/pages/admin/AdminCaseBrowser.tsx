@@ -52,7 +52,7 @@ export function AdminCaseBrowser() {
 
   useEffect(() => {
     setIsLoading(true);
-    import('@/mock/handlers').then(({ fetchAllCases }) => {
+    import('@/lib/handlers').then(({ fetchAllCases }) => {
       fetchAllCases().then((data) => {
         setAllCases(data);
         setIsLoading(false);

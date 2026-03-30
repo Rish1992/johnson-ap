@@ -325,17 +325,17 @@ export function CaseDetailsTab() {
       })()}
 
       {/* Missing Document Warning - only shows if genuinely missing (edge case) */}
-      {(selectedCase.category === 'INSTALLATION' || selectedCase.category === 'WARRANTY') &&
+      {(selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') &&
         !attachments.some(a => a.documentType === 'JOB_SHEET') && (
         <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
             <div>
               <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                Missing: Job Sheet
+                Missing: Job Sheet / Worksheet
               </p>
               <p className="text-xs text-red-600 dark:text-red-400">
-                This {selectedCase.category.toLowerCase()} case requires a job sheet. The case must be rejected — no hold/wait state is available. The vendor must resubmit with the required document.
+                This case requires a job sheet or worksheet. The case must be rejected — no hold/wait state is available. The vendor must resubmit with the required document.
               </p>
             </div>
           </CardContent>

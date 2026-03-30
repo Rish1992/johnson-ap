@@ -56,79 +56,79 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
   isLoading: false,
 
   fetchVendors: async () => {
-    const { fetchVendors } = await import('@/mock/handlers');
+    const { fetchVendors } = await import('@/lib/handlers');
     const vendors = await fetchVendors();
     set({ vendors });
   },
 
   fetchCostCenters: async () => {
-    const { fetchCostCenters } = await import('@/mock/handlers');
+    const { fetchCostCenters } = await import('@/lib/handlers');
     const costCenters = await fetchCostCenters();
     set({ costCenters });
   },
 
   fetchGLAccounts: async () => {
-    const { fetchGLAccounts } = await import('@/mock/handlers');
+    const { fetchGLAccounts } = await import('@/lib/handlers');
     const glAccounts = await fetchGLAccounts();
     set({ glAccounts });
   },
 
   fetchTaxCodes: async () => {
-    const { fetchTaxCodes } = await import('@/mock/handlers');
+    const { fetchTaxCodes } = await import('@/lib/handlers');
     const taxCodes = await fetchTaxCodes();
     set({ taxCodes });
   },
 
   fetchCompanyCodes: async () => {
-    const { fetchCompanyCodes } = await import('@/mock/handlers');
+    const { fetchCompanyCodes } = await import('@/lib/handlers');
     const companyCodes = await fetchCompanyCodes();
     set({ companyCodes });
   },
 
   fetchPlantCodes: async () => {
-    const { fetchPlantCodes } = await import('@/mock/handlers');
+    const { fetchPlantCodes } = await import('@/lib/handlers');
     const plantCodes = await fetchPlantCodes();
     set({ plantCodes });
   },
 
   fetchApprovalRules: async () => {
-    const { fetchApprovalRules } = await import('@/mock/handlers');
+    const { fetchApprovalRules } = await import('@/lib/handlers');
     const approvalRules = await fetchApprovalRules();
     set({ approvalRules });
   },
 
   fetchBusinessRuleConfigs: async () => {
-    const { fetchBusinessRuleConfigs } = await import('@/mock/handlers');
+    const { fetchBusinessRuleConfigs } = await import('@/lib/handlers');
     const businessRuleConfigs = await fetchBusinessRuleConfigs();
     set({ businessRuleConfigs });
   },
 
   fetchApprovalSequences: async () => {
-    const { fetchApprovalSequences } = await import('@/mock/handlers');
+    const { fetchApprovalSequences } = await import('@/lib/handlers');
     const approvalSequences = await fetchApprovalSequences();
     set({ approvalSequences });
   },
 
   fetchFreightRateCards: async () => {
-    const { fetchFreightRateCards } = await import('@/mock/handlers');
+    const { fetchFreightRateCards } = await import('@/lib/handlers');
     const freightRateCards = await fetchFreightRateCards();
     set({ freightRateCards });
   },
 
   fetchServiceRateCards: async () => {
-    const { fetchServiceRateCards } = await import('@/mock/handlers');
+    const { fetchServiceRateCards } = await import('@/lib/handlers');
     const serviceRateCards = await fetchServiceRateCards();
     set({ serviceRateCards });
   },
 
   fetchAgreementMasters: async () => {
-    const { fetchAgreementMasters } = await import('@/mock/handlers');
+    const { fetchAgreementMasters } = await import('@/lib/handlers');
     const agreementMasters = await fetchAgreementMasters();
     set({ agreementMasters });
   },
 
   fetchInvoiceCategoryConfigs: async () => {
-    const { fetchInvoiceCategoryConfigs } = await import('@/mock/handlers');
+    const { fetchInvoiceCategoryConfigs } = await import('@/lib/handlers');
     const invoiceCategoryConfigs = await fetchInvoiceCategoryConfigs();
     set({ invoiceCategoryConfigs });
   },
@@ -155,13 +155,13 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
   },
 
   addVendor: async (vendorData) => {
-    const { addVendor } = await import('@/mock/handlers');
+    const { addVendor } = await import('@/lib/handlers');
     const vendor = await addVendor(vendorData);
     set(state => ({ vendors: [...state.vendors, vendor] }));
   },
 
   updateVendor: async (id, data) => {
-    const { updateVendor } = await import('@/mock/handlers');
+    const { updateVendor } = await import('@/lib/handlers');
     const vendor = await updateVendor(id, data);
     set(state => ({
       vendors: state.vendors.map(v => v.id === id ? vendor : v),
@@ -169,7 +169,7 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
   },
 
   deleteVendor: async (id) => {
-    const { deleteVendor } = await import('@/mock/handlers');
+    const { deleteVendor } = await import('@/lib/handlers');
     await deleteVendor(id);
     set(state => ({
       vendors: state.vendors.filter(v => v.id !== id),
@@ -177,7 +177,7 @@ export const useMasterDataStore = create<MasterDataState>()((set) => ({
   },
 
   addUser: async (userData) => {
-    const { addUser } = await import('@/mock/handlers');
+    const { addUser } = await import('@/lib/handlers');
     await addUser(userData);
   },
 }));

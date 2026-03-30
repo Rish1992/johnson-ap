@@ -61,7 +61,7 @@ export function UserManagement() {
   const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
-    import('@/mock/handlers').then(({ fetchUsers }) => {
+    import('@/lib/handlers').then(({ fetchUsers }) => {
       fetchUsers().then((data) => {
         setUsers(data);
       });
@@ -92,7 +92,7 @@ export function UserManagement() {
     if (!addForm.firstName || !addForm.lastName || !addForm.email || !addForm.department) return;
     setAddLoading(true);
     try {
-      const { addUser, fetchUsers } = await import('@/mock/handlers');
+      const { addUser, fetchUsers } = await import('@/lib/handlers');
       await addUser({
         firstName: addForm.firstName,
         lastName: addForm.lastName,
@@ -130,7 +130,7 @@ export function UserManagement() {
     if (!editUserId || !editForm.firstName || !editForm.lastName || !editForm.email || !editForm.department) return;
     setEditLoading(true);
     try {
-      const { updateUser } = await import('@/mock/handlers');
+      const { updateUser } = await import('@/lib/handlers');
       await updateUser(editUserId, {
         firstName: editForm.firstName,
         lastName: editForm.lastName,

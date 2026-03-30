@@ -19,4 +19,6 @@ export const ROUTES = {
   ADMIN_MASTERS_TAB: '/admin/masters/:tab',
   ADMIN_USERS: '/admin/users',
   ADMIN_ANALYTICS: '/admin/analytics',
+  ADMIN_PLAYGROUND: '/admin/playground',
+  ADMIN_PROMPTS: '/admin/prompts',
 } as const;

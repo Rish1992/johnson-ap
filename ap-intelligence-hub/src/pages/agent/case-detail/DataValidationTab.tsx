@@ -197,7 +197,7 @@ export function DataValidationTab() {
   // Determine which document types are available based on category
   const availableDocTypes = useMemo(() => {
     if (!selectedCase) return ['INVOICE'] as const;
-    if (selectedCase.category === 'INSTALLATION' || selectedCase.category === 'WARRANTY') {
+    if (selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') {
       return ['INVOICE', 'JOB_SHEET'] as const;
     }
     return ['INVOICE'] as const;
@@ -807,7 +807,7 @@ export function DataValidationTab() {
       {!isReadOnly && !missingDocsDismissed && (() => {
         const docTypes = (selectedCase.attachments || []).map(a => a.documentType);
         const missing: string[] = [];
-        if ((selectedCase.category === 'INSTALLATION' || selectedCase.category === 'WARRANTY') && !docTypes.includes('JOB_SHEET')) missing.push('Job Sheet');
+        if ((selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') && !docTypes.includes('JOB_SHEET')) missing.push('Job Sheet');
         if (!docTypes.includes('INVOICE')) missing.push('Tax Invoice');
         if (missing.length === 0) return null;
         return (

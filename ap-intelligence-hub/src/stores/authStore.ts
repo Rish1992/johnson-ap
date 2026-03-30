@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { login } = await import('@/mock/handlers');
+          const { login } = await import('@/lib/handlers');
           const session = await login(email, password);
           set({
             user: session.user,
@@ -59,6 +59,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Clear API token from localStorage
+        localStorage.removeItem('ap-auth-token');
         set({
           user: null,
           session: null,
@@ -76,6 +78,12 @@ export const useAuthStore = create<AuthState>()(
         session: state.session,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Restore API token from persisted session on page reload
+        if (state?.session?.token) {
+          localStorage.setItem('ap-auth-token', state.session.token);
+        }
+      },
     }
   )
 );

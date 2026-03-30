@@ -29,7 +29,7 @@ export function ApproverAnalytics() {
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    import('@/mock/handlers').then(({ fetchAllCases }) => {
+    import('@/lib/handlers').then(({ fetchAllCases }) => {
       fetchAllCases().then(setAllCases);
     });
   }, []);

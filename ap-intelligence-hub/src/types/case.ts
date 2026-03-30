@@ -14,7 +14,7 @@ export type CaseStatus =
   | 'RETURNED'
   | 'FAILED';
 
-export type CaseCategory = 'UTILITY' | 'INSTALLATION' | 'WARRANTY';
+export type CaseCategory = 'SUBCONTRACTOR' | 'RUST_SUBCONTRACTOR' | 'DELIVERY_INSTALLATION' | 'FREIGHT_FINISHED_GOODS' | 'FREIGHT_SPARE_PARTS' | 'FREIGHT_ADDITIONAL_CHARGES';
 
 export type InvoiceType = 'STANDARD' | 'CREDIT_NOTE' | 'DEBIT_NOTE' | 'PROFORMA' | 'RECURRING';
 

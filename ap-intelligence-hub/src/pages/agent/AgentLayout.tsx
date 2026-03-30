@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { Inbox } from 'lucide-react';
 import type { Case, CaseStatus } from '@/types/case';
-import type { EmailRecord } from '@/mock/handlers';
+import type { EmailRecord } from '@/types/email';
 
 interface TabDef {
   label: string;
@@ -29,7 +29,7 @@ export function AgentLayout() {
   useEffect(() => {
     // Fetch all cases and emails directly from handlers (not through the store)
     // to avoid race conditions with child queue pages overwriting store data
-    import('@/mock/handlers').then(({ fetchAllCases, fetchEmails }) => {
+    import('@/lib/handlers').then(({ fetchAllCases, fetchEmails }) => {
       Promise.all([fetchAllCases(), fetchEmails()]).then(([allCases, allEmails]: [Case[], EmailRecord[]]) => {
         const newCounts: Record<string, number> = {};
         TABS.forEach((tab) => {

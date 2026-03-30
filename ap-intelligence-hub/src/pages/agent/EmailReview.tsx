@@ -46,7 +46,7 @@ import {
 import { toast } from 'sonner';
 import { formatRelativeTime, formatDateTime, formatFileSize } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import type { EmailRecord } from '@/mock/handlers';
+import type { EmailRecord } from '@/types/email';
 
 // ---------------------------------------------------------------------------
 // File type icon helper
@@ -420,7 +420,7 @@ export function EmailReview() {
   const [sortOrder, setSortOrder] = useState<string>('NEWEST');
 
   useEffect(() => {
-    import('@/mock/handlers').then(({ fetchEmails }) => {
+    import('@/lib/handlers').then(({ fetchEmails }) => {
       fetchEmails().then((data) => {
         setEmails(data);
         setIsLoading(false);
@@ -560,9 +560,12 @@ export function EmailReview() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Categories</SelectItem>
-            <SelectItem value="UTILITY">Utility</SelectItem>
-            <SelectItem value="INSTALLATION">Installation</SelectItem>
-            <SelectItem value="WARRANTY">Warranty</SelectItem>
+            <SelectItem value="SUBCONTRACTOR">Subcontractor</SelectItem>
+            <SelectItem value="RUST_SUBCONTRACTOR">Rust - Subcontractor</SelectItem>
+            <SelectItem value="DELIVERY_INSTALLATION">D&I</SelectItem>
+            <SelectItem value="FREIGHT_FINISHED_GOODS">Freight - Finished Goods</SelectItem>
+            <SelectItem value="FREIGHT_SPARE_PARTS">Freight - Spare Parts</SelectItem>
+            <SelectItem value="FREIGHT_ADDITIONAL_CHARGES">Freight - Add. Charges</SelectItem>
           </SelectContent>
         </Select>
         <Select value={attachmentFilter} onValueChange={setAttachmentFilter}>

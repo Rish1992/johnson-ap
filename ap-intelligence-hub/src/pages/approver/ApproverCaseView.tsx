@@ -44,7 +44,7 @@ export function ApproverCaseView() {
     if (caseId) {
       fetchCaseById(caseId);
       fetchComments(caseId);
-      import('@/mock/handlers').then(({ fetchAuditLog }) => {
+      import('@/lib/handlers').then(({ fetchAuditLog }) => {
         fetchAuditLog(caseId).then(setAuditEntries);
       });
     }

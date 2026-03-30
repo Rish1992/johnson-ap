@@ -10,6 +10,8 @@ import {
   Database,
   Users,
   BarChart3,
+  FlaskConical,
+  FileCode,
 
   ChevronLeft,
   ChevronRight,
@@ -49,6 +51,8 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: 'Master Data', path: '/admin/masters/vendors', icon: <Database className="h-5 w-5" /> },
     { label: 'Users', path: '/admin/users', icon: <Users className="h-5 w-5" /> },
     { label: 'Analytics', path: '/admin/analytics', icon: <BarChart3 className="h-5 w-5" /> },
+    { label: 'Playground', path: '/admin/playground', icon: <FlaskConical className="h-5 w-5" /> },
+    { label: 'Prompt Editor', path: '/admin/prompts', icon: <FileCode className="h-5 w-5" /> },
   ],
 };
 

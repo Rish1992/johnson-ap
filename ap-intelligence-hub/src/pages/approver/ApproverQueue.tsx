@@ -38,7 +38,7 @@ export function ApproverQueue() {
 
   useEffect(() => {
     if (user) {
-      import('@/mock/handlers').then(({ fetchApproverCases }) => {
+      import('@/lib/handlers').then(({ fetchApproverCases }) => {
         fetchApproverCases(user.id, user.role).then((data) => {
           setCases(data);
           setIsLoading(false);

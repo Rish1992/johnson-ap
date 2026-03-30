@@ -29,6 +29,8 @@ import { MastersHub } from '@/pages/admin/MastersHub';
 import { UserManagement } from '@/pages/admin/UserManagement';
 import { Analytics } from '@/pages/admin/Analytics';
 import { AdminCaseBrowser } from '@/pages/admin/AdminCaseBrowser';
+import { Playground } from '@/pages/admin/Playground';
+import { PromptEditor } from '@/pages/admin/PromptEditor';
 
 const basename = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
 
@@ -151,6 +153,14 @@ export const router = createBrowserRouter([
               {
                 path: '/admin/analytics',
                 element: <Analytics />,
+              },
+              {
+                path: '/admin/playground',
+                element: <Playground />,
+              },
+              {
+                path: '/admin/prompts',
+                element: <PromptEditor />,
               },
             ],
           },

@@ -22,9 +22,12 @@ export const CASE_STATUS_CONFIG: Record<CaseStatus, { label: string; color: stri
 };
 
 export const CASE_CATEGORY_CONFIG: Record<CaseCategory, { label: string; color: string; bgColor: string }> = {
-  UTILITY: { label: 'Utility', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  INSTALLATION: { label: 'Installation', color: 'text-purple-700', bgColor: 'bg-purple-100' },
-  WARRANTY: { label: 'Warranty', color: 'text-teal-700', bgColor: 'bg-teal-100' },
+  SUBCONTRACTOR: { label: 'Subcontractor', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+  RUST_SUBCONTRACTOR: { label: 'Rust \u2013 Subcontractor', color: 'text-orange-700', bgColor: 'bg-orange-100' },
+  DELIVERY_INSTALLATION: { label: 'D&I', color: 'text-purple-700', bgColor: 'bg-purple-100' },
+  FREIGHT_FINISHED_GOODS: { label: 'Freight \u2013 Finished Goods', color: 'text-teal-700', bgColor: 'bg-teal-100' },
+  FREIGHT_SPARE_PARTS: { label: 'Freight \u2013 Spare Parts', color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
+  FREIGHT_ADDITIONAL_CHARGES: { label: 'Freight \u2013 Add. Charges', color: 'text-indigo-700', bgColor: 'bg-indigo-100' },
 };
 
 export const CONFIDENCE_LEVEL_CONFIG: Record<ConfidenceLevel, { label: string; color: string; bgColor: string; dotColor: string }> = {

@@ -199,7 +199,7 @@ export function AuditLogTab() {
 
   useEffect(() => {
     if (caseId) {
-      import('@/mock/handlers').then(({ fetchAuditLog }) => {
+      import('@/lib/handlers').then(({ fetchAuditLog }) => {
         fetchAuditLog(caseId).then((data) => {
           setEntries(data);
           setIsLoading(false);

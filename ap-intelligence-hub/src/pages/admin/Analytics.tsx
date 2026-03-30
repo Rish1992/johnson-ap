@@ -85,7 +85,7 @@ export function Analytics() {
   const [timeRange, setTimeRange] = useState('30');
 
   useEffect(() => {
-    import('@/mock/handlers').then(({ fetchAllCases }) => {
+    import('@/lib/handlers').then(({ fetchAllCases }) => {
       fetchAllCases().then(setAllCases);
     });
   }, []);
