@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import {
   FileText, Clock, AlertTriangle, CheckCircle, Search,
-  DollarSign, Gauge, TrendingUp, Activity, Zap, BarChart3,
+  DollarSign, Gauge, Activity, Zap, BarChart3,
 } from 'lucide-react';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import type { Case } from '@/types/case';
@@ -51,42 +51,6 @@ function generateWeeklyVolume(totalCases: number) {
     week: `W${i + 1}`,
     volume: Math.round(base * m),
   }));
-}
-
-// Mini sparkline data (7-point)
-const SPARKLINE_POINTS = [4, 7, 5, 9, 6, 11, 8];
-
-// ---------------------------------------------------------------------------
-// Sparkline SVG component
-// ---------------------------------------------------------------------------
-function MiniSparkline({ data, color = '#DC2626' }: { data: number[]; color?: string }) {
-  const w = 80;
-  const h = 28;
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 4) - 2;
-    return `${x},${y}`;
-  });
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="inline-block">
-      <polyline
-        points={pts.join(' ')}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Glow dot on the last point */}
-      {(() => {
-        const last = pts[pts.length - 1].split(',');
-        return <circle cx={last[0]} cy={last[1]} r="3" fill={color} opacity="0.85" />;
-      })()}
-    </svg>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -194,28 +158,18 @@ export function AdminDashboard() {
           ROW 1 -- Stat Cards (4-up bento)
           ================================================================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="relative">
-          <StatCard
-            title="Total Cases"
-            value={totalCases}
-            icon={<FileText className="h-5 w-5" />}
-            variant="default"
-            trend={{ direction: 'up', percentage: 12.5 }}
-            description="vs. last period"
-          />
-          {/* Sparkline overlay */}
-          <div className="absolute bottom-4 right-5 opacity-80">
-            <MiniSparkline data={SPARKLINE_POINTS} color="#3b82f6" />
-          </div>
-        </div>
+        <StatCard
+          title="Total Cases"
+          value={totalCases}
+          icon={<FileText className="h-5 w-5" />}
+          variant="default"
+        />
 
         <StatCard
           title="In Review"
           value={inReview}
           icon={<Clock className="h-5 w-5" />}
           variant="warning"
-          trend={{ direction: inReview > 3 ? 'up' : 'down', percentage: 8.3 }}
-          description="vs. last period"
         />
 
         <StatCard
@@ -223,8 +177,6 @@ export function AdminDashboard() {
           value={pendingApproval}
           icon={<CheckCircle className="h-5 w-5" />}
           variant="default"
-          trend={{ direction: 'down', percentage: 4.1 }}
-          description="vs. last period"
         />
 
         <StatCard
@@ -232,8 +184,6 @@ export function AdminDashboard() {
           value={slaBreach}
           icon={<AlertTriangle className="h-5 w-5" />}
           variant="danger"
-          trend={{ direction: slaBreach > 0 ? 'up' : 'flat', percentage: slaBreach > 0 ? 15.0 : 0 }}
-          description="vs. last period"
         />
       </div>
 
@@ -254,10 +204,7 @@ export function AdminDashboard() {
                   Weekly intake over the last 12 weeks
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-xs font-semibold text-emerald-600">+18.2%</span>
-              </div>
+              {/* Trend badge removed — no historical data to compute */}
             </div>
           </CardHeader>
           <CardContent className="p-0 pr-4 pb-4">
@@ -485,24 +432,18 @@ export function AdminDashboard() {
             value={`${slaCompliance}%`}
             icon={<Gauge className="h-5 w-5" />}
             variant={slaCompliance >= 80 ? 'success' : 'warning'}
-            trend={{ direction: slaCompliance >= 80 ? 'up' : 'down', percentage: 3.2 }}
-            description="vs. last period"
           />
           <StatCard
             title="Avg. Invoice Value"
             value={formatCurrency(avgInvoiceValue)}
             icon={<DollarSign className="h-5 w-5" />}
             variant="default"
-            trend={{ direction: 'up', percentage: 6.7 }}
-            description="vs. last period"
           />
           <StatCard
             title="Approval Queue"
             value={pendingApproval}
             icon={<CheckCircle className="h-5 w-5" />}
             variant={pendingApproval > 5 ? 'warning' : 'success'}
-            trend={{ direction: 'down', percentage: 11.0 }}
-            description="vs. last period"
           />
         </div>
       </div>

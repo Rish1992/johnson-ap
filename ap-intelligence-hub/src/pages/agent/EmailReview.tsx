@@ -19,7 +19,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
-import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
+// MockInvoiceDocument removed — replaced with real PDF viewer
 import { StatCard } from '@/components/shared/StatCard';
 import {
   Inbox,
@@ -382,19 +382,19 @@ function EmailDetail({
               {viewedAtt?.fileType} &middot; {viewedAtt ? formatFileSize(viewedAtt.fileSize) : ''} &middot; {email.fromName}
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 bg-accent/10">
-            <div className="flex items-start justify-center p-8">
-              <div className="transform scale-125 origin-top">
-                <MockInvoiceDocument
-                  vendorName={email.fromName.replace(' Accounts', '')}
-                  invoiceNumber={email.subject.match(/INV-\d+/)?.[0] ?? 'INV-UNKNOWN'}
-                  subtotal="167,250"
-                  gstAmount="16,725"
-                  totalAmount="183,975"
-                />
+          <div className="flex-1 bg-accent/10">
+            {viewedAtt?.fileUrl ? (
+              <iframe
+                src={`/johnson-api${viewedAtt.fileUrl}`}
+                className="w-full h-full border-0"
+                title={viewedAtt.fileName}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                No document preview available
               </div>
-            </div>
-          </ScrollArea>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </ScrollArea>
@@ -672,7 +672,7 @@ export function EmailReview() {
 
           {/* Right panel: Email detail */}
           <div className={cn(
-            'overflow-hidden h-full',
+            'overflow-y-auto h-full',
             !selectedEmail && 'hidden lg:flex'
           )}>
             {selectedEmail ? (

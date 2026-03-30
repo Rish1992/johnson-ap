@@ -18,7 +18,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
-import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
+// MockInvoiceDocument removed — replaced with real PDF viewer
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
@@ -62,85 +62,6 @@ function formatConfidencePercent(score: number): string {
   return pct.toFixed(2);
 }
 
-
-// ---------------------------------------------------------------------------
-// Mock Job Sheet SVG Document Component
-// ---------------------------------------------------------------------------
-function MockJobSheetDocument({ vendorName }: { vendorName: string }) {
-  return (
-    <div className="w-full max-w-[520px] mx-auto bg-white rounded shadow-md border border-gray-200 p-0 overflow-hidden select-none" style={{ fontFamily: 'monospace' }}>
-      <div className="relative bg-[#fafaf7]" style={{ transform: 'rotate(0.2deg)' }}>
-        {/* Header */}
-        <div className="px-6 pt-6 pb-3 border-b border-gray-300 flex items-start justify-between">
-          <div>
-            <div className="text-sm font-bold text-gray-800">JOB COMPLETION SHEET</div>
-            <div className="text-[10px] text-gray-500 mt-0.5">Service Verification Report</div>
-          </div>
-          <div className="text-right text-[10px] text-gray-600">
-            <div>Job ID: <span className="font-semibold">JOB-2025-0847</span></div>
-            <div>Date: <span className="font-semibold">2025-01-14</span></div>
-          </div>
-        </div>
-
-        {/* Job details */}
-        <div className="px-6 py-3 space-y-2 text-[10px] text-gray-700 border-b border-gray-200">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-            <div><span className="text-gray-500">Contractor:</span> <span className="font-semibold">{vendorName || 'Vendor'}</span></div>
-            <div><span className="text-gray-500">Site:</span> <span className="font-semibold">JCI Facility - Melbourne</span></div>
-            <div><span className="text-gray-500">Work Order:</span> <span className="font-semibold">WO-2025-1234</span></div>
-            <div><span className="text-gray-500">Category:</span> <span className="font-semibold">HVAC Installation</span></div>
-          </div>
-        </div>
-
-        {/* Task checklist */}
-        <div className="px-6 py-3 border-b border-gray-200">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-2">Tasks Completed</div>
-          <div className="space-y-1.5 text-[10px] text-gray-700">
-            {[
-              { task: 'Unit installation & mounting', status: 'Done' },
-              { task: 'Ductwork connection & sealing', status: 'Done' },
-              { task: 'Electrical wiring & controls', status: 'Done' },
-              { task: 'Refrigerant charging', status: 'Done' },
-              { task: 'System commissioning', status: 'Done' },
-              { task: 'Performance testing (24hr)', status: 'Done' },
-              { task: 'Site cleanup', status: 'Done' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-3 h-3 border border-gray-400 rounded-sm flex items-center justify-center text-[7px] text-green-600 font-bold bg-green-50">
-                  &#10003;
-                </div>
-                <span>{item.task}</span>
-                <span className="ml-auto text-green-600 font-semibold text-[9px]">{item.status}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Verification */}
-        <div className="px-6 py-3 border-b border-gray-200 text-[10px] text-gray-700">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-2">Verification Notes</div>
-          <div className="bg-gray-50 border border-gray-200 rounded p-2 text-[9px] leading-snug">
-            All installation work completed as per scope. System running within specified parameters.
-            Air flow and temperature readings within tolerance. No pending snag items.
-            Warranty period starts from commissioning date.
-          </div>
-        </div>
-
-        {/* Signatures */}
-        <div className="px-6 py-4 grid grid-cols-3 gap-4 text-center">
-          {['Contractor Rep.', 'Site Engineer', 'Project Manager'].map((role) => (
-            <div key={role}>
-              <div className="w-full h-8 border-b border-gray-400 mb-1 flex items-end justify-center">
-                <span className="text-[8px] text-gray-300 italic">signed</span>
-              </div>
-              <div className="text-[8px] text-gray-500">{role}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Inline ConfidenceBadge that formats to 2 decimal places
@@ -205,42 +126,42 @@ export function DataValidationTab() {
 
   useEffect(() => {
     initDraft();
-    // Load GL accounts
-    import('@/mock/vendors').then(({ mockGLAccounts }) => {
-      setGLAccounts(mockGLAccounts);
+    // Load GL accounts from real API
+    import('@/lib/handlers').then(({ fetchGLAccounts }) => {
+      fetchGLAccounts().then((accounts: { accountNumber: string; name: string }[]) => {
+        setGLAccounts(accounts.map(a => a.accountNumber));
+      });
     });
-    // Load approvers from mock users, auto-select those within limit
-    import('@/mock/users').then(({ mockUsers }) => {
-      const totalAmount = selectedCase?.headerData.totalAmount ?? 0;
-      const reviewers = mockUsers
-        .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
-        .map((u, idx) => ({
-          id: u.id,
-          name: u.fullName,
-          department: u.department || '',
-          limit: u.approvalLimit || 0,
-          // Auto-select approvers whose limit covers the invoice amount
-          selected: (u.approvalLimit || 0) >= totalAmount,
-          order: idx,
-        }))
-        // Sort by limit descending so the highest-authority approver is first
-        .sort((a, b) => b.limit - a.limit);
+    // Load approvers from real API
+    import('@/lib/handlers').then(({ fetchUsers }) => {
+      fetchUsers().then((users: { id: string; role: string; isActive: boolean; fullName: string; department?: string; approvalLimit?: number }[]) => {
+        const totalAmount = selectedCase?.headerData.totalAmount ?? 0;
+        const reviewers = users
+          .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
+          .map((u, idx) => ({
+            id: u.id,
+            name: u.fullName,
+            department: u.department || '',
+            limit: u.approvalLimit || 0,
+            selected: (u.approvalLimit || 0) >= totalAmount,
+            order: idx,
+          }))
+          .sort((a, b) => b.limit - a.limit);
 
-      // Auto-select at least one approver - pick the one with the lowest limit that still covers the amount
-      const anySelected = reviewers.some(a => a.selected);
-      if (!anySelected && reviewers.length > 0) {
-        reviewers[0].selected = true;
-      }
-
-      // Re-assign order for selected ones
-      let order = 0;
-      for (const a of reviewers) {
-        if (a.selected) {
-          a.order = order++;
+        const anySelected = reviewers.some(a => a.selected);
+        if (!anySelected && reviewers.length > 0) {
+          reviewers[0].selected = true;
         }
-      }
 
-      setApprovers(reviewers);
+        let order = 0;
+        for (const a of reviewers) {
+          if (a.selected) {
+            a.order = order++;
+          }
+        }
+
+        setApprovers(reviewers);
+      });
     });
   }, [initDraft, selectedCase]);
 
@@ -443,47 +364,28 @@ export function DataValidationTab() {
             </div>
 
             {/* Document content - click to expand */}
-            <ScrollArea className="flex-1 bg-accent/10">
-              <div
-                className="p-4 cursor-pointer group/doc"
-                onClick={() => setDocPreviewOpen(true)}
-                title="Click to expand document"
-              >
-                <div className="relative">
-                  {activeDocumentType === 'INVOICE' ? (
-                    <MockInvoiceDocument
-                      vendorName={selectedCase.vendorName}
-                      invoiceNumber={headerData.invoiceNumber}
-                      invoiceDate={headerData.invoiceDate}
-                      totalAmount={formatCurrency(headerData.totalAmount, headerData.currency)}
-                    />
-                  ) : (
-                    <MockJobSheetDocument
-                      vendorName={selectedCase.vendorName}
-                    />
-                  )}
-                  {/* Expand overlay on hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover/doc:bg-black/5 dark:group-hover/doc:bg-white/5 transition-colors rounded flex items-center justify-center">
+            {(() => {
+              const atts = selectedCase.attachments || [];
+              const att = activeDocumentType === 'INVOICE'
+                ? (atts.find((a: Record<string, unknown>) => a.documentType === 'INVOICE') || atts[0])
+                : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
+              const fileUrl = att?.fileUrl;
+              return fileUrl ? (
+                <div className="flex-1 relative group/doc cursor-pointer" onClick={() => setDocPreviewOpen(true)} title="Click to expand">
+                  <iframe src={`/johnson-api${fileUrl}`} className="w-full h-full border-0 pointer-events-none" title={att?.fileName || 'Document'} />
+                  <div className="absolute inset-0 bg-black/0 group-hover/doc:bg-black/5 transition-colors flex items-center justify-center">
                     <div className="opacity-0 group-hover/doc:opacity-100 transition-opacity bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border flex items-center gap-1.5">
                       <ZoomIn className="h-3.5 w-3.5" />
                       <span className="text-xs font-medium">Click to expand</span>
                     </div>
                   </div>
                 </div>
-                {/* Document file info */}
-                <div className="mt-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">
-                    {activeDocumentType === 'INVOICE'
-                      ? selectedCase.attachments.find(a => a.documentType === 'INVOICE')?.fileName
-                        || selectedCase.attachments[0]?.fileName
-                        || 'invoice.pdf'
-                      : selectedCase.attachments.find(a => a.documentType === 'JOB_SHEET')?.fileName
-                        || 'job-sheet.pdf'
-                    }
-                  </p>
+              ) : (
+                <div className="flex-1 flex items-center justify-center bg-accent/10 text-muted-foreground text-sm">
+                  No document available
                 </div>
-              </div>
-            </ScrollArea>
+              );
+            })()}
           </div>
         </ResizablePanel>
 
@@ -1009,24 +911,18 @@ export function DataValidationTab() {
               {activeDocumentType === 'INVOICE' ? 'Tax Invoice Document' : 'Job Completion Sheet'} &middot; {selectedCase.vendorName}
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 bg-accent/10">
-            <div className="flex items-start justify-center p-8">
-              <div className="transform scale-125 origin-top">
-                {activeDocumentType === 'INVOICE' ? (
-                  <MockInvoiceDocument
-                    vendorName={selectedCase.vendorName}
-                    invoiceNumber={headerData.invoiceNumber}
-                    invoiceDate={headerData.invoiceDate}
-                    totalAmount={formatCurrency(headerData.totalAmount, headerData.currency)}
-                  />
-                ) : (
-                  <MockJobSheetDocument
-                    vendorName={selectedCase.vendorName}
-                  />
-                )}
-              </div>
-            </div>
-          </ScrollArea>
+          {(() => {
+            const atts = selectedCase.attachments || [];
+            const att = activeDocumentType === 'INVOICE'
+              ? (atts.find((a: Record<string, unknown>) => a.documentType === 'INVOICE') || atts[0])
+              : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
+            const fileUrl = att?.fileUrl;
+            return fileUrl ? (
+              <iframe src={`/johnson-api${fileUrl}`} className="flex-1 w-full border-0" title={att?.fileName || 'Document'} />
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">No document available</div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </>

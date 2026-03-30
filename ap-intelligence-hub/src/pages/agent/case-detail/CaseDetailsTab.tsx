@@ -4,13 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle } from 'lucide-react';
-import { MockInvoiceDocument } from '@/components/shared/MockInvoiceDocument';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { formatDateTime, formatFileSize, formatCurrency } from '@/lib/formatters';
 import type { Vendor, VendorContract } from '@/types/masterData';
@@ -23,23 +21,27 @@ export function CaseDetailsTab() {
 
   useEffect(() => {
     if (!selectedCase) return;
-    // Load vendor details from mock data
-    import('@/mock/vendors').then(({ mockVendors }) => {
-      const v = mockVendors.find((mv) => mv.id === selectedCase.vendorId);
-      if (v) {
-        setVendor(v);
-        const contract = v.contracts.find(
-          (c) => c.contractNumber === selectedCase.contractNumber
-        ) ?? v.contracts.find((c) => c.category === selectedCase.category) ?? null;
-        setMatchedContract(contract);
-      }
+    // Load vendor details from real API
+    import('@/lib/handlers').then(({ fetchVendors }) => {
+      fetchVendors().then((vendors: Vendor[]) => {
+        const v = vendors.find((mv) => mv.id === selectedCase.vendorId)
+          || vendors.find((mv) => mv.vendorNumber === selectedCase.vendorNumber)
+          || vendors.find((mv) => mv.name === selectedCase.vendorName);
+        if (v) {
+          setVendor(v);
+          const contract = v.contracts?.find(
+            (c) => c.contractNumber === selectedCase.contractNumber
+          ) ?? v.contracts?.find((c) => c.category === selectedCase.category) ?? null;
+          setMatchedContract(contract);
+        }
+      });
     });
   }, [selectedCase]);
 
   if (!selectedCase) return null;
 
-  const { email, attachments, vendorName, vendorNumber, contractNumber, contractStatus } = selectedCase;
-  const viewedAtt = attachments.find(a => a.id === viewingAttachment);
+  const { email, attachments = [], vendorName, vendorNumber, contractNumber, contractStatus } = selectedCase;
+  const viewedAtt = attachments.find((a: Record<string, unknown>) => (a.id || a.fileName) === viewingAttachment);
 
   return (
     <div className="space-y-6">
@@ -249,11 +251,11 @@ export function CaseDetailsTab() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {attachments.map((att) => (
+            {attachments.map((att, idx) => (
               <div
-                key={att.id}
+                key={att.id || att.fileName || idx}
                 className="flex items-center justify-between p-3 bg-accent/30 rounded-lg transition-colors hover:bg-accent/50 cursor-pointer group"
-                onClick={() => setViewingAttachment(att.id)}
+                onClick={() => setViewingAttachment(att.id || att.fileName)}
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -263,13 +265,13 @@ export function CaseDetailsTab() {
                   <div>
                     <p className="text-sm font-medium">{att.fileName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {att.fileType} &middot; {formatFileSize(att.fileSize)}
+                      {att.fileType || 'PDF'} &middot; {formatFileSize(att.fileSize || 0)}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={att.isMainInvoice ? 'default' : 'secondary'}>
-                    {(att.documentType || 'OTHER').replace('_', ' ')}
+                    {(att.documentType || 'DOCUMENT').replace('_', ' ')}
                   </Badge>
                   {att.isMainInvoice && (
                     <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
@@ -326,7 +328,7 @@ export function CaseDetailsTab() {
 
       {/* Missing Document Warning - only shows if genuinely missing (edge case) */}
       {(selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') &&
-        !attachments.some(a => a.documentType === 'JOB_SHEET') && (
+        !attachments.some((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') && (
         <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
@@ -356,89 +358,19 @@ export function CaseDetailsTab() {
               </p>
             )}
           </DialogHeader>
-          <ScrollArea className="flex-1 bg-accent/10">
-            <div className="flex items-start justify-center p-8">
-              <div className="transform scale-125 origin-top">
-                {viewedAtt?.documentType === 'JOB_SHEET' ? (
-                  <div className="w-full max-w-[520px] bg-white rounded shadow-md border border-gray-200 overflow-hidden" style={{ fontFamily: 'monospace' }}>
-                    <div className="bg-[#fafaf7]" style={{ transform: 'rotate(0.2deg)' }}>
-                      <div className="px-6 pt-6 pb-3 border-b border-gray-300 flex items-start justify-between">
-                        <div>
-                          <div className="text-sm font-bold text-gray-800">JOB COMPLETION SHEET</div>
-                          <div className="text-[10px] text-gray-500 mt-0.5">Service Verification Report</div>
-                        </div>
-                        <div className="text-right text-[10px] text-gray-600">
-                          <div>Ref: <span className="font-semibold">{viewedAtt?.fileName}</span></div>
-                          <div>Date: <span className="font-semibold">2025-01-14</span></div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 space-y-2 text-[10px] text-gray-700 border-b border-gray-200">
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                          <div><span className="text-gray-500">Contractor:</span> <span className="font-semibold">{selectedCase.vendorName}</span></div>
-                          <div><span className="text-gray-500">Category:</span> <span className="font-semibold">{selectedCase.category}</span></div>
-                          <div><span className="text-gray-500">Work Order:</span> <span className="font-semibold">WO-2025-1234</span></div>
-                          <div><span className="text-gray-500">Site:</span> <span className="font-semibold">JCI Facility - Melbourne</span></div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 border-b border-gray-200">
-                        <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-2">Tasks Completed</div>
-                        <div className="space-y-1.5 text-[10px]">
-                          {[
-                            'Site preparation & safety check',
-                            'Unit installation & mounting',
-                            'Ductwork connection & sealing',
-                            'Electrical wiring & controls',
-                            'System commissioning',
-                            'Performance testing (24hr)',
-                            'Final inspection & sign-off',
-                          ].map((task, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <div className="w-3 h-3 border border-gray-400 rounded-sm flex items-center justify-center text-[7px] text-green-600 font-bold bg-green-50">&#10003;</div>
-                              <span>{task}</span>
-                              <span className="ml-auto text-green-600 font-semibold text-[9px]">Done</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="px-6 py-3 border-b border-gray-200 text-[10px] text-gray-700">
-                        <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-2">Verification Notes</div>
-                        <div className="bg-gray-50 border border-gray-200 rounded p-2 text-[9px] leading-snug">
-                          All installation work completed as per scope. System running within specified parameters.
-                          Air flow and temperature readings within tolerance. No pending snag items.
-                        </div>
-                      </div>
-                      <div className="px-6 py-4 grid grid-cols-3 gap-4 text-center">
-                        {['Contractor Rep.', 'Site Engineer', 'Project Manager'].map((role) => (
-                          <div key={role}>
-                            <div className="w-full h-8 border-b border-gray-400 mb-1 flex items-end justify-center">
-                              <span className="text-[8px] text-gray-300 italic">signed</span>
-                            </div>
-                            <div className="text-[8px] text-gray-500">{role}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <MockInvoiceDocument
-                    vendorName={selectedCase.vendorName}
-                    invoiceNumber={selectedCase.headerData.invoiceNumber}
-                    invoiceDate={selectedCase.headerData.invoiceDate}
-                    documentTitle={viewedAtt?.documentType === 'SUPPORTING' ? 'DELIVERY NOTE' : 'TAX INVOICE'}
-                    poNumber={selectedCase.headerData.purchaseOrderNumber || 'PO-44821'}
-                    dueDate={selectedCase.headerData.dueDate || 'Net 30'}
-                    lineItems={(selectedCase.lineItems.length > 0
-                      ? selectedCase.lineItems.map(li => ({ desc: li.description, qty: li.quantity, rate: li.unitPrice }))
-                      : undefined
-                    )}
-                    subtotal={formatCurrency(selectedCase.headerData.netAmount || selectedCase.headerData.totalAmount * 0.9, selectedCase.headerData.currency)}
-                    gstAmount={formatCurrency(selectedCase.headerData.taxAmount, selectedCase.headerData.currency)}
-                    totalAmount={formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}
-                  />
-                )}
+          <div className="flex-1 bg-accent/10">
+            {viewedAtt?.fileUrl ? (
+              <iframe
+                src={`/johnson-api${viewedAtt.fileUrl}`}
+                className="w-full h-full border-0"
+                title={viewedAtt.fileName}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                No document available for preview
               </div>
-            </div>
-          </ScrollArea>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

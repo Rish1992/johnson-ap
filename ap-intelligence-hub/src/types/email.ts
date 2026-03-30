@@ -9,7 +9,7 @@ export interface EmailRecord {
   receivedAt: string;
   body: string;
   attachmentCount: number;
-  attachments: { fileName: string; fileType: string; fileSize: number }[];
+  attachments: { fileName: string; fileType: string; fileSize: number; fileUrl?: string }[];
   classification: 'INVOICE' | 'NON_INVOICE' | 'UNCLASSIFIED';
   invoiceCategory: CaseCategory | null;
   classificationConfidence: number;

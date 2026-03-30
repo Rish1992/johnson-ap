@@ -76,6 +76,7 @@ class Email(Base):
     created_at = Column(DateTime, default=utcnow)
 
     def to_dict(self):
+        atts = self.attachments or []
         return {
             "id": self.id,
             "from": self.from_address,
@@ -83,11 +84,13 @@ class Email(Base):
             "to": self.to_address,
             "subject": self.subject,
             "body": self.body,
-            "attachments": self.attachments or [],
+            "attachments": atts,
+            "attachmentCount": len(atts),
             "classification": self.classification,
             "invoiceCategory": self.invoice_category,
             "classificationConfidence": self.classification_confidence,
             "linkedCaseId": self.linked_case_id,
+            "isRead": self.status == "LINKED",  # read once linked to a case
             "poType": self.po_type,
             "entity": self.entity,
             "status": self.status,

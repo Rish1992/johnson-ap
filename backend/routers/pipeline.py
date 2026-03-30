@@ -209,6 +209,20 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         case_dict = do_create_case(email_id, db)
         case_id = case_dict["id"]
         job.case_id = case_id
+
+        # Populate vendor info from categorize result
+        cat_step = next((s for s in job.steps if s["name"] == "categorize"), None)
+        cat_output = cat_step.get("output") if cat_step else None
+        if cat_output and isinstance(cat_output, dict):
+            vm = cat_output.get("vendorMatch") or {}
+            if vm:
+                case = db.query(Case).filter(Case.id == case_id).first()
+                if case:
+                    case.vendor_name = vm.get("vendorName", "") or vm.get("name", "")
+                    case.vendor_id = vm.get("vendorId", "")
+                    case.vendor_number = vm.get("vendorNumber", "")
+                    case.contract_number = vm.get("contractNumber")
+                    case.contract_status = vm.get("contractStatus")
         db.commit()
 
         # Copy pre-case results into case workspace
