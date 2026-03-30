@@ -60,7 +60,11 @@ export function Sidebar() {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
-  const items = user ? NAV_ITEMS[user.role] : [];
+  const items = user ? NAV_ITEMS[user.role].filter(item => {
+    if (item.path.includes('/playground') || item.path.includes('/prompts'))
+      return user.permissions?.canEditPrompts;
+    return true;
+  }) : [];
 
   return (
     <aside

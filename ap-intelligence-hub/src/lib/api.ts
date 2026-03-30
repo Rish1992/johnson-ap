@@ -356,6 +356,6 @@ export async function fetchPromptByStep(step: string): Promise<unknown> {
   return get<unknown>(`/api/admin/prompts/${step}`);
 }
 
-export async function updatePrompt(id: string, data: { systemPrompt: string }): Promise<unknown> {
+export async function updatePrompt(id: string, data: { technicalPrompt?: string; businessRules?: string }): Promise<unknown> {
   return put<unknown>(`/api/admin/prompts/${id}`, data);
 }

@@ -2353,4 +2353,4 @@ export async function fetchPrompts(): Promise<any[]> { return []; }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPromptByStep(_step: string): Promise<any> { return null; }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function updatePrompt(_id: string, _data: { systemPrompt: string }): Promise<any> { return null; }
+export async function updatePrompt(_id: string, _data: { technicalPrompt?: string; businessRules?: string }): Promise<any> { return null; }

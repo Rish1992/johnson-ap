@@ -31,6 +31,7 @@ class User(Base):
     department = Column(String, default="")
     is_active = Column(Boolean, default=True)
     approval_limit = Column(Float, nullable=True)
+    permissions = Column(JSON, default=dict)  # {"canEditPrompts": bool, "canEditTechnical": bool}
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=utcnow)
 
@@ -45,6 +46,7 @@ class User(Base):
             "department": self.department,
             "isActive": self.is_active,
             "approvalLimit": self.approval_limit,
+            "permissions": self.permissions or {},
             "lastLoginAt": self.last_login_at.isoformat() + "Z" if self.last_login_at else None,
             "createdAt": self.created_at.isoformat() + "Z" if self.created_at else None,
         }
@@ -318,19 +320,26 @@ class PromptTemplate(Base):
     id = Column(String, primary_key=True, default=lambda: new_id("PT-"))
     step_name = Column(String, nullable=False, index=True)  # classify, categorize, verify_docs, extract, validate
     display_name = Column(String, nullable=False)
-    system_prompt = Column(Text, nullable=False)
+    technical_prompt = Column(Text, nullable=False)  # Developer-controlled, contains {{BUSINESS_RULES}} placeholder
+    business_rules = Column(Text, nullable=False, default="")  # Business-editable rules/criteria
     output_schema = Column(JSON, nullable=True)
     version = Column(Integer, default=1)
     is_active = Column(Boolean, default=True)
     created_by = Column(String, default="SYSTEM")
     created_at = Column(DateTime, default=utcnow)
 
+    @property
+    def assembled_prompt(self) -> str:
+        return self.technical_prompt.replace("{{BUSINESS_RULES}}", self.business_rules)
+
     def to_dict(self):
         return {
             "id": self.id,
             "stepName": self.step_name,
             "displayName": self.display_name,
-            "systemPrompt": self.system_prompt,
+            "technicalPrompt": self.technical_prompt,
+            "businessRules": self.business_rules,
+            "assembledPrompt": self.assembled_prompt,
             "outputSchema": self.output_schema,
             "version": self.version,
             "isActive": self.is_active,

@@ -116,6 +116,8 @@ export function LoginPage() {
                 <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="email"
+                  name="email"
+                  data-testid="login-email"
                   type="email"
                   placeholder="name@company.com"
                   value={email}
@@ -132,6 +134,8 @@ export function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
+                    data-testid="login-password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={password}
@@ -162,7 +166,7 @@ export function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full h-11 text-sm font-semibold mt-2 bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
+              <Button type="submit" data-testid="login-submit" className="w-full h-11 text-sm font-semibold mt-2 bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

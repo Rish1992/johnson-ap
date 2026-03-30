@@ -4,14 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { FileCode, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react';
+import { FileCode, ChevronDown, Loader2, CheckCircle2, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
 
 interface PromptTemplate {
   id: string;
   stepName: string;
   displayName: string;
-  systemPrompt: string;
+  technicalPrompt: string;
+  businessRules: string;
+  assembledPrompt: string;
   outputSchema: Record<string, unknown> | null;
   version: number;
   isActive: boolean;
@@ -24,20 +27,27 @@ const STEP_ORDER = ['classify', 'categorize', 'verify_docs', 'extract', 'validat
 export function PromptEditor() {
   const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
   const [selected, setSelected] = useState<PromptTemplate | null>(null);
-  const [draft, setDraft] = useState('');
+  const [technicalDraft, setTechnicalDraft] = useState('');
+  const [businessDraft, setBusinessDraft] = useState('');
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState<number | null>(null); // version number on save success
+  const [saved, setSaved] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const canEditTechnical = user?.permissions?.canEditTechnical ?? false;
 
   useEffect(() => {
     import('@/lib/handlers').then(({ fetchPrompts }) => {
       fetchPrompts().then((data: PromptTemplate[]) => {
         setPrompts(data);
-        // Auto-select first active prompt
         const first = STEP_ORDER
           .map(s => data.find(p => p.stepName === s && p.isActive))
           .find(Boolean);
-        if (first) { setSelected(first); setDraft(first.systemPrompt); }
+        if (first) {
+          setSelected(first);
+          setTechnicalDraft(first.technicalPrompt);
+          setBusinessDraft(first.businessRules);
+        }
         setLoading(false);
       });
     });
@@ -49,8 +59,10 @@ export function PromptEditor() {
 
   const selectPrompt = (p: PromptTemplate) => {
     setSelected(p);
-    setDraft(p.systemPrompt);
+    setTechnicalDraft(p.technicalPrompt);
+    setBusinessDraft(p.businessRules);
     setSaved(null);
+    setShowPreview(false);
   };
 
   const handleSave = async () => {
@@ -59,10 +71,13 @@ export function PromptEditor() {
     setSaved(null);
     try {
       const { updatePrompt } = await import('@/lib/handlers');
-      const updated: PromptTemplate = await updatePrompt(selected.id, { systemPrompt: draft });
-      // Update local state
+      const payload: Record<string, string> = { businessRules: businessDraft };
+      if (canEditTechnical) payload.technicalPrompt = technicalDraft;
+      const updated: PromptTemplate = await updatePrompt(selected.id, payload);
       setPrompts(prev => prev.map(p => p.id === selected.id ? { ...p, isActive: false } : p).concat(updated));
       setSelected(updated);
+      setTechnicalDraft(updated.technicalPrompt);
+      setBusinessDraft(updated.businessRules);
       setSaved(updated.version);
     } catch {
       // error handling
@@ -71,7 +86,11 @@ export function PromptEditor() {
     }
   };
 
-  const dirty = selected ? draft !== selected.systemPrompt : false;
+  const dirty = selected
+    ? (businessDraft !== selected.businessRules || (canEditTechnical && technicalDraft !== selected.technicalPrompt))
+    : false;
+
+  const assembledPreview = technicalDraft.replace('{{BUSINESS_RULES}}', businessDraft);
 
   if (loading) {
     return (
@@ -86,10 +105,11 @@ export function PromptEditor() {
       <PageHeader title="Prompt Editor" />
       <p className="text-sm text-muted-foreground -mt-4 mb-4">
         Edit AI pipeline prompts. Each save creates a new version.
+        {!canEditTechnical && ' You can edit business rules only.'}
       </p>
 
       <div className="grid grid-cols-[260px_1fr] gap-4">
-        {/* Left panel — step list */}
+        {/* Left panel */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Pipeline Steps</CardTitle>
@@ -118,7 +138,7 @@ export function PromptEditor() {
           </CardContent>
         </Card>
 
-        {/* Right panel — editor */}
+        {/* Right panel */}
         {selected ? (
           <div className="space-y-4">
             <Card>
@@ -144,16 +164,60 @@ export function PromptEditor() {
                   Version {selected.version} &middot; by {selected.createdBy} &middot; {selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'unknown'}
                 </p>
               </CardHeader>
-              <CardContent>
-                <textarea
-                  value={draft}
-                  onChange={e => { setDraft(e.target.value); setSaved(null); }}
-                  rows={22}
-                  className="w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring resize-y"
-                  spellCheck={false}
-                />
+              <CardContent className="space-y-4">
+                {/* Technical Prompt — only visible to tech admins */}
+                {canEditTechnical && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-1 block">Technical Prompt</label>
+                    <textarea
+                      value={technicalDraft}
+                      onChange={e => { setTechnicalDraft(e.target.value); setSaved(null); }}
+                      rows={12}
+                      className="w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                      spellCheck={false}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use {'{{BUSINESS_RULES}}'} placeholder where business rules should be inserted.
+                    </p>
+                  </div>
+                )}
+
+                {/* Business Rules — always visible */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-1 block">Business Rules</label>
+                  <textarea
+                    value={businessDraft}
+                    onChange={e => { setBusinessDraft(e.target.value); setSaved(null); }}
+                    rows={canEditTechnical ? 12 : 22}
+                    className="w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                    spellCheck={false}
+                  />
+                </div>
               </CardContent>
             </Card>
+
+            {/* Preview Assembled Prompt */}
+            <Collapsible open={showPreview} onOpenChange={setShowPreview}>
+              <Card>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Preview Assembled Prompt
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", showPreview && "rotate-180")} />
+                      <span className="text-xs font-normal text-muted-foreground">(read-only)</span>
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0">
+                    <pre className="bg-muted rounded-md p-3 text-xs overflow-x-auto max-h-[500px] overflow-y-auto whitespace-pre-wrap">
+                      {assembledPreview}
+                    </pre>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             {/* Output schema */}
             {selected.outputSchema && (

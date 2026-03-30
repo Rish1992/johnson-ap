@@ -10,6 +10,7 @@ export interface User {
   department: string;
   isActive: boolean;
   approvalLimit?: number;
+  permissions?: { canEditPrompts?: boolean; canEditTechnical?: boolean };
   lastLoginAt: string;
   createdAt: string;
 }

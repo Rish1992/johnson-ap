@@ -49,7 +49,16 @@ def _seed_users(db: Session):
         User(id="approver-002", email="emma.thompson@company.com", password_hash=PW,
              first_name="Emma", last_name="Thompson", role="AP_REVIEWER", department="Finance", approval_limit=25000),
         User(id="admin-001", email="alex.kumar@company.com", password_hash=PW,
-             first_name="Alex", last_name="Kumar", role="SUPER_ADMIN", department="IT"),
+             first_name="Alex", last_name="Kumar", role="SUPER_ADMIN", department="IT",
+             permissions={}),
+        # Tech admin — full prompt access
+        User(id="tech-001", email="samrat@aistra.com", password_hash=PW,
+             first_name="Samrat", last_name="Sah", role="SUPER_ADMIN", department="Technology",
+             permissions={"canEditPrompts": True, "canEditTechnical": True}),
+        # Business admin — business rules only
+        User(id="biz-001", email="prafulla@aistra.com", password_hash=PW,
+             first_name="Prafulla", last_name="Patil", role="SUPER_ADMIN", department="Business",
+             permissions={"canEditPrompts": True, "canEditTechnical": False}),
         # Real Johnson approvers (from Process Design approval hierarchies)
         User(id="approver-lisa", email="lisa.cubela@jhta.com.au", password_hash=PW,
              first_name="Lisa", last_name="Cubela", role="AP_REVIEWER", department="Service", approval_limit=50000),
@@ -284,11 +293,20 @@ def _seed_prompt_templates(db: Session):
         PromptTemplate(
             step_name="classify",
             display_name="Email Classification",
-            system_prompt="""# Email Classification Agent
+            technical_prompt="""# Email Classification Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Your task is to classify incoming emails as either INVOICE or NON_INVOICE.
 
-## Classification Rules
+{{BUSINESS_RULES}}
+
+## Output
+Return a JSON object with:
+- classification: "INVOICE" or "NON_INVOICE"
+- confidence: float 0-1
+- signals: object with sender, body, attachment analysis details
+
+Read email.json in this workspace for the email content and attachments/ for attachment content.""",
+            business_rules="""## Classification Rules
 
 Analyze THREE signals and combine them:
 
@@ -303,15 +321,7 @@ Non-invoice indicators: "payment reminder", "overdue payment", "statement of acc
 
 ### Signal 3: Attachment Content
 - If attachment is present AND contains keywords "Tax Invoice" or "Invoice" AND email body does NOT indicate payment reminder -> INVOICE
-- No attachments or only images/signatures -> NON_INVOICE
-
-## Output
-Return a JSON object with:
-- classification: "INVOICE" or "NON_INVOICE"
-- confidence: float 0-1
-- signals: object with sender, body, attachment analysis details
-
-Read email.json in this workspace for the email content and attachments/ for attachment content.""",
+- No attachments or only images/signatures -> NON_INVOICE""",
             output_schema={
                 "type": "object",
                 "properties": {
@@ -333,11 +343,17 @@ Read email.json in this workspace for the email content and attachments/ for att
         PromptTemplate(
             step_name="categorize",
             display_name="Invoice Categorization & Entity ID",
-            system_prompt="""# Invoice Categorization & Entity Identification Agent
+            technical_prompt="""# Invoice Categorization & Entity Identification Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Classify the invoice into a category and identify the billing entity.
 
-## Categories (Phase 1)
+{{BUSINESS_RULES}}
+
+## Output
+Return a JSON object with category, entity, poType, vendorMatch, confidence, reasoning.
+
+Read email.json, attachments/, and master-data/vendors.json for context.""",
+            business_rules="""## Categories (Phase 1)
 
 ### SUBCONTRACTOR
 - Vendor "RevoFit Pty Ltd ATF The NewFit Unit Trust" -> always Subcontractor/Rust
@@ -385,9 +401,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Classi
 ## Classification Priority
 1. Vendor-based identification (highest priority)
 2. Invoice reference numbers (JAU/CNR/CAS)
-3. Description keywords
-
-Read email.json, attachments/, and master-data/vendors.json for context.""",
+3. Description keywords""",
             output_schema={
                 "type": "object",
                 "properties": {
@@ -413,11 +427,17 @@ Read email.json, attachments/, and master-data/vendors.json for context.""",
         PromptTemplate(
             step_name="verify_docs",
             display_name="Supporting Document Verification",
-            system_prompt="""# Supporting Document Verification Agent
+            technical_prompt="""# Supporting Document Verification Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Verify that all mandatory supporting documents are present for the identified invoice category.
 
-## Mandatory Documents Matrix
+{{BUSINESS_RULES}}
+
+## Output
+Return a JSON object with verified, presentDocs, missingDocs, confidence, details.
+
+Read results/step2_categorize.json for category, then check attachments/.""",
+            business_rules="""## Mandatory Documents Matrix
 
 | Category | Required Documents |
 |----------|-------------------|
@@ -440,9 +460,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Verify
 - Service Job Sheet: contains service details, technician info
 - Work Order: contains work order reference, task descriptions
 - Installation Worksheet: contains "CAS" reference, delivery/installation details
-- Commercial Invoice: contains shipment details, goods description, origin/destination
-
-Read results/step2_categorize.json for category, then check attachments/.""",
+- Commercial Invoice: contains shipment details, goods description, origin/destination""",
             output_schema={
                 "type": "object",
                 "properties": {
@@ -467,11 +485,21 @@ Read results/step2_categorize.json for category, then check attachments/.""",
         PromptTemplate(
             step_name="extract",
             display_name="Data Extraction",
-            system_prompt="""# Data Extraction Agent
+            technical_prompt="""# Data Extraction Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Extract all required data points from the invoice and supporting documents.
 
-## Common Data Points (all categories)
+{{BUSINESS_RULES}}
+
+## Confidence Scoring
+For each extracted field, provide a confidence score (0-1) and level (HIGH/MEDIUM/LOW).
+HIGH: clearly readable, unambiguous
+MEDIUM: readable but could be misread (handwriting, low quality)
+LOW: guessed or derived from context
+
+Read attachments/ for invoice and supporting document content.
+Read results/step2_categorize.json for category context.""",
+            business_rules="""## Common Data Points (all categories)
 - Entity Name (from "Bill To" section)
 - Vendor Name
 - Invoice Date
@@ -516,16 +544,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Extrac
 ## Cost Centre Derivation
 - Subcontractor/D&I: from Branch Code on job sheet (Home/Commercial/E-Commerce)
 - RevoFit vendor: always Commercial
-- Freight: always Commercial
-
-## Confidence Scoring
-For each extracted field, provide a confidence score (0-1) and level (HIGH/MEDIUM/LOW).
-HIGH: clearly readable, unambiguous
-MEDIUM: readable but could be misread (handwriting, low quality)
-LOW: guessed or derived from context
-
-Read attachments/ for invoice and supporting document content.
-Read results/step2_categorize.json for category context.""",
+- Freight: always Commercial""",
             output_schema={
                 "type": "object",
                 "properties": {
@@ -588,11 +607,28 @@ Read results/step2_categorize.json for category context.""",
         PromptTemplate(
             step_name="validate",
             display_name="Validation & Business Rules",
-            system_prompt="""# Validation & Business Rule Matching Agent
+            technical_prompt="""# Validation & Business Rule Matching Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Validate extracted data against supporting documents, vendor master, rate cards, and business rules.
 
-## 4-Way Matching
+{{BUSINESS_RULES}}
+
+## Rule Results
+For each validation, return:
+- ruleId, ruleName, description
+- status: PASS | FAIL | WARNING | SKIPPED
+- severity: ERROR | WARNING | INFO
+- message explaining the result
+- expectedValue vs actualValue (when applicable)
+
+## Overall Status
+- All PASS -> "PASS"
+- Any FAIL with ERROR severity -> "FAIL"
+- Any WARNING but no ERROR fails -> "WARNING"
+
+Read results/step5_extract.json for extracted data.
+Read master-data/ for vendors.json, rate-cards.json, and approval-rules.json.""",
+            business_rules="""## 4-Way Matching
 
 ### 1. Invoice <-> Supporting Documents
 - SUBCONTRACTOR: Contractor worksheet number on invoice must match worksheet. Unit prices should match service rate master.
@@ -613,23 +649,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Valida
 ### 4. Invoice <-> Entity Rules
 - Australian vendor (ABN) must bill to Australian entity
 - New Zealand vendor must bill to NZ entity
-- Currency must match entity (AUD for AU, NZD for NZ)
-
-## Rule Results
-For each validation, return:
-- ruleId, ruleName, description
-- status: PASS | FAIL | WARNING | SKIPPED
-- severity: ERROR | WARNING | INFO
-- message explaining the result
-- expectedValue vs actualValue (when applicable)
-
-## Overall Status
-- All PASS -> "PASS"
-- Any FAIL with ERROR severity -> "FAIL"
-- Any WARNING but no ERROR fails -> "WARNING"
-
-Read results/step5_extract.json for extracted data.
-Read master-data/ for vendors.json, rate-cards.json, and approval-rules.json.""",
+- Currency must match entity (AUD for AU, NZD for NZ)""",
             output_schema={
                 "type": "object",
                 "properties": {
