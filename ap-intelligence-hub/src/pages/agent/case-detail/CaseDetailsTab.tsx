@@ -5,13 +5,46 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { formatDateTime, formatFileSize, formatCurrency } from '@/lib/formatters';
 import type { Vendor, VendorContract } from '@/types/masterData';
+
+function SapExportButton({ caseId, isPosted }: { caseId: string; isPosted: boolean }) {
+  const [loading, setLoading] = useState(false);
+  const fetchCaseById = useCaseStore((s) => s.fetchCaseById);
+
+  const handleExport = async () => {
+    setLoading(true);
+    try {
+      const { exportSap } = await import('@/lib/handlers');
+      const { downloadUrl, sapDocumentNumber, sapData } = await exportSap(caseId);
+      // Download the JSON file
+      const blob = new Blob([JSON.stringify(sapData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sap_export_${sapDocumentNumber}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`SAP data exported. Document #: ${sapDocumentNumber}`);
+      // Refresh case to update status badge to POSTED
+      await fetchCaseById(caseId);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'SAP export failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Button variant="outline" className="gap-2" onClick={handleExport} disabled={loading || isPosted}>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+      {isPosted ? 'Already Posted to SAP' : 'Export to SAP'}
+    </Button>
+  );
+}
 
 export function CaseDetailsTab() {
   const selectedCase = useCaseStore((s) => s.selectedCase);
@@ -285,46 +318,10 @@ export function CaseDetailsTab() {
         </CardContent>
       </Card>
 
-      {/* SAP Download Button (Item 35) */}
-      {(selectedCase.status === 'APPROVED' || selectedCase.status === 'POSTED') && (() => {
-        const glCodes = [...new Set(selectedCase.lineItems.map(li => li.glAccount).filter(Boolean))];
-        const generateCsv = (items: typeof selectedCase.lineItems) => {
-          const header = 'LineNumber,Description,Quantity,UnitPrice,Amount,GLAccount,CostCenter\n';
-          const rows = items.map(li => `${li.lineNumber},"${li.description}",${li.quantity},${li.unitPrice},${li.totalAmount},${li.glAccount},${li.costCenter}`).join('\n');
-          return header + rows;
-        };
-        const downloadCsv = (csv: string, filename: string) => {
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-          URL.revokeObjectURL(url);
-        };
-        return glCodes.length > 1 ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Download SAP File
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => downloadCsv(generateCsv(selectedCase.lineItems), `${selectedCase.id}_SAP_ALL.csv`)}>
-                Download All
-              </DropdownMenuItem>
-              {glCodes.map(gl => (
-                <DropdownMenuItem key={gl} onClick={() => downloadCsv(generateCsv(selectedCase.lineItems.filter(li => li.glAccount === gl)), `${selectedCase.id}_SAP_${gl}.csv`)}>
-                  Download GL {gl}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Button variant="outline" className="gap-2" onClick={() => downloadCsv(generateCsv(selectedCase.lineItems), `${selectedCase.id}_SAP.csv`)}>
-            <Download className="h-4 w-4" />
-            Download SAP File
-          </Button>
-        );
-      })()}
+      {/* SAP Export Button */}
+      {(selectedCase.status === 'APPROVED' || selectedCase.status === 'POSTED') && (
+        <SapExportButton caseId={selectedCase.id} isPosted={selectedCase.status === 'POSTED'} />
+      )}
 
       {/* Missing Document Warning - only shows if genuinely missing (edge case) */}
       {(selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') &&
@@ -361,7 +358,7 @@ export function CaseDetailsTab() {
           <div className="flex-1 bg-accent/10">
             {viewedAtt?.fileUrl ? (
               <iframe
-                src={`/johnson-api${viewedAtt.fileUrl}`}
+                src={`/johnson-api${viewedAtt.fileUrl}#toolbar=0&navpanes=0&view=FitH`}
                 className="w-full h-full border-0"
                 title={viewedAtt.fileName}
               />

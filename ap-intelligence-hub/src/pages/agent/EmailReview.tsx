@@ -423,7 +423,7 @@ function EmailDetail({
           <div className="flex-1 bg-accent/10">
             {viewedAtt?.fileUrl ? (
               <iframe
-                src={`/johnson-api${viewedAtt.fileUrl}`}
+                src={`/johnson-api${viewedAtt.fileUrl}#toolbar=0&navpanes=0&view=FitH`}
                 className="w-full h-full border-0"
                 title={viewedAtt.fileName}
               />
