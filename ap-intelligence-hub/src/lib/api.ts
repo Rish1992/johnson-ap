@@ -83,7 +83,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 function get<T>(path: string): Promise<T> {
-  return request<T>(path);
+  // Cache-bust all GET requests to prevent CDN/proxy caching stale data
+  const sep = path.includes('?') ? '&' : '?';
+  return request<T>(`${path}${sep}_t=${Date.now()}`);
 }
 
 function post<T>(path: string, body?: unknown): Promise<T> {
