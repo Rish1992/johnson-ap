@@ -372,7 +372,7 @@ export function DataValidationTab() {
               const fileUrl = att?.fileUrl;
               return fileUrl ? (
                 <div className="flex-1 relative group/doc cursor-pointer" onClick={() => setDocPreviewOpen(true)} title="Click to expand">
-                  <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&view=FitH`} className="w-full h-full border-0 pointer-events-none" title={att?.fileName || 'Document'} />
+                  <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="w-full h-full border-0 pointer-events-none" title={att?.fileName || 'Document'} />
                   <div className="absolute inset-0 bg-black/0 group-hover/doc:bg-black/5 transition-colors flex items-center justify-center">
                     <div className="opacity-0 group-hover/doc:opacity-100 transition-opacity bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg border flex items-center gap-1.5">
                       <ZoomIn className="h-3.5 w-3.5" />
@@ -918,7 +918,7 @@ export function DataValidationTab() {
               : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
             const fileUrl = att?.fileUrl;
             return fileUrl ? (
-              <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&view=FitH`} className="flex-1 w-full border-0" title={att?.fileName || 'Document'} />
+              <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="flex-1 w-full border-0" title={att?.fileName || 'Document'} />
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">No document available</div>
             );
