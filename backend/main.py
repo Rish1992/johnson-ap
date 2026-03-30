@@ -68,6 +68,29 @@ uploads_dir = Path(__file__).parent / "uploads"
 uploads_dir.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
+# Serve test data files
+test_data_dir = Path(__file__).parent / "test-data"
+if test_data_dir.exists():
+    app.mount("/test-data", StaticFiles(directory=str(test_data_dir)), name="test-data")
+
+@app.get("/api/test-cases")
+async def list_test_cases():
+    """Return available pre-configured test cases for the playground."""
+    return [
+        {
+            "id": "subcontractor-revofit",
+            "name": "Subcontractor — RevoFit Warranty Repair",
+            "fromAddress": "accounts@revofit.com.au",
+            "fromName": "RevoFit Accounts",
+            "subject": "Invoice INVJ2508217 - Service Call JAU250801221 Revo Claremont",
+            "body": "Hi,\n\nPlease find attached invoice for service call at Revo Fitness Claremont.\n\nJob reference: JAU250801221\nModel: G3 Matrix Aura Adjustable Pulley\nTechnicians: Jordan, Rob, Kate\nService date: 14/08/2025\n\nKind regards,\nRevoFit Accounts",
+            "files": [
+                {"name": "subcontractor_invoice.pdf", "url": "/test-data/subcontractor_invoice.pdf"},
+                {"name": "subcontractor_worksheet.pdf", "url": "/test-data/subcontractor_worksheet.pdf"},
+            ],
+        },
+    ]
+
 # ---------------------------------------------------------------------------
 # Original feedback system (preserved)
 # ---------------------------------------------------------------------------

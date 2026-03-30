@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Q
 from sqlalchemy.orm import Session
 
 from db import get_db, SessionLocal
+from sqlalchemy.orm.attributes import flag_modified
 from models import Email, PromptTemplate, Case, Job, new_id, utcnow
 from agents.runner import (
     run_claude_step, create_workspace, prepare_step, write_master_data,
@@ -66,6 +67,7 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
             ).first()
             if not template:
                 job.steps = _update_step(job.steps, step_name, "failed", error=f"No active prompt for {step_name}")
+                flag_modified(job, "steps")
                 job.status = "FAILED"
                 job.error = f"No active prompt for {step_name}"
                 job.completed_at = utcnow()
@@ -76,6 +78,7 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
             job.current_step = step_name
             job.status = "RUNNING"
             job.steps = _update_step(job.steps, step_name, "running")
+            flag_modified(job, "steps")
             db.commit()
 
             prepare_step(ws, template.system_prompt, template.output_schema)
@@ -85,8 +88,10 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
 
             if success:
                 job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
+                flag_modified(job, "steps")
             else:
                 job.steps = _update_step(job.steps, step_name, "failed", error=error, duration_ms=duration)
+                flag_modified(job, "steps")
                 job.status = "FAILED"
                 job.error = error
                 job.current_step = None
@@ -219,6 +224,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             ).first()
             if not template:
                 job.steps = _update_step(job.steps, step_name, "failed", error=f"No active prompt for {step_name}")
+                flag_modified(job, "steps")
                 job.status = "FAILED"
                 job.error = f"No active prompt for {step_name}"
                 job.current_step = None
@@ -228,6 +234,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
             job.current_step = step_name
             job.steps = _update_step(job.steps, step_name, "running")
+            flag_modified(job, "steps")
             db.commit()
 
             prepare_step(ws, template.system_prompt, template.output_schema)
@@ -237,6 +244,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
             if not success:
                 job.steps = _update_step(job.steps, step_name, "failed", error=error, duration_ms=duration)
+                flag_modified(job, "steps")
                 job.status = "FAILED"
                 job.error = error
                 job.current_step = None

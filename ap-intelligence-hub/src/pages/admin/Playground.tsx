@@ -131,7 +131,34 @@ export function Playground() {
   const [files, setFiles] = useState<File[]>([]);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
+  const [loadingTestCase, setLoadingTestCase] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadTestCase = useCallback(async () => {
+    setLoadingTestCase(true);
+    try {
+      const resp = await fetch(`${BASE}/api/test-cases`);
+      const cases = await resp.json();
+      if (!cases.length) return;
+      const tc = cases[0]; // Load first test case
+      setFromAddress(tc.fromAddress);
+      setFromName(tc.fromName);
+      setSubject(tc.subject);
+      setBody(tc.body);
+      // Download the test files and convert to File objects
+      const filePromises = tc.files.map(async (f: { name: string; url: string }) => {
+        const fileResp = await fetch(`${BASE}${f.url}`);
+        const blob = await fileResp.blob();
+        return new File([blob], f.name, { type: 'application/pdf' });
+      });
+      const testFiles = await Promise.all(filePromises);
+      setFiles(testFiles);
+    } catch (err) {
+      console.error('Failed to load test case:', err);
+    } finally {
+      setLoadingTestCase(false);
+    }
+  }, []);
 
   const handleFiles = useCallback((newFiles: FileList | null) => {
     if (newFiles) setFiles(prev => [...prev, ...Array.from(newFiles)]);
@@ -177,10 +204,16 @@ export function Playground() {
       {/* Email Compose */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <FlaskConical className="h-4 w-4 text-primary" />
-            Compose Test Email
-          </CardTitle>
+          <div className="flex items-center justify-between w-full">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-primary" />
+              Compose Test Email
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={loadTestCase} disabled={loadingTestCase || running} className="gap-1.5 text-xs">
+              {loadingTestCase ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
+              Load Test Case
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
