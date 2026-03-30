@@ -332,7 +332,7 @@ export function DataValidationTab() {
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-[600px] rounded-lg border">
         {/* Left Panel - Document Viewer */}
-        <ResizablePanel defaultSize={40} minSize={25}>
+        <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full">
             {/* Document viewer header with type selector */}
             <div className="flex items-center justify-between p-3 border-b bg-accent/30">
