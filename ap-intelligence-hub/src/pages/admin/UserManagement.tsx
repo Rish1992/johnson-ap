@@ -235,7 +235,7 @@ export function UserManagement() {
                     </TableCell>
                     <TableCell>{u.department}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatRelativeTime(u.lastLoginAt)}
+                      {u.lastLoginAt ? formatRelativeTime(u.lastLoginAt) : 'Never'}
                     </TableCell>
                     <TableCell>
                       <Switch
