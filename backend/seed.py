@@ -426,7 +426,12 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Classi
 ## Output
 Return a JSON object with category, entity, poType, vendorMatch, confidence, reasoning.
 
-Read email.json, attachments/, and master-data/vendors.json for context.""",
+## Efficiency Protocol — follow this file-reading order exactly
+1. Read results/classify.json — it contains the classify agent's analysis of sender reputation, email body, and attachment content.
+2. Read email.json for sender/subject context.
+3. Read master-data/vendors.json for vendor matching against sender name/domain.
+4. At this point, attempt category determination from: classify signals, email subject (job refs like JAU/CNR/CAS, vendor names, keywords like "freight", "delivery"), and vendor match.
+5. Only open files in attachments/ if steps 1-4 are insufficient — i.e., email subject is generic, no job references found, vendor not matched, and classify attachment analysis doesn't identify the document type clearly enough to determine category.""",
             business_rules="""## Categories (Phase 1)
 
 ### SUBCONTRACTOR
@@ -510,7 +515,11 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Verify
 ## Output
 Return a JSON object with verified, presentDocs, missingDocs, confidence, details.
 
-Read results/categorize.json for category, then check attachments/.""",
+## Efficiency Protocol — follow this file-reading order exactly
+1. Read results/categorize.json for the identified category.
+2. Read master-data/category-config.json for required documents.
+3. Check attachment FILENAMES first — the document splitter names fragments like {stem}_doc1_invoice.pdf, {stem}_doc2_job_sheet.pdf, {stem}_doc3_supporting.pdf. Match filenames against required document types.
+4. Only read full PDF content if filenames are ambiguous (e.g., original unsplit filenames) or if you suspect the splitter misclassified a document.""",
             business_rules="""## Mandatory Documents Matrix
 
 | Category | Required Documents |
@@ -700,8 +709,11 @@ For each validation, return:
 - Any FAIL with ERROR severity -> "FAIL"
 - Any WARNING but no ERROR fails -> "WARNING"
 
-Read results/extract.json for extracted data.
-Read master-data/ for vendors.json, rate-cards.json, and approval-rules.json.""",
+## Efficiency Protocol — follow these rules exactly
+- Read ONLY results/extract.json for all extracted invoice data.
+- Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json) for validation rules.
+- Do NOT read files in attachments/. The extract step has already read and interpreted the source documents. All data you need is in extract.json.
+- Keep output CONCISE: one-sentence messages per rule. For PASS rules, omit the details field.""",
             business_rules="""## 4-Way Matching
 
 ### 1. Invoice <-> Supporting Documents

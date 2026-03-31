@@ -197,7 +197,7 @@ Page contents:
         "Output your analysis as JSON matching the schema in OUTPUT_SCHEMA.json. "
         "Return ONLY the JSON object, no other text."
     )
-    success, result, error = await run_claude_step(
+    success, result, error, _ = await run_claude_step(
         "splitter", "split_classify", str(workspace), invoke_prompt, model=model,
     )
 

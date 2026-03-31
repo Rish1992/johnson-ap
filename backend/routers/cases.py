@@ -183,7 +183,7 @@ async def trigger_business_rules(case_id: str, db: Session = Depends(get_db)):
         "Return ONLY the JSON object, no other text."
     )
     start = time.time()
-    success, result, error = await run_claude_step(case_id, "validate", str(ws), prompt)
+    success, result, error, _ = await run_claude_step(case_id, "validate", str(ws), prompt)
     duration = int((time.time() - start) * 1000)
 
     if not success:

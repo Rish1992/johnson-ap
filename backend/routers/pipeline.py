@@ -15,6 +15,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from models import Email, PromptTemplate, Case, Job, new_id, utcnow
 from agents.runner import (
     run_claude_step, create_workspace, prepare_step, write_master_data,
+    RESUME_PROMPT_TEXT,
 )
 from agents.doc_splitter import split_merged_pdf
 from agents.bbox_locator import find_invoice_pdf, locate_bboxes
@@ -24,8 +25,8 @@ router = APIRouter(prefix="/api", tags=["pipeline"])
 STEPS_BACKEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
 STEPS_FRONTEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
 PROMPT_TEXT = (
-    "Read PROMPT.md for instructions. Read the input files in this workspace. "
-    "Output your analysis as JSON matching the schema in OUTPUT_SCHEMA.json. "
+    "Read PROMPT.md for your instructions and OUTPUT_SCHEMA.json for the expected output format. "
+    "Follow the file-reading instructions in PROMPT.md exactly — read only the files it tells you to read. "
     "Return ONLY the JSON object, no other text."
 )
 
@@ -107,6 +108,8 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
         # Split merged PDFs before pipeline starts
         await _split_pdfs_in_workspace(ws)
 
+        pipeline_session_id = None  # Chain sessions across steps
+
         for step_name in STEPS_BACKEND:
             template = db.query(PromptTemplate).filter(
                 PromptTemplate.step_name == step_name,
@@ -130,7 +133,11 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
 
             prepare_step(ws, template.assembled_prompt, template.output_schema)
             start = time.time()
-            success, result, error = await run_claude_step(case_id, step_name, str(ws), PROMPT_TEXT)
+            # First step: fresh session. Subsequent steps: resume session.
+            prompt = PROMPT_TEXT if not pipeline_session_id else RESUME_PROMPT_TEXT
+            success, result, error, pipeline_session_id = await run_claude_step(
+                case_id, step_name, str(ws), prompt, session_id=pipeline_session_id,
+            )
             duration = int((time.time() - start) * 1000)
 
             if success:
@@ -205,7 +212,8 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
         prepare_step(temp_ws, template.assembled_prompt, template.output_schema)
         start = time.time()
-        success, result, error = await run_claude_step(email_id, "classify", str(temp_ws), PROMPT_TEXT)
+        # Fresh session for classify (first step)
+        success, result, error, pipeline_session_id = await run_claude_step(email_id, "classify", str(temp_ws), PROMPT_TEXT)
         duration = int((time.time() - start) * 1000)
 
         if not success:
@@ -242,7 +250,10 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
             prepare_step(temp_ws, template.assembled_prompt, template.output_schema)
             start = time.time()
-            success, result, error = await run_claude_step(email_id, "categorize", str(temp_ws), PROMPT_TEXT)
+            # Resume session from classify
+            success, result, error, pipeline_session_id = await run_claude_step(
+                email_id, "categorize", str(temp_ws), RESUME_PROMPT_TEXT, session_id=pipeline_session_id,
+            )
             duration = int((time.time() - start) * 1000)
 
             if not success:
@@ -309,7 +320,10 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
             prepare_step(ws, template.assembled_prompt, template.output_schema)
             start = time.time()
-            success, result, error = await run_claude_step(sid, step_name, str(ws), PROMPT_TEXT)
+            # Resume session — agent already has context from prior steps
+            success, result, error, pipeline_session_id = await run_claude_step(
+                sid, step_name, str(ws), RESUME_PROMPT_TEXT, session_id=pipeline_session_id,
+            )
             duration = int((time.time() - start) * 1000)
 
             if not success:
@@ -520,7 +534,7 @@ async def run_single_step(
 
     prepare_step(ws, template.assembled_prompt, template.output_schema)
     start = time.time()
-    success, result, error = await run_claude_step(case_id, step_name, str(ws), PROMPT_TEXT)
+    success, result, error, _ = await run_claude_step(case_id, step_name, str(ws), PROMPT_TEXT)
     duration = int((time.time() - start) * 1000)
 
     if not success:
