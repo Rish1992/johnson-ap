@@ -189,7 +189,13 @@ async def trigger_business_rules(case_id: str, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(502, detail={"step": "validate", "error": error})
 
-    case.business_rule_results = result.get("results", [])
+    # Preserve verify_docs entry, replace only validate results
+    existing_br = case.business_rule_results or []
+    preserved = [e for e in existing_br if isinstance(e, dict) and e.get("step") == "verify_docs"]
+    validate_entry = {"step": "validate", "output": result.get("results", [])}
+    case.business_rule_results = preserved + [validate_entry]
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(case, "business_rule_results")
     case.updated_at = utcnow()
     _audit(db, case_id, "BUSINESS_RULE_RUN", f"Business rules executed ({duration}ms)", category="SYSTEM")
     db.commit()

@@ -4,6 +4,7 @@ import logging
 import re
 import subprocess
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 from rapidfuzz import fuzz
 
@@ -84,6 +85,19 @@ def _find_bbox(words: list[dict], value: str, threshold: int = 80) -> dict | Non
         return {"page": best[0]["page"], "x": round(x0, 5), "y": round(y0, 5),
                 "width": round(x1 - x0, 5), "height": round(y1 - y0, 5)}
     return None
+
+
+def find_invoice_pdf(attachments_dir: Path) -> Path | None:
+    """Find the invoice PDF in attachments dir. Prefers split fragments with _invoice in name."""
+    pdf_files = list(attachments_dir.glob("*.pdf")) + list(attachments_dir.glob("*.PDF"))
+    if not pdf_files:
+        return None
+    # Prefer files with _invoice in name (from doc_splitter)
+    for f in pdf_files:
+        if "_invoice" in f.stem.lower():
+            return f
+    # Fallback: first PDF (backwards compat with pre-split uploads)
+    return pdf_files[0]
 
 
 def locate_bboxes(pdf_path: str, extract_result: dict) -> dict:

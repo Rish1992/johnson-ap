@@ -90,16 +90,124 @@ async def list_test_cases():
     """Return available pre-configured test cases for the playground."""
     return [
         {
-            "id": "subcontractor-revofit",
-            "name": "Subcontractor — RevoFit Warranty Repair",
+            "id": "subcontractor-presplit",
+            "name": "Subcontractor — Pre-Split (Regression)",
             "fromAddress": "accounts@revofit.com.au",
             "fromName": "RevoFit Accounts",
             "subject": "Invoice INVJ2508217 - Service Call JAU250801221 Revo Claremont",
-            "body": "Hi,\n\nPlease find attached invoice for service call at Revo Fitness Claremont.\n\nJob reference: JAU250801221\nModel: G3 Matrix Aura Adjustable Pulley\nTechnicians: Jordan, Rob, Kate\nService date: 14/08/2025\n\nKind regards,\nRevoFit Accounts",
+            "body": "Hi,\n\nPlease find attached invoice and worksheet for service call at Revo Fitness Claremont.\n\nJob reference: JAU250801221\nModel: G3 Matrix Aura Adjustable Pulley\nTechnicians: Jordan, Rob, Kate\nService date: 14/08/2025\n\nKind regards,\nRevoFit Accounts",
             "files": [
                 {"name": "subcontractor_invoice.pdf", "url": "/test-data/subcontractor_invoice.pdf"},
                 {"name": "subcontractor_worksheet.pdf", "url": "/test-data/subcontractor_worksheet.pdf"},
             ],
+        },
+        {
+            "id": "subcontractor-12pg-scanned",
+            "name": "Subcontractor — 12pg Merged (Scanned)",
+            "fromAddress": "accounts@cflservices.co.nz",
+            "fromName": "CFL Services Accounts",
+            "subject": "Invoice INV-7340 - CFL Services",
+            "body": "Hi,\n\nPlease find attached invoice INV-7340 for services rendered.\n\nRegards,\nCFL Services",
+            "files": [
+                {"name": "CFL_Services_INV-7340.pdf", "url": "/test-data/subcontractor/CFL_Services_INV-7340.pdf"},
+            ],
+        },
+        {
+            "id": "subcontractor-3pg-text",
+            "name": "Subcontractor — 3pg Merged (Text)",
+            "fromAddress": "admin@treadmillsurgeon.com.au",
+            "fromName": "The Treadmill Surgeon",
+            "subject": "Invoice SL 16156T - The Treadmill Surgeon",
+            "body": "Hi,\n\nAttached is invoice SL 16156T for recent service work.\n\nCheers,\nBlue / The Treadmill Surgeon",
+            "files": [
+                {"name": "Blue_SL_16156T.pdf", "url": "/test-data/subcontractor/Blue_SL_16156T.pdf"},
+            ],
+        },
+        {
+            "id": "di-merged",
+            "name": "D&I — Merged Invoice + Worksheet",
+            "fromAddress": "invoices@alliedtech.com.au",
+            "fromName": "Allied Technical Services",
+            "subject": "Invoice INV-13158 - Allied Technical Services",
+            "body": "Hi,\n\nPlease find attached invoice and installation worksheet for recent delivery & installation.\n\nRegards,\nAllied Technical Services",
+            "files": [
+                {"name": "ATS_INV-13158.pdf", "url": "/test-data/delivery_installation/ATS_INV-13158.pdf"},
+            ],
+        },
+        {
+            "id": "legal-standalone",
+            "name": "Legal — Standalone Invoice",
+            "fromAddress": "billing@hwlebsworth.com.au",
+            "fromName": "HWL Ebsworth Lawyers",
+            "subject": "Invoice 2017446 - HWL Ebsworth Lawyers",
+            "body": "Dear Accounts Payable,\n\nPlease find attached our tax invoice 2017446 for legal services.\n\nKind regards,\nHWL Ebsworth Lawyers",
+            "files": [
+                {"name": "HWL_2017446.pdf", "url": "/test-data/legal/HWL_2017446.pdf"},
+            ],
+        },
+        {
+            "id": "freight-sea-28pg",
+            "name": "Freight (Sea) — 28pg Complex Merged",
+            "fromAddress": "accounts@mainfreight.com.au",
+            "fromName": "Mainfreight Sea Freight",
+            "subject": "Invoice 04112170 - Mainfreight Sea Freight",
+            "body": "Hi,\n\nAttached is invoice 04112170 with supporting customs and shipping documentation for consignment from Vietnam.\n\nRegards,\nMainfreight Accounts",
+            "files": [
+                {"name": "Mainfreight_04112170.pdf", "url": "/test-data/freight_sea_air/Mainfreight_04112170.pdf"},
+            ],
+        },
+        {
+            "id": "freight-road-nz",
+            "name": "Freight (Road) — Standalone NZ",
+            "fromAddress": "invoices@boothslogistics.co.nz",
+            "fromName": "Booths Logistics",
+            "subject": "Invoice INV291055 - Booths Logistics",
+            "body": "Hi,\n\nPlease find attached invoice INV291055 for road freight Wiri to Dunedin.\n\nCheers,\nBooths Logistics",
+            "files": [
+                {"name": "Booths_INV291055.pdf", "url": "/test-data/freight_road/Booths_INV291055.pdf"},
+            ],
+        },
+        {
+            "id": "marketing-single",
+            "name": "Marketing — Single Page",
+            "fromAddress": "accounts@bodyfittraining.com.au",
+            "fromName": "Body Fit Training",
+            "subject": "Invoice INV-6288 - Body Fit Sponsorship",
+            "body": "Hi,\n\nAttached is invoice INV-6288 for Bronze Sponsorship package.\n\nThanks,\nBody Fit Training",
+            "files": [
+                {"name": "Bodyfit_INV-6288.pdf", "url": "/test-data/marketing/Bodyfit_INV-6288.pdf"},
+            ],
+        },
+        {
+            "id": "edge-password-protected",
+            "name": "Edge: Password Protected PDF",
+            "fromAddress": "sender@vendor.com",
+            "fromName": "Vendor Accounts",
+            "subject": "Encrypted document test",
+            "body": "Hi,\n\nAttached document is password protected.\n\nRegards,\nVendor",
+            "files": [
+                {"name": "password_protected.pdf", "url": "/test-data/edge_cases/password_protected.pdf"},
+            ],
+        },
+        {
+            "id": "edge-non-pdf",
+            "name": "Edge: Non-PDF Attachment",
+            "fromAddress": "admin@supplier.com",
+            "fromName": "Supplier Admin",
+            "subject": "Spreadsheet submission",
+            "body": "Hi,\n\nPlease see attached spreadsheet with invoice details.\n\nRegards,\nSupplier",
+            "files": [
+                {"name": "sample_spreadsheet.txt", "url": "/test-data/edge_cases/sample_spreadsheet.txt"},
+            ],
+        },
+        {
+            "id": "edge-non-invoice-email",
+            "name": "Edge: Non-Invoice Email",
+            "fromAddress": "reception@client.com",
+            "fromName": "Client Reception",
+            "subject": "When will payment arrive?",
+            "body": "Hi, just following up on our payment status. No invoice attached.",
+            "files": [],
         },
     ]
 

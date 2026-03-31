@@ -13,6 +13,13 @@ log = logging.getLogger("agents.runner")
 WORKSPACE_ROOT = Path(__file__).parent.parent / "workspaces"
 TIMEOUT_SECONDS = 300  # 5 min hard ceiling
 MAX_TURNS = 50
+DEFAULT_MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-4-6")
+
+PROMPT_TEXT = (
+    "Read PROMPT.md for instructions. Read the input files in this workspace. "
+    "Output your analysis as JSON matching the schema in OUTPUT_SCHEMA.json. "
+    "Return ONLY the JSON object, no other text."
+)
 
 
 async def run_claude_step(
@@ -21,6 +28,7 @@ async def run_claude_step(
     workspace: str,
     prompt: str,
     timeout: int = TIMEOUT_SECONDS,
+    model: str = DEFAULT_MODEL,
 ) -> tuple[bool, dict | None, str | None]:
     """Invoke claude -p in workspace. Returns (success, result_dict, error_msg)."""
 
@@ -28,6 +36,7 @@ async def run_claude_step(
         "claude", "-p", prompt,
         "--output-format", "json",
         "--max-turns", str(MAX_TURNS),
+        "--model", model,
         cwd=workspace,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,

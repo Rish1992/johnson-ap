@@ -6,3 +6,4 @@ pyjwt
 python-multipart
 aiofiles
 rapidfuzz
+pypdf

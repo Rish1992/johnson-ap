@@ -16,6 +16,8 @@ from models import Email, PromptTemplate, Case, Job, new_id, utcnow
 from agents.runner import (
     run_claude_step, create_workspace, prepare_step, write_master_data,
 )
+from agents.doc_splitter import split_merged_pdf
+from agents.bbox_locator import find_invoice_pdf, locate_bboxes
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
 
@@ -52,6 +54,48 @@ def _update_step(steps: list[dict], name: str, status: str, output=None, error=N
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _enrich_bboxes(ws: Path, result: dict) -> dict:
+    """Locate bounding boxes on the invoice PDF and enrich confidenceScores."""
+    try:
+        invoice_pdf = find_invoice_pdf(ws / "attachments")
+        if invoice_pdf:
+            enriched = locate_bboxes(str(invoice_pdf), result)
+            if enriched:
+                result["confidenceScores"] = enriched
+    except Exception as e:
+        import logging
+        logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
+    return result
+
+
+async def _split_pdfs_in_workspace(ws: Path):
+    """Split any multi-page PDFs in workspace attachments dir. Replaces originals with fragments."""
+    import subprocess as _sp
+    import re as _re
+    attachments_dir = ws / "attachments"
+    pdf_files = list(attachments_dir.glob("*.pdf")) + list(attachments_dir.glob("*.PDF"))
+    for pdf_path in pdf_files:
+        # Check page count
+        try:
+            proc = _sp.run(
+                ["pdfinfo", str(pdf_path)], capture_output=True, text=True, timeout=10
+            )
+            match = _re.search(r"Pages:\s+(\d+)", proc.stdout)
+            if not match or int(match.group(1)) <= 1:
+                continue  # Single-page, skip
+        except Exception:
+            continue
+
+        results = await split_merged_pdf(str(pdf_path), ws)
+        # If split produced multiple fragments without errors, remove original
+        has_errors = any(r.get("error") or r.get("flag") for r in results)
+        if len(results) > 1 and not has_errors:
+            pdf_path.unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------------------
 # Background pipeline runners
 # ---------------------------------------------------------------------------
 async def _run_backend_job(job_id: str, ws: Path, case_id: str):
@@ -59,6 +103,9 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
     db = SessionLocal()
     try:
         job = db.query(Job).filter(Job.id == job_id).first()
+
+        # Split merged PDFs before pipeline starts
+        await _split_pdfs_in_workspace(ws)
 
         for step_name in STEPS_BACKEND:
             template = db.query(PromptTemplate).filter(
@@ -92,18 +139,9 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
 
                 # Post-processing: locate bounding boxes after extract step
                 if step_name == "extract" and result:
-                    try:
-                        from agents.bbox_locator import locate_bboxes
-                        pdf_files = list((ws / "attachments").glob("*.pdf")) + list((ws / "attachments").glob("*.PDF"))
-                        if pdf_files:
-                            enriched = locate_bboxes(str(pdf_files[0]), result)
-                            if enriched:
-                                result["confidenceScores"] = enriched
-                                job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
-                                flag_modified(job, "steps")
-                    except Exception as e:
-                        import logging
-                        logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
+                    result = _enrich_bboxes(ws, result)
+                    job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
+                    flag_modified(job, "steps")
             else:
                 job.steps = _update_step(job.steps, step_name, "failed", error=error, duration_ms=duration)
                 flag_modified(job, "steps")
@@ -155,6 +193,9 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 email_data["attachments"].append(att)
         (temp_ws / "email.json").write_text(json.dumps(email_data, indent=2))
         write_master_data(temp_ws, db)
+
+        # Split merged PDFs before pipeline starts
+        await _split_pdfs_in_workspace(temp_ws)
 
         # Run classify
         job.current_step = "classify"
@@ -284,30 +325,35 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
             db.commit()
 
-            # Update case record with extraction/validation results
-            if step_name == "extract" and result:
+            # Update case record with step results
+            if step_name == "verify_docs" and result:
+                case = db.query(Case).filter(Case.id == case_id).first()
+                if case:
+                    # Store verify_docs output alongside business_rule_results
+                    existing_br = case.business_rule_results or []
+                    verify_entry = {"step": "verify_docs", "output": result}
+                    case.business_rule_results = existing_br + [verify_entry]
+                    flag_modified(case, "business_rule_results")
+                    case.updated_at = utcnow()
+                db.commit()
+            elif step_name == "extract" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
                 case.header_data = result.get("headerData", {})
                 case.line_items = result.get("lineItems", [])
                 case.confidence_scores = result.get("confidenceScores", {})
                 case.status = "EXTRACTED"
                 case.updated_at = utcnow()
-                # Post-processing: locate bounding boxes (non-blocking)
-                try:
-                    from agents.bbox_locator import locate_bboxes
-                    pdf_files = list((ws / "attachments").glob("*.pdf")) + list((ws / "attachments").glob("*.PDF"))
-                    if pdf_files:
-                        enriched = locate_bboxes(str(pdf_files[0]), result)
-                        if enriched:
-                            case.confidence_scores = enriched
-                            flag_modified(case, "confidence_scores")
-                except Exception as e:
-                    import logging
-                    logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
+                result = _enrich_bboxes(ws, result)
+                case.confidence_scores = result.get("confidenceScores", {})
+                flag_modified(case, "confidence_scores")
                 db.commit()
             elif step_name == "validate" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
-                case.business_rule_results = result.get("results", [])
+                # Preserve verify_docs entry, append validate results
+                existing_br = case.business_rule_results or []
+                validate_entry = {"step": "validate", "output": result.get("results", [])}
+                case.business_rule_results = existing_br + [validate_entry]
+                flag_modified(case, "business_rule_results")
                 case.status = "IN_REVIEW"
                 case.updated_at = utcnow()
                 db.commit()
