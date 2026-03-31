@@ -1,0 +1,460 @@
+{
+    "id": "CASE-0003",
+    "status": "IN_REVIEW",
+    "category": "SUBCONTRACTOR",
+    "email": {
+        "from": "accounts@revofit.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice INVJ2508217 - Service Call JAU250801221 Revo Claremont",
+        "receivedAt": "2026-03-31T03:12:45.603807Z",
+        "body": "Hi,\n\nPlease find attached invoice and worksheet for service call at Revo Fitness Claremont.\n\nJob reference: JAU250801221\nModel: G3 Matrix Aura Adjustable Pulley\nTechnicians: Jordan, Rob, Kate\nService date: 14/08/2025\n\nKind regards,\nRevoFit Accounts",
+        "attachmentCount": 2
+    },
+    "attachments": [
+        {
+            "fileName": "subcontractor_invoice.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 367775,
+            "fileUrl": "/uploads/file-51133960428f_subcontractor_invoice.pdf"
+        },
+        {
+            "fileName": "subcontractor_worksheet.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 102464,
+            "fileUrl": "/uploads/file-94836f53f3b1_subcontractor_worksheet.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "J2508217",
+        "invoiceDate": "2025-08-20",
+        "dueDate": "2025-09-25",
+        "invoiceType": "Tax Invoice",
+        "currency": "AUD",
+        "totalAmount": 768.9,
+        "taxAmount": 69.9,
+        "netAmount": 699.0,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "JAU250801221",
+        "paymentTerms": "Net 25 after EOM",
+        "companyCode": "AU",
+        "plantCode": "",
+        "costCenter": "Commercial",
+        "glAccount": "614100",
+        "taxCode": "GST",
+        "description": "Subcontractor warranty repair service call at Revo Fitness Claremont \u2013 G3 Matrix Aura Adjustable Pulley (JAU250801221)"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Callout (inc 15 mins) 14/08 for 3 Techs",
+            "quantity": 3,
+            "unitPrice": 95.0,
+            "unit": "EA",
+            "totalAmount": 313.5,
+            "taxAmount": 28.5,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-002",
+            "lineNumber": 2,
+            "description": "Additional Labour 55 mins each for 2 Techs",
+            "quantity": 3,
+            "unitPrice": 92.0,
+            "unit": "EA",
+            "totalAmount": 303.6,
+            "taxAmount": 27.6,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-003",
+            "lineNumber": 3,
+            "description": "Additional Labour 1 hours and 30 mins for build time at Fleets 13/08",
+            "quantity": 1,
+            "unitPrice": 138.0,
+            "unit": "EA",
+            "totalAmount": 151.8,
+            "taxAmount": 13.8,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "J2508217",
+            "bbox": {
+                "page": 1,
+                "x": 0.81435,
+                "y": 0.11983,
+                "width": 0.06725,
+                "height": 0.01003
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "20/08/2025",
+            "bbox": {
+                "page": 1,
+                "x": 0.81435,
+                "y": 0.13691,
+                "width": 0.08403,
+                "height": 0.01114
+            }
+        },
+        "dueDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "25/09/2025",
+            "bbox": {
+                "page": 1,
+                "x": 0.81435,
+                "y": 0.17061,
+                "width": 0.08403,
+                "height": 0.01114
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "768.90",
+            "bbox": {
+                "page": 1,
+                "x": 0.86361,
+                "y": 0.88608,
+                "width": 0.06069,
+                "height": 0.01114
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "69.90",
+            "bbox": {
+                "page": 1,
+                "x": 0.87295,
+                "y": 0.86086,
+                "width": 0.05135,
+                "height": 0.01114
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "699.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.86361,
+                "y": 0.84401,
+                "width": 0.06069,
+                "height": 0.01114
+            }
+        },
+        "vendorName": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Fleet Fitness (Sayarne Pty Ltd)"
+        },
+        "vendorABN": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "11 735 382 879",
+            "bbox": {
+                "page": 1,
+                "x": 0.73263,
+                "y": 0.0312,
+                "width": 0.10388,
+                "height": 0.01003
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech. Australia Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.18105,
+                "y": 0.213,
+                "width": 0.31578,
+                "height": 0.01226
+            }
+        },
+        "jobSheetNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "JAU250801221",
+            "bbox": {
+                "page": 1,
+                "x": 0.81435,
+                "y": 0.15376,
+                "width": 0.11578,
+                "height": 0.01114
+            }
+        },
+        "jobCategory": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Warranty-Repair"
+        },
+        "branchCode": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Commercial"
+        },
+        "glAccount": {
+            "value": 0.96,
+            "level": "HIGH",
+            "extractedValue": "614100"
+        },
+        "costCenter": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Commercial"
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD"
+        },
+        "paymentTerms": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Net 25 after EOM",
+            "bbox": {
+                "page": 1,
+                "x": 0.15003,
+                "y": 0.92816,
+                "width": 0.13434,
+                "height": 0.01114
+            }
+        },
+        "bankDetails": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Fleet Fitness Clearing Account, BSB 016 770, Acc 109526305"
+        },
+        "lineItems": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "3 line items extracted from invoice"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "VND-FLEETFIT",
+    "vendorName": "Fleet Fitness Pty Ltd",
+    "vendorNumber": "V200005",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice",
+                    "Contractor Worksheet"
+                ],
+                "missingDocs": [],
+                "confidence": 0.97,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-51133960428f_subcontractor_invoice.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice J2508217 dated 20/08/2025 from Fleet Fitness (Sayarne Pty Ltd) to Johnson Health Tech Australia. References job JAU250801221 with labour charges totalling $768.90 inc GST."
+                    },
+                    {
+                        "documentType": "Contractor Worksheet",
+                        "fileName": "file-94836f53f3b1_subcontractor_worksheet.pdf",
+                        "status": "PRESENT",
+                        "notes": "Contractor Worksheet for CASE PRODUCT# JAU250801221. Contractor: WA-Parts Locker (Fleet Fitness). Job Category: Warranty-Repair. Model: G3-MS24-03 G3 Matrix Aura Adjustable Pulley. Technician sign-off and customer agreement present, dated 14/8/25."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VAL-DOC-001",
+                    "ruleName": "Document Completeness",
+                    "description": "All required supporting documents for SUBCONTRACTOR category must be present",
+                    "status": "PASS",
+                    "message": "Both required documents are present: Invoice (file-51133960428f_subcontractor_invoice.pdf) and Contractor Worksheet (file-94836f53f3b1_subcontractor_worksheet.pdf).",
+                    "severity": "INFO",
+                    "matchedAgainst": "category-config.json (ICC-1c619056eb7b): requires Invoice, Contractor Worksheet / Service Job Sheet / Work Order"
+                },
+                {
+                    "ruleId": "VAL-DOC-002",
+                    "ruleName": "Invoice\u2013Worksheet Reference Match",
+                    "description": "Contractor worksheet number on invoice must match the worksheet document",
+                    "status": "PASS",
+                    "message": "Job sheet reference JAU250801221 on the invoice matches the Contractor Worksheet case/product number JAU250801221.",
+                    "severity": "INFO",
+                    "expectedValue": "JAU250801221",
+                    "actualValue": "JAU250801221",
+                    "matchedAgainst": "Contractor Worksheet (file-94836f53f3b1_subcontractor_worksheet.pdf)"
+                },
+                {
+                    "ruleId": "VAL-RATE-001",
+                    "ruleName": "Unit Price vs Service Rate Card",
+                    "description": "Unit prices on subcontractor invoice should match the service rate master for the vendor",
+                    "status": "SKIPPED",
+                    "message": "No service rate card found for vendor Fleet Fitness (VND-FLEETFIT). Rate cards only exist for VND-REVO and VND-DI-01. Cannot verify unit prices ($95.00 callout, $92.00 additional labour, $138.00 build time) against a rate card.",
+                    "severity": "WARNING",
+                    "details": "Service rate cards available: Standard Service Call - Warranty $165 (VND-REVO), Standard Service Call - Chargeable $195 (VND-REVO), D&I Standard $220 (VND-DI-01), D&I Premium $350 (VND-DI-01). None apply to VND-FLEETFIT."
+                },
+                {
+                    "ruleId": "VAL-VND-001",
+                    "ruleName": "Vendor Name Match",
+                    "description": "Vendor name on invoice must match vendor master record",
+                    "status": "WARNING",
+                    "message": "Invoice vendor name 'Fleet Fitness (Sayarne Pty Ltd)' is a partial match to vendor master name 'Fleet Fitness Pty Ltd' (VND-FLEETFIT). The trading name 'Fleet Fitness' matches, but the legal entity name differs (Sayarne Pty Ltd vs Fleet Fitness Pty Ltd).",
+                    "severity": "WARNING",
+                    "expectedValue": "Fleet Fitness Pty Ltd",
+                    "actualValue": "Fleet Fitness (Sayarne Pty Ltd)",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT)"
+                },
+                {
+                    "ruleId": "VAL-VND-002",
+                    "ruleName": "Vendor ABN Match",
+                    "description": "Vendor ABN/tax ID on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Invoice shows ABN 11 735 382 879, but vendor master record for Fleet Fitness Pty Ltd (VND-FLEETFIT) has no taxId on file. Cannot verify ABN match.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "11 735 382 879",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT)"
+                },
+                {
+                    "ruleId": "VAL-VND-003",
+                    "ruleName": "Vendor Bank Details Match",
+                    "description": "Bank details on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Invoice shows bank details 'Fleet Fitness Clearing Account, BSB 016 770, Acc 109526305', but vendor master record for VND-FLEETFIT has no bank account on file. Cannot verify bank details match.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "Fleet Fitness Clearing Account, BSB 016 770, Acc 109526305",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT)"
+                },
+                {
+                    "ruleId": "VAL-VND-004",
+                    "ruleName": "Payment Terms Match",
+                    "description": "Payment terms on invoice should align with vendor master record",
+                    "status": "WARNING",
+                    "message": "Invoice payment terms 'Net 25 after EOM' do not match vendor master payment terms 'NET30'. Net 25 EOM could result in earlier or later payment depending on invoice date within the month.",
+                    "severity": "WARNING",
+                    "expectedValue": "NET30",
+                    "actualValue": "Net 25 after EOM",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT)"
+                },
+                {
+                    "ruleId": "VAL-MATH-001",
+                    "ruleName": "Line Item Arithmetic",
+                    "description": "Each line item total must equal quantity \u00d7 unit price plus tax",
+                    "status": "PASS",
+                    "message": "All line item calculations are correct. LI-001: 3 \u00d7 $95.00 = $285.00 + $28.50 GST = $313.50 \u2713. LI-002: 3 \u00d7 $92.00 = $276.00 + $27.60 GST = $303.60 \u2713. LI-003: 1 \u00d7 $138.00 = $138.00 + $13.80 GST = $151.80 \u2713.",
+                    "severity": "INFO"
+                },
+                {
+                    "ruleId": "VAL-MATH-002",
+                    "ruleName": "Invoice Total Reconciliation",
+                    "description": "Sum of line items must equal invoice net, tax, and total amounts",
+                    "status": "PASS",
+                    "message": "Line item nets sum to $699.00 (285 + 276 + 138), matching invoice net $699.00. Line item taxes sum to $69.90 (28.50 + 27.60 + 13.80), matching invoice tax $69.90. Grand total $768.90 = $699.00 + $69.90 \u2713.",
+                    "severity": "INFO",
+                    "expectedValue": "768.90",
+                    "actualValue": "768.90"
+                },
+                {
+                    "ruleId": "VAL-TAX-001",
+                    "ruleName": "Tax Calculation (GST)",
+                    "description": "Tax amount should equal net \u00d7 applicable tax rate (10% for AU GST)",
+                    "status": "PASS",
+                    "message": "Tax amount $69.90 equals net amount $699.00 \u00d7 10% GST = $69.90. Tax calculation is correct for Australian entity.",
+                    "severity": "INFO",
+                    "expectedValue": "69.90",
+                    "actualValue": "69.90"
+                },
+                {
+                    "ruleId": "VAL-AMT-001",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be positive",
+                    "status": "PASS",
+                    "message": "Invoice total amount $768.90 is positive.",
+                    "severity": "INFO",
+                    "expectedValue": "> 0",
+                    "actualValue": "768.90"
+                },
+                {
+                    "ruleId": "VAL-ENT-001",
+                    "ruleName": "Entity\u2013Country Match",
+                    "description": "Australian vendor (ABN) must bill to Australian entity",
+                    "status": "PASS",
+                    "message": "Vendor has Australian ABN (11 735 382 879) and invoice is billed to Johnson Health Tech. Australia Pty Ltd (AU entity). Entity\u2013country alignment is correct.",
+                    "severity": "INFO",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT, country: Australia)"
+                },
+                {
+                    "ruleId": "VAL-ENT-002",
+                    "ruleName": "Currency\u2013Entity Match",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency AUD matches Australian entity requirement. Vendor master also specifies AUD.",
+                    "severity": "INFO",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD",
+                    "matchedAgainst": "vendors.json (VND-FLEETFIT, currency: AUD)"
+                },
+                {
+                    "ruleId": "VAL-DATA-001",
+                    "ruleName": "Line Item Description\u2013Quantity Consistency",
+                    "description": "Line item descriptions should be consistent with extracted quantities",
+                    "status": "WARNING",
+                    "message": "LI-002 description states 'Additional Labour 55 mins each for 2 Techs' but extracted quantity is 3. The quantity may include a third charge component or be an extraction discrepancy. Manual review recommended.",
+                    "severity": "WARNING",
+                    "expectedValue": "2 (per description)",
+                    "actualValue": "3 (extracted quantity)",
+                    "details": "The description mentions 2 Techs but the quantity field shows 3 units at $92.00 each. This could reflect the actual invoice layout (e.g., 3 line entries for labour blocks) or an OCR/extraction error."
+                },
+                {
+                    "ruleId": "VAL-CONTRACT-001",
+                    "ruleName": "Active Vendor Contract",
+                    "description": "Vendor should have an active contract for the invoice category",
+                    "status": "PASS",
+                    "message": "Fleet Fitness (VND-FLEETFIT) has active SUBCONTRACTOR contract FF-SUB-2024, valid 2024-01-01 to 2026-12-31 with max amount $400,000. Invoice date 2025-08-20 falls within contract period and amount $768.90 is within limits.",
+                    "severity": "INFO",
+                    "matchedAgainst": "vendors.json (CON-FF-1, contract FF-SUB-2024)"
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:13:51.907831Z",
+    "updatedAt": "2026-03-31T03:16:34.887835Z",
+    "slaDeadline": "2026-04-02T03:13:51.907831Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "AU",
+    "isRead": false
+}

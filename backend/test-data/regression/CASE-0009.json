@@ -1,0 +1,488 @@
+{
+    "id": "CASE-0009",
+    "status": "IN_REVIEW",
+    "category": "FREIGHT_FINISHED_GOODS",
+    "email": {
+        "from": "invoices@boothslogistics.co.nz",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice INV291055 - Booths Logistics",
+        "receivedAt": "2026-03-31T03:36:43.552138Z",
+        "body": "Hi,\n\nPlease find attached invoice INV291055 for road freight Wiri to Dunedin.\n\nCheers,\nBooths Logistics",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "Booths_INV291055.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 158491,
+            "fileUrl": "/uploads/file-9177cda18666_Booths_INV291055.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "INV291055",
+        "invoiceDate": "2026-03-08",
+        "dueDate": "2026-04-20",
+        "invoiceType": "TAX INVOICE",
+        "currency": "NZD",
+        "totalAmount": 696.16,
+        "taxAmount": 90.8,
+        "netAmount": 605.36,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "",
+        "paymentTerms": "20th of the Next MTH",
+        "companyCode": "NZ",
+        "plantCode": "",
+        "costCenter": "Commercial",
+        "glAccount": "616100",
+        "taxCode": "GST",
+        "description": "Road freight Wiri to Dunedin - Gym Equipment and Pallets"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "1 X OVERSIZED PLTS - GYM EQUIPMENT (Dkt: JHTN1257, From: BOOTHS JERRY GREEN - Wiri, To: NICK HOSKIN - MT CARDRONA STATION - DUNEDIN)",
+            "quantity": 1.6,
+            "unitPrice": 220.0,
+            "unit": "Volume",
+            "totalAmount": 394.98,
+            "taxAmount": 0,
+            "glAccount": "616100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-002",
+            "lineNumber": 2,
+            "description": "tail lift del (Part of JHTN1257)",
+            "quantity": 1,
+            "unitPrice": 50.0,
+            "unit": "EA",
+            "totalAmount": 50.0,
+            "taxAmount": 0,
+            "glAccount": "616100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-003",
+            "lineNumber": 3,
+            "description": "2 X PALLETS (Dkt: JHTN1259, From: BOOTHS CHRISTCHURCH - Hornby, To: NICK HOSKIN - 027 840 6954 - DUNEDIN CENTRAL)",
+            "quantity": 1,
+            "unitPrice": 142.93,
+            "unit": "N/A",
+            "totalAmount": 160.38,
+            "taxAmount": 0,
+            "glAccount": "616100",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "INV291055",
+            "bbox": {
+                "page": 1,
+                "x": 0.82603,
+                "y": 0.2425,
+                "width": 0.05482,
+                "height": 0.02057
+            }
+        },
+        "invoiceDate": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "8/3/2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.80721,
+                "y": 0.22737,
+                "width": 0.04463,
+                "height": 0.02057
+            }
+        },
+        "dueDate": {
+            "value": 0.85,
+            "level": "MEDIUM",
+            "extractedValue": "20th of the Next MTH \u2014 derived as 2026-04-20"
+        },
+        "currency": {
+            "value": 0.92,
+            "level": "HIGH",
+            "extractedValue": "NZD \u2014 vendor is NZ-based, GST Number is NZ format, bill-to is NZ address"
+        },
+        "totalAmount": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "696.16",
+            "bbox": {
+                "page": 1,
+                "x": 0.91165,
+                "y": 0.82208,
+                "width": 0.03971,
+                "height": 0.02057
+            }
+        },
+        "taxAmount": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "90.80",
+            "bbox": {
+                "page": 1,
+                "x": 0.91795,
+                "y": 0.79611,
+                "width": 0.03342,
+                "height": 0.02057
+            }
+        },
+        "netAmount": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "605.36",
+            "bbox": {
+                "page": 1,
+                "x": 0.91165,
+                "y": 0.77015,
+                "width": 0.03971,
+                "height": 0.02057
+            }
+        },
+        "vendorName": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "Booths Logistics Limited",
+            "bbox": {
+                "page": 1,
+                "x": 0.7343,
+                "y": 0.06317,
+                "width": 0.17398,
+                "height": 0.02743
+            }
+        },
+        "entityName": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech New Zealand Matrix - Temp Storage",
+            "bbox": {
+                "page": 1,
+                "x": 0.04851,
+                "y": 0.2109,
+                "width": 0.38148,
+                "height": 0.02743
+            }
+        },
+        "gstNumber": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "135-486-062",
+            "bbox": {
+                "page": 1,
+                "x": 0.80409,
+                "y": 0.18628,
+                "width": 0.06187,
+                "height": 0.02057
+            }
+        },
+        "bankDetails": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "02-0727-0205533-00",
+            "bbox": {
+                "page": 1,
+                "x": 0.18627,
+                "y": 0.79611,
+                "width": 0.10196,
+                "height": 0.02057
+            }
+        },
+        "customerId": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "C14112",
+            "bbox": {
+                "page": 1,
+                "x": 0.80709,
+                "y": 0.21225,
+                "width": 0.03731,
+                "height": 0.02057
+            }
+        },
+        "glAccount": {
+            "value": 0.9,
+            "level": "HIGH",
+            "extractedValue": "616100 \u2014 Freight FG per GL code rules"
+        },
+        "costCenter": {
+            "value": 0.92,
+            "level": "HIGH",
+            "extractedValue": "Commercial \u2014 Freight is always Commercial per rules"
+        },
+        "paymentTerms": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "20th of the Next MTH",
+            "bbox": {
+                "page": 1,
+                "x": 0.13803,
+                "y": 0.82208,
+                "width": 0.11403,
+                "height": 0.02057
+            }
+        },
+        "lineItem1_description": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "1 X OVERSIZED PLTS - GYM EQUIPMENT"
+        },
+        "lineItem1_totalAmount": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "394.98",
+            "bbox": {
+                "page": 1,
+                "x": 0.91528,
+                "y": 0.42329,
+                "width": 0.03514,
+                "height": 0.01829
+            }
+        },
+        "lineItem2_description": {
+            "value": 0.9,
+            "level": "HIGH",
+            "extractedValue": "tail lift del",
+            "bbox": {
+                "page": 1,
+                "x": 0.30293,
+                "y": 0.54304,
+                "width": 0.04382,
+                "height": 0.01829
+            }
+        },
+        "lineItem2_totalAmount": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "50.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.64939,
+                "y": 0.54304,
+                "width": 0.02971,
+                "height": 0.01829
+            }
+        },
+        "lineItem3_description": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "2 X PALLETS",
+            "bbox": {
+                "page": 1,
+                "x": 0.30293,
+                "y": 0.58211,
+                "width": 0.05349,
+                "height": 0.01829
+            }
+        },
+        "lineItem3_totalAmount": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "160.38",
+            "bbox": {
+                "page": 1,
+                "x": 0.91528,
+                "y": 0.58211,
+                "width": 0.03514,
+                "height": 0.01829
+            }
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "VND-BOOTHS",
+    "vendorName": "Booths Transport Pty Ltd",
+    "vendorNumber": "V200008",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": false,
+                "presentDocs": [
+                    "Invoice"
+                ],
+                "missingDocs": [
+                    "Commercial Invoice"
+                ],
+                "confidence": 0.95,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-9177cda18666_Booths_INV291055.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice from Booths Logistics Limited (INV291055), dated 8/3/2026, for road freight of gym equipment (pallets) from Wiri/Christchurch to Dunedin. Total $696.16 NZD incl. GST. Page 2 contains Johnson Health Tech Australia approval stamp (received by MP on 11/03/26)."
+                    },
+                    {
+                        "documentType": "Commercial Invoice",
+                        "fileName": null,
+                        "status": "MISSING",
+                        "notes": "FREIGHT_FINISHED_GOODS category requires a Commercial Invoice (shipment-level document with goods description, origin/destination, customs/trade details). No separate Commercial Invoice was found among the attachments. The freight invoice from Booths is a carrier tax invoice for transport charges, not a commercial invoice for the goods themselves."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VAL-001",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be greater than zero",
+                    "status": "PASS",
+                    "message": "Invoice total amount NZD 696.16 is positive.",
+                    "severity": "ERROR",
+                    "expectedValue": "> 0",
+                    "actualValue": "696.16"
+                },
+                {
+                    "ruleId": "VAL-002",
+                    "ruleName": "Line Items Sum Equals Net Amount",
+                    "description": "Sum of line item totals must equal the invoice net amount",
+                    "status": "PASS",
+                    "message": "Line items sum (394.98 + 50.00 + 160.38 = 605.36) matches invoice net amount (605.36).",
+                    "severity": "ERROR",
+                    "expectedValue": "605.36",
+                    "actualValue": "605.36"
+                },
+                {
+                    "ruleId": "VAL-003",
+                    "ruleName": "Tax Calculation Check",
+                    "description": "Tax amount should equal net amount multiplied by the applicable tax rate (15% for NZ)",
+                    "status": "PASS",
+                    "message": "Tax amount NZD 90.80 matches expected NZ GST of 15% on net NZD 605.36 (expected 90.80, difference 0.00 within rounding tolerance).",
+                    "severity": "ERROR",
+                    "expectedValue": "90.80",
+                    "actualValue": "90.80",
+                    "details": "605.36 \u00d7 0.15 = 90.804, rounded to 90.80"
+                },
+                {
+                    "ruleId": "VAL-004",
+                    "ruleName": "Vendor Name Match",
+                    "description": "Vendor name on invoice must match vendor master record",
+                    "status": "FAIL",
+                    "message": "Invoice vendor 'Booths Logistics Limited' does not match any vendor in the vendor master. Closest match is 'Booths Transport Pty Ltd' (VND-BOOTHS) which is a different legal entity.",
+                    "severity": "ERROR",
+                    "expectedValue": "Booths Transport Pty Ltd (or registered vendor)",
+                    "actualValue": "Booths Logistics Limited",
+                    "matchedAgainst": "vendors.json \u2014 VND-BOOTHS"
+                },
+                {
+                    "ruleId": "VAL-005",
+                    "ruleName": "Vendor Country-Entity Alignment",
+                    "description": "NZ vendor (GST number) must bill to NZ entity; AU vendor (ABN) must bill to AU entity",
+                    "status": "PASS",
+                    "message": "Invoice is from a New Zealand vendor (GST number 135-486-062, NZ format) and is billed to the NZ entity (companyCode NZ). Entity alignment is correct.",
+                    "severity": "ERROR",
+                    "expectedValue": "NZ",
+                    "actualValue": "NZ"
+                },
+                {
+                    "ruleId": "VAL-006",
+                    "ruleName": "Currency Matches Entity",
+                    "description": "Currency must match the billing entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency NZD matches the NZ entity requirement.",
+                    "severity": "ERROR",
+                    "expectedValue": "NZD",
+                    "actualValue": "NZD"
+                },
+                {
+                    "ruleId": "VAL-007",
+                    "ruleName": "Vendor Currency Match",
+                    "description": "Invoice currency should match the currency recorded in the vendor master",
+                    "status": "FAIL",
+                    "message": "Invoice currency is NZD but the closest vendor master match (VND-BOOTHS \u2014 Booths Transport Pty Ltd) is configured for AUD. This vendor appears to be a different NZ-based entity not registered in the vendor master.",
+                    "severity": "ERROR",
+                    "expectedValue": "AUD (per VND-BOOTHS)",
+                    "actualValue": "NZD",
+                    "matchedAgainst": "vendors.json \u2014 VND-BOOTHS"
+                },
+                {
+                    "ruleId": "VAL-008",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank account on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Vendor master record for the closest match (VND-BOOTHS) has no bank account on file. Cannot verify invoice bank details 02-0727-0205533-00.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "02-0727-0205533-00",
+                    "matchedAgainst": "vendors.json \u2014 VND-BOOTHS"
+                },
+                {
+                    "ruleId": "VAL-009",
+                    "ruleName": "Payment Terms Match",
+                    "description": "Payment terms on invoice should align with vendor master",
+                    "status": "WARNING",
+                    "message": "Invoice payment terms '20th of the Next MTH' differ from vendor master payment terms 'NET30' for closest match VND-BOOTHS. This may be acceptable if the NZ entity has different agreed terms, but the vendor is not registered.",
+                    "severity": "WARNING",
+                    "expectedValue": "NET30",
+                    "actualValue": "20th of the Next MTH",
+                    "matchedAgainst": "vendors.json \u2014 VND-BOOTHS"
+                },
+                {
+                    "ruleId": "VAL-010",
+                    "ruleName": "Freight Rate Card Match",
+                    "description": "Freight rates on invoice must match the freight rate card for the route",
+                    "status": "SKIPPED",
+                    "message": "This is domestic NZ road freight (Wiri to Dunedin). No matching freight rate card exists for this route \u2014 available rate cards cover only international sea/air freight routes. Rate verification cannot be performed.",
+                    "severity": "WARNING",
+                    "matchedAgainst": "freight-rate-cards.json",
+                    "details": "Available rate cards cover Shanghai\u2192Sydney, Shanghai\u2192Auckland, Ningbo\u2192Sydney only"
+                },
+                {
+                    "ruleId": "VAL-011",
+                    "ruleName": "Supporting Documents Present",
+                    "description": "Category FREIGHT_FINISHED_GOODS requires Invoice and Commercial Invoice as supporting documents",
+                    "status": "WARNING",
+                    "message": "Only one attachment found (Booths_INV291055.pdf \u2014 the invoice itself). Category configuration requires a Commercial Invoice as a supporting document, which is not attached. For domestic road freight this may not be applicable.",
+                    "severity": "WARNING",
+                    "expectedValue": "Invoice + Commercial Invoice",
+                    "actualValue": "Invoice only (1 attachment)",
+                    "matchedAgainst": "category-config.json \u2014 FREIGHT_FINISHED_GOODS"
+                },
+                {
+                    "ruleId": "VAL-012",
+                    "ruleName": "Vendor Registered in Master",
+                    "description": "Invoice vendor must exist as an active vendor in the vendor master",
+                    "status": "FAIL",
+                    "message": "Vendor 'Booths Logistics Limited' (NZ) is not registered in the vendor master. The master contains 'Booths Transport Pty Ltd' (AU) which is a separate legal entity. A new vendor master record may need to be created for this NZ vendor before the invoice can be processed.",
+                    "severity": "ERROR",
+                    "expectedValue": "Registered vendor in vendors.json",
+                    "actualValue": "Booths Logistics Limited (not found)",
+                    "matchedAgainst": "vendors.json"
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:37:47.195558Z",
+    "updatedAt": "2026-03-31T03:39:59.653317Z",
+    "slaDeadline": "2026-04-02T03:37:47.195558Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "NZ",
+    "isRead": false
+}

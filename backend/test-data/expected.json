@@ -1,0 +1,146 @@
+{
+  "tests": [
+    {
+      "id": 1,
+      "name": "Subcontractor merged (12pg scanned)",
+      "file": "subcontractor/CFL_Services_INV-7340.pdf",
+      "pages": 12,
+      "expected_split": true,
+      "expected_doc_types": ["INVOICE", "SUPPORTING"],
+      "expected_category": "SUBCONTRACTOR",
+      "expected_entity": "NZ",
+      "notes": "12-page merged: pages 1-2 have text (TAX INVOICE + PAYMENT ADVICE), pages 3-12 are scanned images (0 text chars). Splitter must handle image-only pages. NZ entity (Johnson Health Tech New Zealand, NZD currency, GST 41-229-926)."
+    },
+    {
+      "id": 2,
+      "name": "Subcontractor short (3pg text)",
+      "file": "subcontractor/Blue_SL_16156T.pdf",
+      "pages": 3,
+      "expected_split": true,
+      "expected_doc_types": ["INVOICE", "JOB_SHEET"],
+      "expected_category": "SUBCONTRACTOR",
+      "expected_entity": "AU",
+      "notes": "3-page merged: p1 = Tax Invoice (Blue SL / The Treadmill Surgeon), p2 = payment advice / signature page, p3 = Contractor Worksheet (CASE PRODUCT# JAU260100588). AU entity (ABN 72 424 989 387)."
+    },
+    {
+      "id": 3,
+      "name": "D&I merged (2pg)",
+      "file": "delivery_installation/ATS_INV-13158.pdf",
+      "pages": 2,
+      "expected_split": true,
+      "expected_doc_types": ["INVOICE", "SUPPORTING"],
+      "expected_category": "DELIVERY_INSTALLATION",
+      "expected_entity": "AU",
+      "notes": "2-page merged: p1 = TAX INVOICE (Allied Technical Services, D&I of ABD machine), p2 = Installation worksheet (short, signed by Scott Craven 05/02/26). AU entity (ABN 54 634 934 357)."
+    },
+    {
+      "id": 4,
+      "name": "Legal standalone (2pg)",
+      "file": "legal/HWL_2017446.pdf",
+      "pages": 2,
+      "expected_split": false,
+      "expected_doc_types": ["INVOICE"],
+      "expected_category": null,
+      "expected_entity": "AU",
+      "notes": "2-page standalone: p1 = Tax Invoice (HWL Ebsworth Lawyers, Product Warranty Advice, $3,941.85), p2 = Remittance Advice. LEGAL is NOT a Phase 1 category — system will force-fit to closest match. Category assertion skipped."
+    },
+    {
+      "id": 5,
+      "name": "Freight sea/air merged (28pg)",
+      "file": "freight_sea_air/Mainfreight_04112170.pdf",
+      "pages": 28,
+      "expected_split": true,
+      "expected_doc_types": ["INVOICE", "SUPPORTING"],
+      "expected_category": "FREIGHT_FINISHED_GOODS",
+      "expected_entity": "AU",
+      "notes": "28-page merged: p1 = TAX INVOICE 04112170 (Mainfreight, sea freight from Vietnam), p2 = Australian Customs Entry, p3+ = bill of lading, commercial invoices, packing lists, serial number sheets. Contains shipping docs (CONSOL C02671960, vessel KOTA LUMAYAN). Complex multi-doc split."
+    },
+    {
+      "id": 6,
+      "name": "Freight road (2pg)",
+      "file": "freight_road/Booths_INV291055.pdf",
+      "pages": 2,
+      "expected_split": false,
+      "expected_doc_types": ["INVOICE"],
+      "expected_category": "FREIGHT_FINISHED_GOODS",
+      "expected_entity": "NZ",
+      "notes": "2-page standalone: p1 = TAX INVOICE (Booths Logistics, road freight Wiri->Dunedin, gym equipment), p2 = disclaimer/footer. Single invoice, no supporting docs. NZ entity (GST 135-486-062, NZD)."
+    },
+    {
+      "id": 7,
+      "name": "Marketing standalone (1pg)",
+      "file": "marketing/Bodyfit_INV-6288.pdf",
+      "pages": 1,
+      "expected_split": false,
+      "expected_doc_types": ["INVOICE"],
+      "expected_category": null,
+      "expected_entity": "AU",
+      "notes": "1-page standalone: TAX INVOICE (Body Fit Training Unit Trust, Bronze Sponsorship $2,750 AUD). MARKETING is NOT a Phase 1 category — system will force-fit to closest match. Category assertion skipped."
+    },
+    {
+      "id": 8,
+      "name": "Missing doc detection",
+      "file": "marketing/Bodyfit_INV-6288.pdf",
+      "pages": 1,
+      "expected_split": false,
+      "expected_doc_types": ["INVOICE"],
+      "expected_category": null,
+      "expected_entity": "AU",
+      "notes": "Placeholder: reuses marketing invoice as proxy. MARKETING is not Phase 1 category. TODO: create a standalone subcontractor invoice (without worksheet) to properly test missing-doc detection."
+    },
+    {
+      "id": 9,
+      "name": "Non-invoice email",
+      "file": null,
+      "expected_split": false,
+      "expected_doc_types": [],
+      "expected_category": "NON_INVOICE",
+      "expected_entity": null,
+      "notes": "Requires email-like input: subject 'When will payment arrive?' with no invoice attachment. Tests classify step returning NON_INVOICE. Manual test -- cannot POST a PDF for this."
+    },
+    {
+      "id": 10,
+      "name": "Pre-split upload (regression)",
+      "files": [
+        "subcontractor_invoice.pdf",
+        "subcontractor_worksheet.pdf"
+      ],
+      "expected_split": false,
+      "expected_doc_types": ["INVOICE", "JOB_SHEET"],
+      "expected_category": "SUBCONTRACTOR",
+      "expected_entity": "AU",
+      "notes": "Existing pre-split test data (root of test-data/). Two separate 1-page PDFs uploaded together. Splitter should NOT re-split single-page PDFs. Pipeline should work as before."
+    },
+    {
+      "id": 11,
+      "name": "Password-protected PDF",
+      "file": "edge_cases/password_protected.pdf",
+      "pages": 1,
+      "expected_split": false,
+      "expected_doc_types": [],
+      "expected_category": null,
+      "expected_entity": null,
+      "notes": "Encrypted PDF (password: testpass123). pdftotext will return empty text. Splitter should detect and flag as protected/unprocessable. Created via pypdf."
+    },
+    {
+      "id": 12,
+      "name": ">50 pages PDF",
+      "file": null,
+      "expected_split": false,
+      "expected_doc_types": [],
+      "expected_category": null,
+      "expected_entity": null,
+      "notes": "No real test PDF >50 pages found (largest is Mainfreight at 28 pages). TODO: create a synthetic 55-page PDF by duplicating pages from an existing file, or test with Mainfreight and lower the threshold."
+    },
+    {
+      "id": 13,
+      "name": "Non-PDF attachment",
+      "file": "edge_cases/sample_spreadsheet.txt",
+      "expected_split": false,
+      "expected_doc_types": [],
+      "expected_category": null,
+      "expected_entity": null,
+      "notes": "Plain text file (.txt). Splitter should skip non-PDF files entirely and pass through unchanged. Tests file extension check."
+    }
+  ]
+}

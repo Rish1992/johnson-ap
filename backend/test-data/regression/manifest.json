@@ -1,0 +1,53 @@
+{
+  "description": "Golden regression dataset captured 2026-03-31 from test-frontend pipeline runs with Opus model",
+  "cases": [
+    {
+      "id": "CASE-0003",
+      "name": "Subcontractor — Pre-Split (Regression)",
+      "input_files": ["subcontractor_invoice.pdf", "subcontractor_worksheet.pdf"],
+      "golden_file": "CASE-0003.json"
+    },
+    {
+      "id": "CASE-0004",
+      "name": "Subcontractor — 12pg Merged (Scanned)",
+      "input_files": ["subcontractor/CFL_Services_INV-7340.pdf"],
+      "golden_file": "CASE-0004.json"
+    },
+    {
+      "id": "CASE-0005",
+      "name": "Subcontractor — 3pg Merged (Text)",
+      "input_files": ["subcontractor/Blue_SL_16156T.pdf"],
+      "golden_file": "CASE-0005.json"
+    },
+    {
+      "id": "CASE-0006",
+      "name": "D&I — Merged Invoice + Worksheet",
+      "input_files": ["delivery_installation/ATS_INV-13158.pdf"],
+      "golden_file": "CASE-0006.json"
+    },
+    {
+      "id": "CASE-0007",
+      "name": "Legal — Standalone Invoice",
+      "input_files": ["legal/HWL_2017446.pdf"],
+      "golden_file": "CASE-0007.json"
+    },
+    {
+      "id": "CASE-0008",
+      "name": "Freight (Sea) — 28pg Complex Merged",
+      "input_files": ["freight_sea_air/Mainfreight_04112170.pdf"],
+      "golden_file": "CASE-0008.json"
+    },
+    {
+      "id": "CASE-0009",
+      "name": "Freight (Road) — Standalone NZ",
+      "input_files": ["freight_road/Booths_INV291055.pdf"],
+      "golden_file": "CASE-0009.json"
+    },
+    {
+      "id": "CASE-0010",
+      "name": "Marketing — Single Page",
+      "input_files": ["marketing/Bodyfit_INV-6288.pdf"],
+      "golden_file": "CASE-0010.json"
+    }
+  ]
+}

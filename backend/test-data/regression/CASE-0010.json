@@ -1,0 +1,386 @@
+{
+    "id": "CASE-0010",
+    "status": "IN_REVIEW",
+    "category": "FREIGHT_ADDITIONAL_CHARGES",
+    "email": {
+        "from": "accounts@bodyfittraining.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice INV-6288 - Body Fit Sponsorship",
+        "receivedAt": "2026-03-31T03:40:03.862061Z",
+        "body": "Hi,\n\nAttached is invoice INV-6288 for Bronze Sponsorship package.\n\nThanks,\nBody Fit Training",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "Bodyfit_INV-6288.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 65608,
+            "fileUrl": "/uploads/file-59219fc162d6_Bodyfit_INV-6288.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "INV-6288",
+        "invoiceDate": "2022-02-18",
+        "dueDate": "2022-03-03",
+        "invoiceType": "TAX INVOICE",
+        "currency": "AUD",
+        "totalAmount": 2750.0,
+        "taxAmount": 250.0,
+        "netAmount": 2500.0,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "",
+        "paymentTerms": "NET14",
+        "companyCode": "AU",
+        "plantCode": "",
+        "costCenter": "Commercial",
+        "glAccount": "616300",
+        "taxCode": "GST10",
+        "description": "Bronze Sponsorship - Body Fit Training Unit Trust"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Bronze Sponsorship",
+            "quantity": 1.0,
+            "unitPrice": 2500.0,
+            "unit": "EA",
+            "totalAmount": 2500.0,
+            "taxAmount": 250.0,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "INV-6288",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.18105,
+                "width": 0.06384,
+                "height": 0.0143
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "18 Feb 2022",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.14698,
+                "width": 0.08488,
+                "height": 0.0143
+            }
+        },
+        "dueDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "3 Mar 2022",
+            "bbox": {
+                "page": 1,
+                "x": 0.1343,
+                "y": 0.50384,
+                "width": 0.09176,
+                "height": 0.01717
+            }
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD",
+            "bbox": {
+                "page": 1,
+                "x": 0.91566,
+                "y": 0.3429,
+                "width": 0.0319,
+                "height": 0.0143
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "2,750.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.88877,
+                "y": 0.45075,
+                "width": 0.05882,
+                "height": 0.0143
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "250.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.90137,
+                "y": 0.42357,
+                "width": 0.04622,
+                "height": 0.0143
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "2,500.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.66258,
+                "y": 0.37009,
+                "width": 0.05882,
+                "height": 0.0143
+            }
+        },
+        "vendorName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Body Fit Training Unit Trust",
+            "bbox": {
+                "page": 1,
+                "x": 0.17143,
+                "y": 0.85367,
+                "width": 0.18388,
+                "height": 0.0143
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech Australia Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.16666,
+                "y": 0.17808,
+                "width": 0.25704,
+                "height": 0.0143
+            }
+        },
+        "abn": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "11 841 961 189",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.24921,
+                "width": 0.10507,
+                "height": 0.0143
+            }
+        },
+        "bankDetails": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Commonwealth Bank of Australia BSB: 063240 ACC: 10974985"
+        },
+        "glAccount": {
+            "value": 0.3,
+            "level": "LOW",
+            "extractedValue": "616300 (FREIGHT_ADDITIONAL_CHARGES default \u2014 invoice is sponsorship/marketing, not a standard AP category)"
+        },
+        "costCenter": {
+            "value": 0.3,
+            "level": "LOW",
+            "extractedValue": "Commercial (default for FREIGHT_ADDITIONAL_CHARGES \u2014 vendor not in master data, no branch code available)"
+        },
+        "vendorMatch": {
+            "value": 0.1,
+            "level": "LOW",
+            "extractedValue": "No matching vendor in master data \u2014 Body Fit Training Unit Trust is not a known vendor"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": null,
+    "vendorName": "Body Fit Training Unit Trust",
+    "vendorNumber": null,
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice"
+                ],
+                "missingDocs": [],
+                "confidence": 0.95,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-59219fc162d6_Bodyfit_INV-6288.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice from Body Fit Training Unit Trust (ABN 11 841 961 189), Invoice Number INV-6288, dated 18 Feb 2022, for Bronze Sponsorship totalling AUD 2,750.00 including GST. Billed to Johnson Health Tech Australia Pty Ltd."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VND-MATCH-001",
+                    "ruleName": "Vendor Master Match",
+                    "description": "Vendor name must match a record in the vendor master",
+                    "status": "FAIL",
+                    "message": "Vendor 'Body Fit Training Unit Trust' does not match any vendor in the vendor master. This appears to be an unknown/new vendor requiring onboarding before processing.",
+                    "severity": "ERROR",
+                    "expectedValue": "Known vendor in vendor master",
+                    "actualValue": "Body Fit Training Unit Trust \u2014 no match found",
+                    "matchedAgainst": "master-data/vendors.json"
+                },
+                {
+                    "ruleId": "VND-BANK-002",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank details on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Cannot verify bank details \u2014 vendor not found in vendor master. Invoice states: Commonwealth Bank of Australia, BSB 063240, ACC 10974985.",
+                    "severity": "ERROR",
+                    "actualValue": "Commonwealth Bank of Australia BSB: 063240 ACC: 10974985",
+                    "matchedAgainst": "master-data/vendors.json",
+                    "details": "Bank detail verification skipped because vendor is not in master data. Manual verification required before payment."
+                },
+                {
+                    "ruleId": "VND-ABN-003",
+                    "ruleName": "Vendor ABN Match",
+                    "description": "Vendor ABN on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Cannot verify ABN \u2014 vendor not found in vendor master. Invoice ABN: 11 841 961 189.",
+                    "severity": "ERROR",
+                    "actualValue": "11 841 961 189",
+                    "matchedAgainst": "master-data/vendors.json",
+                    "details": "ABN verification skipped because vendor is not in master data."
+                },
+                {
+                    "ruleId": "VND-TERMS-004",
+                    "ruleName": "Payment Terms Alignment",
+                    "description": "Payment terms on invoice should align with vendor master",
+                    "status": "SKIPPED",
+                    "message": "Cannot verify payment terms \u2014 vendor not in vendor master. Invoice states NET14 (due date 2022-03-03 is 13 days after invoice date 2022-02-18).",
+                    "severity": "WARNING",
+                    "actualValue": "NET14",
+                    "matchedAgainst": "master-data/vendors.json"
+                },
+                {
+                    "ruleId": "INV-AMT-005",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be a positive value",
+                    "status": "PASS",
+                    "message": "Invoice total amount AUD 2,750.00 is positive.",
+                    "severity": "INFO",
+                    "actualValue": "2750.00"
+                },
+                {
+                    "ruleId": "TAX-CALC-006",
+                    "ruleName": "Tax Calculation Verification",
+                    "description": "Tax amount should equal net amount multiplied by applicable tax rate (10% GST for AU)",
+                    "status": "PASS",
+                    "message": "Tax amount AUD 250.00 equals net amount AUD 2,500.00 \u00d7 10% GST. Calculation is correct.",
+                    "severity": "INFO",
+                    "expectedValue": "250.00",
+                    "actualValue": "250.00",
+                    "details": "Net 2500.00 \u00d7 10% GST = 250.00. Total = 2500.00 + 250.00 = 2750.00. All amounts reconcile."
+                },
+                {
+                    "ruleId": "INV-TOTAL-007",
+                    "ruleName": "Invoice Total Reconciliation",
+                    "description": "Invoice total must equal net amount plus tax amount",
+                    "status": "PASS",
+                    "message": "Invoice total AUD 2,750.00 = net AUD 2,500.00 + tax AUD 250.00. Line items reconcile to header totals.",
+                    "severity": "INFO",
+                    "expectedValue": "2750.00",
+                    "actualValue": "2750.00"
+                },
+                {
+                    "ruleId": "ENT-COUNTRY-008",
+                    "ruleName": "Entity Country Match",
+                    "description": "Australian vendor (ABN) must bill to Australian entity",
+                    "status": "PASS",
+                    "message": "Invoice has ABN (Australian Business Number) and is billed to Johnson Health Tech Australia Pty Ltd (AU entity). Entity/country alignment is correct.",
+                    "severity": "INFO",
+                    "expectedValue": "AU",
+                    "actualValue": "AU"
+                },
+                {
+                    "ruleId": "ENT-CURR-009",
+                    "ruleName": "Currency Entity Match",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency AUD matches Australian entity. Currency/entity alignment is correct.",
+                    "severity": "INFO",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD"
+                },
+                {
+                    "ruleId": "DOC-VERIFY-010",
+                    "ruleName": "Required Supporting Documents",
+                    "description": "All required supporting documents for the invoice category must be present",
+                    "status": "PASS",
+                    "message": "Category FREIGHT_ADDITIONAL_CHARGES requires only an Invoice. Invoice document is present.",
+                    "severity": "INFO",
+                    "matchedAgainst": "master-data/category-config.json",
+                    "details": "Required: [Invoice]. Present: [Invoice]. No missing documents."
+                },
+                {
+                    "ruleId": "CAT-CLASS-011",
+                    "ruleName": "Invoice Category Appropriateness",
+                    "description": "Invoice category classification should match the invoice content",
+                    "status": "WARNING",
+                    "message": "Invoice is for 'Bronze Sponsorship' which is a marketing/sponsorship expense, but was classified as FREIGHT_ADDITIONAL_CHARGES. This category may be incorrect \u2014 consider reclassifying to a marketing or general expense category.",
+                    "severity": "WARNING",
+                    "expectedValue": "Marketing / Sponsorship category",
+                    "actualValue": "FREIGHT_ADDITIONAL_CHARGES",
+                    "details": "The invoice describes a sponsorship payment to Body Fit Training, not a freight-related charge. The GL account 616300 and cost center 'Commercial' were assigned with LOW confidence (0.3)."
+                },
+                {
+                    "ruleId": "GL-CONF-012",
+                    "ruleName": "GL Account Confidence",
+                    "description": "GL account assignment should have sufficient confidence",
+                    "status": "WARNING",
+                    "message": "GL account 616300 was assigned with LOW confidence (0.30). The extraction notes this is a default assignment because the invoice is for sponsorship/marketing, not a standard AP category.",
+                    "severity": "WARNING",
+                    "expectedValue": "Confidence >= 0.70",
+                    "actualValue": "0.30",
+                    "details": "GL account and cost center both have low confidence scores. Manual review and correction of GL coding is recommended."
+                },
+                {
+                    "ruleId": "RATE-CARD-013",
+                    "ruleName": "Rate Card Match",
+                    "description": "Invoice rates must match applicable rate cards for the vendor/category",
+                    "status": "SKIPPED",
+                    "message": "Rate card verification not applicable \u2014 this is a one-off sponsorship invoice, not a recurring freight or service charge with contracted rates.",
+                    "severity": "INFO",
+                    "details": "No rate card exists for sponsorship invoices. Vendor is not in master data and has no associated contracts."
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:40:47.460753Z",
+    "updatedAt": "2026-03-31T03:42:32.498065Z",
+    "slaDeadline": "2026-04-02T03:40:47.460753Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "AU",
+    "isRead": false
+}

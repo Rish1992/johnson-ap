@@ -1,0 +1,454 @@
+{
+    "id": "CASE-0006",
+    "status": "IN_REVIEW",
+    "category": "DELIVERY_INSTALLATION",
+    "email": {
+        "from": "invoices@alliedtech.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice INV-13158 - Allied Technical Services",
+        "receivedAt": "2026-03-31T03:24:51.772448Z",
+        "body": "Hi,\n\nPlease find attached invoice and installation worksheet for recent delivery & installation.\n\nRegards,\nAllied Technical Services",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "ATS_INV-13158.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 318032,
+            "fileUrl": "/uploads/file-4c42c29aaaa4_ATS_INV-13158.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "INV-13158",
+        "invoiceDate": "2026-02-18",
+        "dueDate": "2026-03-20",
+        "invoiceType": "TAX INVOICE",
+        "currency": "AUD",
+        "totalAmount": 638.0,
+        "taxAmount": 58.0,
+        "netAmount": 580.0,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "CAS260200678",
+        "paymentTerms": "NET30",
+        "companyCode": "AU011001",
+        "plantCode": "62700017",
+        "costCenter": "Commercial",
+        "glAccount": "615100",
+        "taxCode": "GST 10%",
+        "description": "Delivery and Installation of New ABD machine and removal of existing machine, palletising for return to JHTA. Reference: 1508049612 - Planet Fitness Prospect."
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Delivery and Installation of New ABD machine and removal of existing machine, palletising for return to JHTA.",
+            "quantity": 1.0,
+            "unitPrice": 580.0,
+            "unit": "EA",
+            "totalAmount": 580.0,
+            "taxAmount": 58.0,
+            "glAccount": "615100",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "INV-13158",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.18105,
+                "width": 0.07224,
+                "height": 0.0143
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "18 Feb 2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.14698,
+                "width": 0.08488,
+                "height": 0.0143
+            }
+        },
+        "dueDate": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "20 Mar 2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.1343,
+                "y": 0.5295,
+                "width": 0.10185,
+                "height": 0.01717
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "638.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.90137,
+                "y": 0.47641,
+                "width": 0.04622,
+                "height": 0.0143
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "58.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.90978,
+                "y": 0.44923,
+                "width": 0.03782,
+                "height": 0.0143
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "580.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.67518,
+                "y": 0.37009,
+                "width": 0.04622,
+                "height": 0.0143
+            }
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD",
+            "bbox": {
+                "page": 1,
+                "x": 0.91566,
+                "y": 0.3429,
+                "width": 0.0319,
+                "height": 0.0143
+            }
+        },
+        "vendorName": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Allied Technical Services Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.09633,
+                "y": 0.5707,
+                "width": 0.21921,
+                "height": 0.0143
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech Australia Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.16666,
+                "y": 0.17808,
+                "width": 0.25704,
+                "height": 0.0143
+            }
+        },
+        "abn": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "54 634 934 357",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.26203,
+                "width": 0.10507,
+                "height": 0.0143
+            }
+        },
+        "bankDetails": {
+            "value": 0.45,
+            "level": "LOW",
+            "extractedValue": "BSB: 112 87x (partially obscured), A/C: partially obscured, SWIFT: partially obscured"
+        },
+        "jobSheetNumber": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "CAS260200678"
+        },
+        "jobCategory": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "DELIVERY & INSTALL",
+            "bbox": {
+                "page": 1,
+                "x": 0.14285,
+                "y": 0.37009,
+                "width": 0.16045,
+                "height": 0.0143
+            }
+        },
+        "salesOrderNumber": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "1508049612",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.21513,
+                "width": 0.08407,
+                "height": 0.0143
+            }
+        },
+        "quoteAmount": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "580.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.67518,
+                "y": 0.37009,
+                "width": 0.04622,
+                "height": 0.0143
+            }
+        },
+        "glAccount": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "615100"
+        },
+        "costCenter": {
+            "value": 0.85,
+            "level": "MEDIUM",
+            "extractedValue": "Commercial"
+        },
+        "companyCode": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "AU011001",
+            "bbox": {
+                "page": 1,
+                "x": 0.444,
+                "y": 0.62982,
+                "width": 0.09293,
+                "height": 0.01544
+            }
+        },
+        "plantCode": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "62700017",
+            "bbox": {
+                "page": 1,
+                "x": 0.54186,
+                "y": 0.62982,
+                "width": 0.09684,
+                "height": 0.01544
+            }
+        },
+        "purchaseOrderNumber": {
+            "value": 0.9,
+            "level": "HIGH",
+            "extractedValue": ""
+        },
+        "paymentTerms": {
+            "value": 0.9,
+            "level": "HIGH",
+            "extractedValue": "NET30"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "",
+    "vendorName": "Allied Technical Services Pty Ltd",
+    "vendorNumber": "",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice",
+                    "Installation Worksheet"
+                ],
+                "missingDocs": [],
+                "confidence": 0.97,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-4c42c29aaaa4_ATS_INV-13158.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice INV-13158 from Allied Technical Services Pty Ltd dated 18 Feb 2026 for $638.00 (incl. GST). Description: Delivery and Installation of New ABD machine. Reference 1508049612 - Planet Fitness Prospect."
+                    },
+                    {
+                        "documentType": "Installation Worksheet",
+                        "fileName": "file-4c42c29aaaa4_ATS_INV-13158.pdf",
+                        "status": "PRESENT",
+                        "notes": "Installation Worksheet on page 2 with CASE# CAS260200678. Job Category: DELIVERY & INSTALL. Contractor: NSW-Allied Technical Services Pty Ltd. Install Date: 05.02.2026. Sales Order: 1508049612 PLANET FITNESS PROSPECT. Signed by technician Scott Craven."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VAL-DI-001",
+                    "ruleName": "Job Number Match (Invoice \u2194 Worksheet)",
+                    "description": "Job/case number on invoice must match installation worksheet",
+                    "status": "PASS",
+                    "message": "Job number CAS260200678 on invoice matches the installation worksheet CASE# CAS260200678.",
+                    "severity": "ERROR",
+                    "expectedValue": "CAS260200678",
+                    "actualValue": "CAS260200678",
+                    "matchedAgainst": "Installation Worksheet (page 2 of ATS_INV-13158.pdf)"
+                },
+                {
+                    "ruleId": "VAL-DI-002",
+                    "ruleName": "Subtotal Matches Quote Amount",
+                    "description": "Invoice net subtotal must match the quoted amount on the installation worksheet",
+                    "status": "PASS",
+                    "message": "Invoice net amount $580.00 matches the extracted quote amount of $580.00.",
+                    "severity": "ERROR",
+                    "expectedValue": "580.00",
+                    "actualValue": "580.00",
+                    "matchedAgainst": "Installation Worksheet quote / extracted quoteAmount"
+                },
+                {
+                    "ruleId": "VAL-VM-001",
+                    "ruleName": "Vendor Name Match",
+                    "description": "Vendor name on invoice must match a vendor master record",
+                    "status": "FAIL",
+                    "message": "Vendor 'Allied Technical Services Pty Ltd' was not found in the vendor master. No close match exists. Vendor may need to be onboarded before processing.",
+                    "severity": "ERROR",
+                    "expectedValue": "A known vendor in vendor master",
+                    "actualValue": "Allied Technical Services Pty Ltd",
+                    "matchedAgainst": "vendors.json"
+                },
+                {
+                    "ruleId": "VAL-VM-002",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank details on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Vendor not found in vendor master, so bank details cannot be verified. Additionally, bank details on the invoice are partially obscured (confidence 0.45).",
+                    "severity": "ERROR",
+                    "details": "BSB and account number are partially obscured on the invoice. Vendor master has no record for Allied Technical Services."
+                },
+                {
+                    "ruleId": "VAL-VM-003",
+                    "ruleName": "Payment Terms Alignment",
+                    "description": "Payment terms on invoice should align with vendor master",
+                    "status": "SKIPPED",
+                    "message": "Vendor not found in vendor master. Invoice states NET30 payment terms but cannot be verified against master.",
+                    "severity": "WARNING",
+                    "actualValue": "NET30",
+                    "matchedAgainst": "vendors.json"
+                },
+                {
+                    "ruleId": "VAL-RC-001",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be a positive value",
+                    "status": "PASS",
+                    "message": "Invoice total amount $638.00 is positive.",
+                    "severity": "ERROR",
+                    "actualValue": "638.00"
+                },
+                {
+                    "ruleId": "VAL-RC-002",
+                    "ruleName": "Tax Calculation Accuracy",
+                    "description": "Tax amount should equal net amount \u00d7 applicable tax rate (10% GST for AU)",
+                    "status": "PASS",
+                    "message": "Tax amount $58.00 equals net amount $580.00 \u00d7 10% GST. Calculation is correct.",
+                    "severity": "ERROR",
+                    "expectedValue": "58.00",
+                    "actualValue": "58.00",
+                    "details": "AU entity, GST 10% rate applied: 580.00 \u00d7 0.10 = 58.00"
+                },
+                {
+                    "ruleId": "VAL-RC-003",
+                    "ruleName": "Total Amount Consistency",
+                    "description": "Total amount should equal net amount plus tax amount",
+                    "status": "PASS",
+                    "message": "Total $638.00 equals net $580.00 + tax $58.00. Arithmetic is correct.",
+                    "severity": "ERROR",
+                    "expectedValue": "638.00",
+                    "actualValue": "638.00"
+                },
+                {
+                    "ruleId": "VAL-ENT-001",
+                    "ruleName": "Entity Country Match",
+                    "description": "Australian vendor (ABN) must bill to Australian entity",
+                    "status": "PASS",
+                    "message": "Vendor has ABN 54 634 934 357 (Australian) and invoice is billed to Johnson Health Tech Australia Pty Ltd (AU entity). Entity match is correct.",
+                    "severity": "ERROR",
+                    "expectedValue": "AU",
+                    "actualValue": "AU"
+                },
+                {
+                    "ruleId": "VAL-ENT-002",
+                    "ruleName": "Currency Entity Match",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency AUD matches the Australian entity requirement.",
+                    "severity": "ERROR",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD"
+                },
+                {
+                    "ruleId": "VAL-DOC-001",
+                    "ruleName": "Required Documents Present",
+                    "description": "All required supporting documents for DELIVERY_INSTALLATION must be present",
+                    "status": "PASS",
+                    "message": "Both required documents (Invoice, Installation Worksheet) are present and verified.",
+                    "severity": "ERROR",
+                    "expectedValue": "Invoice, Installation Worksheet",
+                    "actualValue": "Invoice, Installation Worksheet",
+                    "matchedAgainst": "category-config.json (DELIVERY_INSTALLATION)"
+                },
+                {
+                    "ruleId": "VAL-DI-003",
+                    "ruleName": "D&I Rate Card Check",
+                    "description": "Invoice unit price compared against D&I service rate card",
+                    "status": "WARNING",
+                    "message": "Invoice unit price $580.00 does not match standard D&I rate ($220.00) or premium D&I rate ($350.00) in the service rate card. However, the vendor (Allied Technical Services) is not the contracted D&I vendor (VND-DI-01). This may be a custom-quoted job. The subtotal does match the quoted amount.",
+                    "severity": "WARNING",
+                    "expectedValue": "220.00 (Standard) or 350.00 (Premium)",
+                    "actualValue": "580.00",
+                    "matchedAgainst": "service-rate-cards.json (VND-DI-01 rates)",
+                    "details": "Rate card rates are for vendor VND-DI-01 (D&I Installation Services). Allied Technical Services is not a contracted D&I vendor, so rate card may not apply. Quote-based pricing confirmed at $580.00."
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:26:06.487625Z",
+    "updatedAt": "2026-03-31T03:28:25.028363Z",
+    "slaDeadline": "2026-04-02T03:26:06.487625Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "AU",
+    "isRead": false
+}

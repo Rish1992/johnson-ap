@@ -1,0 +1,644 @@
+{
+    "id": "CASE-0008",
+    "status": "IN_REVIEW",
+    "category": "FREIGHT_ADDITIONAL_CHARGES",
+    "email": {
+        "from": "accounts@mainfreight.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice 04112170 - Mainfreight Sea Freight",
+        "receivedAt": "2026-03-31T03:31:27.563147Z",
+        "body": "Hi,\n\nAttached is invoice 04112170 with supporting customs and shipping documentation for consignment from Vietnam.\n\nRegards,\nMainfreight Accounts",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "Mainfreight_04112170.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 1658895,
+            "fileUrl": "/uploads/file-8ffe26f086e7_Mainfreight_04112170.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "04112170",
+        "invoiceDate": "2025-12-11",
+        "dueDate": "2026-02-13",
+        "invoiceType": "TAX INVOICE",
+        "currency": "AUD",
+        "totalAmount": 1615.81,
+        "taxAmount": 146.89,
+        "netAmount": 1468.92,
+        "purchaseOrderNumber": "S05245503",
+        "deliveryNoteNumber": "COSU6434947560",
+        "paymentTerms": "44 days from EOM",
+        "companyCode": "JOHHEAMEL1",
+        "plantCode": "",
+        "costCenter": "Commercial",
+        "glAccount": "616300",
+        "taxCode": "GST 10%",
+        "description": "Freight additional charges - destination charges, customs brokerage and ancillary fees for sea freight shipment from Haiphong, Vietnam to Melbourne, Australia (container TCKU7794198)"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Delivery Order - Destination",
+            "quantity": 1,
+            "unitPrice": 35.0,
+            "unit": "EA",
+            "totalAmount": 35.0,
+            "taxAmount": 3.5,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-002",
+            "lineNumber": 2,
+            "description": "Shipping Line Document Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 130.0,
+            "unit": "EA",
+            "totalAmount": 130.0,
+            "taxAmount": 13.0,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-003",
+            "lineNumber": 3,
+            "description": "Destination Charges",
+            "quantity": 1,
+            "unitPrice": 165.0,
+            "unit": "EA",
+            "totalAmount": 165.0,
+            "taxAmount": 0,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-004",
+            "lineNumber": 4,
+            "description": "Fuel Surcharge - Destination",
+            "quantity": 1,
+            "unitPrice": 106.04,
+            "unit": "EA",
+            "totalAmount": 106.04,
+            "taxAmount": 10.6,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-005",
+            "lineNumber": 5,
+            "description": "Standard Cartage to Dandenong South",
+            "quantity": 1,
+            "unitPrice": 445.0,
+            "unit": "EA",
+            "totalAmount": 445.0,
+            "taxAmount": 44.5,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-006",
+            "lineNumber": 6,
+            "description": "Chain of Responsibility Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 18.5,
+            "unit": "EA",
+            "totalAmount": 18.5,
+            "taxAmount": 1.85,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-007",
+            "lineNumber": 7,
+            "description": "Customs Clearance - Destination",
+            "quantity": 1,
+            "unitPrice": 80.0,
+            "unit": "EA",
+            "totalAmount": 80.0,
+            "taxAmount": 8.0,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-008",
+            "lineNumber": 8,
+            "description": "ECP Booking Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 182.3,
+            "unit": "EA",
+            "totalAmount": 182.3,
+            "taxAmount": 18.23,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-009",
+            "lineNumber": 9,
+            "description": "Port Infrastructure Fee",
+            "quantity": 1,
+            "unitPrice": 262.7,
+            "unit": "EA",
+            "totalAmount": 262.7,
+            "taxAmount": 26.27,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-010",
+            "lineNumber": 10,
+            "description": "Quarantine Declaration Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 22.5,
+            "unit": "EA",
+            "totalAmount": 22.5,
+            "taxAmount": 2.25,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-011",
+            "lineNumber": 11,
+            "description": "Toll Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 85.88,
+            "unit": "EA",
+            "totalAmount": 85.88,
+            "taxAmount": 8.59,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-012",
+            "lineNumber": 12,
+            "description": "Timeslot Booking Fee - Destination",
+            "quantity": 1,
+            "unitPrice": 101.0,
+            "unit": "EA",
+            "totalAmount": 101.0,
+            "taxAmount": 10.1,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-013",
+            "lineNumber": 13,
+            "description": "Customs Brokerage / Agency / Entry Fees",
+            "quantity": 1,
+            "unitPrice": 0,
+            "unit": "EA",
+            "totalAmount": 0,
+            "taxAmount": 0,
+            "glAccount": "616300",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "04112170",
+            "bbox": {
+                "page": 1,
+                "x": 0.28331,
+                "y": 0.17671,
+                "width": 0.14944,
+                "height": 0.02197
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "11-Dec-25",
+            "bbox": {
+                "page": 1,
+                "x": 0.79718,
+                "y": 0.2401,
+                "width": 0.06273,
+                "height": 0.00879
+            }
+        },
+        "dueDate": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "13-Feb-26",
+            "bbox": {
+                "page": 1,
+                "x": 0.79718,
+                "y": 0.25307,
+                "width": 0.06273,
+                "height": 0.00879
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "1615.81",
+            "bbox": {
+                "page": 1,
+                "x": 0.16631,
+                "y": 0.93576,
+                "width": 0.05231,
+                "height": 0.00879
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "146.89",
+            "bbox": {
+                "page": 1,
+                "x": 0.88727,
+                "y": 0.82084,
+                "width": 0.0547,
+                "height": 0.01063
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "1468.92",
+            "bbox": {
+                "page": 1,
+                "x": 0.86905,
+                "y": 0.80873,
+                "width": 0.07293,
+                "height": 0.01063
+            }
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD",
+            "bbox": {
+                "page": 1,
+                "x": 0.76445,
+                "y": 0.4811,
+                "width": 0.02911,
+                "height": 0.00879
+            }
+        },
+        "vendorName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Mainfreight Air & Ocean Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.05928,
+                "y": 0.39373,
+                "width": 0.24195,
+                "height": 0.00879
+            }
+        },
+        "vendorABN": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "85 007 262 333"
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech Australia Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.13347,
+                "y": 0.23135,
+                "width": 0.30392,
+                "height": 0.00879
+            }
+        },
+        "purchaseOrderNumber": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "S05245503",
+            "bbox": {
+                "page": 1,
+                "x": 0.79718,
+                "y": 0.27902,
+                "width": 0.06874,
+                "height": 0.00879
+            }
+        },
+        "paymentTerms": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "44 days from EOM",
+            "bbox": {
+                "page": 1,
+                "x": 0.79718,
+                "y": 0.26605,
+                "width": 0.11203,
+                "height": 0.00879
+            }
+        },
+        "glAccount": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "616300"
+        },
+        "costCenter": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Commercial",
+            "bbox": {
+                "page": 5,
+                "x": 0.36361,
+                "y": 0.13272,
+                "width": 0.16646,
+                "height": 0.01962
+            }
+        },
+        "bankDetails": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "Westpac Banking Corporation, BSB 033-134, Account 609425, SWIFT WPACAU2S"
+        },
+        "containerNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "TCKU7794198 (40HICUBE)",
+            "bbox": {
+                "page": 1,
+                "x": 0.05928,
+                "y": 0.46639,
+                "width": 0.16729,
+                "height": 0.00879
+            }
+        },
+        "oceanBillOfLading": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "COSU6434947560",
+            "bbox": {
+                "page": 1,
+                "x": 0.50439,
+                "y": 0.41795,
+                "width": 0.11355,
+                "height": 0.00879
+            }
+        },
+        "origin": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Haiphong, Viet Nam",
+            "bbox": {
+                "page": 1,
+                "x": 0.12164,
+                "y": 0.44217,
+                "width": 0.12025,
+                "height": 0.00879
+            }
+        },
+        "destination": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Melbourne, Australia",
+            "bbox": {
+                "page": 1,
+                "x": 0.56601,
+                "y": 0.44217,
+                "width": 0.12324,
+                "height": 0.00879
+            }
+        },
+        "commercialInvoiceValue": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "USD 28,025.00",
+            "bbox": {
+                "page": 8,
+                "x": 0.82075,
+                "y": 0.5385,
+                "width": 0.12343,
+                "height": 0.01258
+            }
+        },
+        "goodsDescription": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Exercise Equipment - Matrix MG Breaker Olympic Flat/Incline/Decline Benches, Magnum Flat Benches (83 sets)"
+        },
+        "lineItems": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "12 destination charge line items plus customs brokerage section clearly listed on invoice"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "VND-MAINFREIGHT",
+    "vendorName": "Mainfreight Air & Ocean Pty Ltd",
+    "vendorNumber": "V200002",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice"
+                ],
+                "missingDocs": [],
+                "confidence": 0.97,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-8ffe26f086e7_Mainfreight_04112170.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice 04112170 from Mainfreight Air & Ocean Pty Ltd (ABN 85 007 262 333) dated 11-Dec-25, totalling AUD 1,615.81 including GST. Covers destination charges, customs brokerage, and ancillary fees for shipment COSU6434947560 from Haiphong, Vietnam to Melbourne, Australia."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VLD-001",
+                    "ruleName": "Vendor Name Match",
+                    "description": "Invoice vendor name must match vendor master record",
+                    "status": "PASS",
+                    "message": "Vendor name on invoice matches vendor master record.",
+                    "severity": "INFO",
+                    "expectedValue": "Mainfreight Air & Ocean Pty Ltd",
+                    "actualValue": "Mainfreight Air & Ocean Pty Ltd",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-002",
+                    "ruleName": "Vendor ABN Match",
+                    "description": "ABN/tax ID on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Vendor master does not have a taxId on file for VND-MAINFREIGHT. Cannot verify ABN 85 007 262 333 from invoice.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "85 007 262 333",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-003",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank details on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Vendor master does not have bank details on file for VND-MAINFREIGHT. Cannot verify invoice bank details (Westpac, BSB 033-134, Acct 609425). Manual verification recommended.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "Westpac Banking Corporation, BSB 033-134, Account 609425, SWIFT WPACAU2S",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-004",
+                    "ruleName": "Payment Terms Match",
+                    "description": "Payment terms on invoice should align with vendor master",
+                    "status": "WARNING",
+                    "message": "Invoice payment terms '44 days from EOM' do not match vendor master terms 'NET30'. The invoice due date (2026-02-13) implies extended terms beyond the standard NET30.",
+                    "severity": "WARNING",
+                    "expectedValue": "NET30",
+                    "actualValue": "44 days from EOM",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-005",
+                    "ruleName": "Currency Match - Vendor",
+                    "description": "Invoice currency must match vendor master currency",
+                    "status": "PASS",
+                    "message": "Invoice currency AUD matches vendor master currency AUD.",
+                    "severity": "INFO",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-006",
+                    "ruleName": "Entity Country Match",
+                    "description": "Australian vendor must bill to Australian entity; NZ vendor must bill to NZ entity",
+                    "status": "PASS",
+                    "message": "Australian vendor (Mainfreight Air & Ocean Pty Ltd, country: Australia) is billing Australian entity (Johnson Health Tech Australia Pty Ltd).",
+                    "severity": "INFO",
+                    "expectedValue": "Australia",
+                    "actualValue": "Australia",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT)"
+                },
+                {
+                    "ruleId": "VLD-007",
+                    "ruleName": "Currency Entity Match",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Currency AUD is correct for Australian entity.",
+                    "severity": "INFO",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD"
+                },
+                {
+                    "ruleId": "VLD-008",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be positive",
+                    "status": "PASS",
+                    "message": "Invoice total amount $1,615.81 is positive.",
+                    "severity": "INFO",
+                    "expectedValue": "> 0",
+                    "actualValue": "1615.81"
+                },
+                {
+                    "ruleId": "VLD-009",
+                    "ruleName": "Tax Calculation (GST 10%)",
+                    "description": "Tax amount should equal taxable net amount multiplied by applicable GST rate (10% for AU)",
+                    "status": "PASS",
+                    "message": "Tax amount $146.89 matches expected GST of 10% on taxable net $1,468.92 (expected $146.89). Note: $165.00 in GST-free destination charges (LI-003) is correctly excluded from the taxable base.",
+                    "severity": "INFO",
+                    "expectedValue": "146.89",
+                    "actualValue": "146.89",
+                    "details": "Taxable base = $1,468.92 (line items excluding GST-free LI-003 $165.00). GST = $1,468.92 \u00d7 10% = $146.892 \u2248 $146.89."
+                },
+                {
+                    "ruleId": "VLD-010",
+                    "ruleName": "Total Arithmetic Check",
+                    "description": "Invoice total must equal net amount plus tax amount",
+                    "status": "PASS",
+                    "message": "Invoice total $1,615.81 equals net $1,468.92 + tax $146.89.",
+                    "severity": "INFO",
+                    "expectedValue": "1615.81",
+                    "actualValue": "1615.81"
+                },
+                {
+                    "ruleId": "VLD-011",
+                    "ruleName": "Line Items vs Net Amount",
+                    "description": "Sum of line item amounts should reconcile with the stated net amount",
+                    "status": "WARNING",
+                    "message": "Line items sum to $1,633.92 but stated net amount is $1,468.92 (difference: $165.00). The difference corresponds exactly to LI-003 'Destination Charges' ($165.00, GST-free), which appears to be a third-party disbursement excluded from the invoice net/total. This is a common pattern in freight forwarding invoices but should be confirmed.",
+                    "severity": "WARNING",
+                    "expectedValue": "1468.92",
+                    "actualValue": "1633.92",
+                    "details": "LI-003 Destination Charges ($165.00) is GST-free and excluded from the invoice total of $1,615.81. Effective total including disbursement would be $1,780.81. Verify whether this disbursement is billed separately or is an informational line."
+                },
+                {
+                    "ruleId": "VLD-012",
+                    "ruleName": "Freight Rate Card Match",
+                    "description": "Freight rates on invoice must match freight rate card for route/container",
+                    "status": "SKIPPED",
+                    "message": "This invoice is for freight additional/destination charges (FREIGHT_ADDITIONAL_CHARGES), not base sea freight rates. No applicable rate card exists for ancillary charges. The freight rate cards on file cover base ocean freight rates only (Shanghai/Ningbo routes).",
+                    "severity": "INFO",
+                    "matchedAgainst": "freight-rate-cards.json",
+                    "details": "Route: Haiphong, Vietnam \u2192 Melbourne, Australia. Container: TCKU7794198 (40HICUBE). No matching rate card found for this origin/destination. Rate cards on file are for Shanghai\u2192Sydney, Shanghai\u2192Auckland, Ningbo\u2192Sydney only."
+                },
+                {
+                    "ruleId": "VLD-013",
+                    "ruleName": "Vendor Contract Match",
+                    "description": "Invoice category should match an active vendor contract",
+                    "status": "WARNING",
+                    "message": "Invoice category is FREIGHT_ADDITIONAL_CHARGES but vendor contract MF-FRT-2024 is for FREIGHT_FINISHED_GOODS. The charges are related to a finished goods sea freight shipment, but the contract category does not explicitly cover additional charges.",
+                    "severity": "WARNING",
+                    "expectedValue": "FREIGHT_ADDITIONAL_CHARGES",
+                    "actualValue": "FREIGHT_FINISHED_GOODS",
+                    "matchedAgainst": "vendors.json (VND-MAINFREIGHT, contract CON-MF-1)"
+                },
+                {
+                    "ruleId": "VLD-014",
+                    "ruleName": "Due Date Reasonableness",
+                    "description": "Invoice due date should be after invoice date and within reasonable payment window",
+                    "status": "PASS",
+                    "message": "Due date 2026-02-13 is 64 days after invoice date 2025-12-11, consistent with '44 days from EOM' payment terms (EOM Dec = 2025-12-31 + 44 days = 2026-02-13).",
+                    "severity": "INFO",
+                    "expectedValue": "2026-02-13",
+                    "actualValue": "2026-02-13",
+                    "details": "Invoice date 2025-12-11, EOM = 2025-12-31, + 44 days = 2026-02-13. Due date calculation is correct per stated terms."
+                },
+                {
+                    "ruleId": "VLD-015",
+                    "ruleName": "Required Documents Check",
+                    "description": "All required supporting documents for the invoice category must be present",
+                    "status": "PASS",
+                    "message": "FREIGHT_ADDITIONAL_CHARGES category requires only an Invoice. Invoice document is present.",
+                    "severity": "INFO",
+                    "matchedAgainst": "category-config.json (ICC-47ec15478ea5)"
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:33:07.424558Z",
+    "updatedAt": "2026-03-31T03:36:40.179297Z",
+    "slaDeadline": "2026-04-02T03:33:07.424558Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "PO",
+    "entity": "AU",
+    "isRead": false
+}

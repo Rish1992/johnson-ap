@@ -710,12 +710,12 @@ export function DataValidationTab() {
         </div>
       )}
 
-      {/* Missing Documents Auto-Detection Banner (Item 24) */}
+      {/* Missing Documents Auto-Detection Banner — driven by verify_docs step output */}
       {!isReadOnly && !missingDocsDismissed && (() => {
-        const docTypes = (selectedCase.attachments || []).map(a => a.documentType);
-        const missing: string[] = [];
-        if ((selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') && !docTypes.includes('JOB_SHEET')) missing.push('Job Sheet');
-        if (!docTypes.includes('INVOICE')) missing.push('Tax Invoice');
+        const verifyEntry = (selectedCase.businessRuleResults || []).find(
+          (r: any) => r.step === 'verify_docs'
+        ) as { step: string; output: { missingDocs?: string[] } } | undefined;
+        const missing: string[] = verifyEntry?.output?.missingDocs ?? [];
         if (missing.length === 0) return null;
         return (
           <div className="flex items-start gap-3 mt-4 p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20">

@@ -1,0 +1,417 @@
+{
+    "id": "CASE-0005",
+    "status": "IN_REVIEW",
+    "category": "SUBCONTRACTOR",
+    "email": {
+        "from": "admin@treadmillsurgeon.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice SL 16156T - The Treadmill Surgeon",
+        "receivedAt": "2026-03-31T03:21:21.436255Z",
+        "body": "Hi,\n\nAttached is invoice SL 16156T for recent service work.\n\nCheers,\nBlue / The Treadmill Surgeon",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "Blue_SL_16156T.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 73027,
+            "fileUrl": "/uploads/file-17d154255bcd_Blue_SL_16156T.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "16156T",
+        "invoiceDate": "2026-03-17",
+        "dueDate": "2026-04-30",
+        "invoiceType": "Tax Invoice",
+        "currency": "AUD",
+        "totalAmount": 120.0,
+        "taxAmount": 10.91,
+        "netAmount": 109.09,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "JAU260100588",
+        "paymentTerms": "Due 30th April 2026",
+        "companyCode": "AU",
+        "plantCode": "",
+        "costCenter": "Home",
+        "glAccount": "614100",
+        "taxCode": "GST",
+        "description": "Johnson Call Out 15 Mins Labour INC - Warranty Repair for 7.4AT-24 Horizon Treadmill. Comms cable issue - incorrect cable received, follow up required."
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Johnson Call Out 15 Mins Labour INC",
+            "quantity": 1,
+            "unitPrice": 109.09,
+            "unit": "EA",
+            "totalAmount": 109.09,
+            "taxAmount": 10.91,
+            "glAccount": "614100",
+            "costCenter": "Home"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "16156T",
+            "bbox": {
+                "page": 1,
+                "x": 0.90459,
+                "y": 0.16516,
+                "width": 0.05699,
+                "height": 0.01173
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "17th March 2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.83547,
+                "y": 0.17907,
+                "width": 0.12611,
+                "height": 0.01173
+            }
+        },
+        "dueDate": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "30th April 2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.85198,
+                "y": 0.75522,
+                "width": 0.11304,
+                "height": 0.01173
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$120.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.90421,
+                "y": 0.58213,
+                "width": 0.06072,
+                "height": 0.01173
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$10.91",
+            "bbox": {
+                "page": 1,
+                "x": 0.91355,
+                "y": 0.56194,
+                "width": 0.05137,
+                "height": 0.01173
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$109.09",
+            "bbox": {
+                "page": 1,
+                "x": 0.74933,
+                "y": 0.48166,
+                "width": 0.06072,
+                "height": 0.01173
+            }
+        },
+        "vendorName": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "The Gym & Treadmill Surgeon (Blue SL Pty Ltd)"
+        },
+        "vendorABN": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "72 424 989 387",
+            "bbox": {
+                "page": 1,
+                "x": 0.84477,
+                "y": 0.12307,
+                "width": 0.11681,
+                "height": 0.01173
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech Australia Pty Ltd",
+            "bbox": {
+                "page": 1,
+                "x": 0.21042,
+                "y": 0.28736,
+                "width": 0.34302,
+                "height": 0.01407
+            }
+        },
+        "jobSheetNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "JAU260100588",
+            "bbox": {
+                "page": 1,
+                "x": 0.82255,
+                "y": 0.19312,
+                "width": 0.13899,
+                "height": 0.01407
+            }
+        },
+        "jobCategory": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Warranty- Repair",
+            "bbox": {
+                "page": 3,
+                "x": 0.13305,
+                "y": 0.30331,
+                "width": 0.10228,
+                "height": 0.00879
+            }
+        },
+        "branchCode": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "Home",
+            "bbox": {
+                "page": 3,
+                "x": 0.73418,
+                "y": 0.174,
+                "width": 0.03584,
+                "height": 0.00879
+            }
+        },
+        "costCenter": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "Home (derived from Branch: Home on Contractor Worksheet)"
+        },
+        "glAccount": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "614100 (Subcontractor Warranty)"
+        },
+        "bankDetails": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Blue SL Pty Ltd, BSB 105 025, Account 052 939 740"
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD"
+        },
+        "lineItem1_description": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Call Out 15 Mins Labour INC",
+            "bbox": {
+                "page": 1,
+                "x": 0.06588,
+                "y": 0.48166,
+                "width": 0.28303,
+                "height": 0.01173
+            }
+        },
+        "lineItem1_quantity": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "1"
+        },
+        "lineItem1_unitPrice": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$109.09",
+            "bbox": {
+                "page": 1,
+                "x": 0.74933,
+                "y": 0.48166,
+                "width": 0.06072,
+                "height": 0.01173
+            }
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "VND-GENSUBCON",
+    "vendorName": "General Subcontractor Services",
+    "vendorNumber": "V200003",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice",
+                    "Contractor Worksheet"
+                ],
+                "missingDocs": [],
+                "confidence": 0.97,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-17d154255bcd_Blue_SL_16156T.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice #16156T from The Gym & Treadmill Surgeon (Blue SL Pty Ltd), dated 17 March 2026, for $120.00 inc GST. References JAU260100588. Pages 1-2."
+                    },
+                    {
+                        "documentType": "Contractor Worksheet",
+                        "fileName": "file-17d154255bcd_Blue_SL_16156T.pdf",
+                        "status": "PRESENT",
+                        "notes": "Contractor Worksheet for CASE PRODUCT# JAU260100588, contractor SA-BLUE SL (The Gym & Treadmill Surgeon), Job Category: Warranty-Repair, Model: 7.4AT-24 Horizon Treadmill. Technician Brendan Barber signed 17/03/26. Page 3."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VEN-001",
+                    "ruleName": "Vendor Exists in Master",
+                    "description": "Verify the invoicing vendor exists in the vendor master list",
+                    "status": "FAIL",
+                    "severity": "ERROR",
+                    "message": "Vendor 'The Gym & Treadmill Surgeon (Blue SL Pty Ltd)' with ABN 72 424 989 387 was not found in the vendor master. No matching vendor record exists.",
+                    "expectedValue": "Vendor present in vendor master",
+                    "actualValue": "No match found for 'The Gym & Treadmill Surgeon (Blue SL Pty Ltd)'",
+                    "matchedAgainst": "master-data/vendors.json"
+                },
+                {
+                    "ruleId": "VEN-002",
+                    "ruleName": "Vendor ABN Match",
+                    "description": "Verify the ABN on the invoice matches the vendor master record",
+                    "status": "SKIPPED",
+                    "severity": "ERROR",
+                    "message": "Cannot verify ABN \u2014 vendor not found in vendor master.",
+                    "actualValue": "72 424 989 387",
+                    "matchedAgainst": "master-data/vendors.json"
+                },
+                {
+                    "ruleId": "VEN-003",
+                    "ruleName": "Bank Details Match",
+                    "description": "Verify bank details on invoice match the vendor master record",
+                    "status": "SKIPPED",
+                    "severity": "ERROR",
+                    "message": "Cannot verify bank details \u2014 vendor not found in vendor master. Invoice shows: Blue SL Pty Ltd, BSB 105 025, Account 052 939 740.",
+                    "actualValue": "BSB 105 025, Acct 052 939 740",
+                    "matchedAgainst": "master-data/vendors.json"
+                },
+                {
+                    "ruleId": "DOC-001",
+                    "ruleName": "Required Supporting Documents Present",
+                    "description": "SUBCONTRACTOR invoices require a Contractor Worksheet / Service Job Sheet",
+                    "status": "WARNING",
+                    "severity": "WARNING",
+                    "message": "Only one attachment found (Blue_SL_16156T.pdf). Category SUBCONTRACTOR requires both an Invoice and a Contractor Worksheet / Service Job Sheet. The job sheet number JAU260100588 is referenced on the invoice but no separate worksheet document was provided for independent verification.",
+                    "expectedValue": "Invoice + Contractor Worksheet / Service Job Sheet",
+                    "actualValue": "1 attachment (invoice PDF only)",
+                    "matchedAgainst": "master-data/category-config.json (ICC-1c619056eb7b)"
+                },
+                {
+                    "ruleId": "DOC-002",
+                    "ruleName": "Job Sheet Number Cross-Reference",
+                    "description": "Contractor worksheet number on invoice must match a supporting worksheet document",
+                    "status": "SKIPPED",
+                    "severity": "WARNING",
+                    "message": "Job sheet JAU260100588 extracted from invoice but no separate contractor worksheet attached to verify against.",
+                    "actualValue": "JAU260100588",
+                    "matchedAgainst": "N/A \u2014 no worksheet attachment"
+                },
+                {
+                    "ruleId": "RATE-001",
+                    "ruleName": "Service Rate Matches Rate Card",
+                    "description": "Unit price on invoice should match the service rate card for the vendor",
+                    "status": "SKIPPED",
+                    "severity": "WARNING",
+                    "message": "Vendor 'The Gym & Treadmill Surgeon (Blue SL Pty Ltd)' has no service rate card on file. Cannot verify whether $109.09 for 'Johnson Call Out 15 Mins Labour INC' is the agreed rate. Rate cards exist only for VND-REVO and VND-DI-01.",
+                    "actualValue": "$109.09",
+                    "matchedAgainst": "master-data/service-rate-cards.json"
+                },
+                {
+                    "ruleId": "TAX-001",
+                    "ruleName": "Tax Calculation Correct",
+                    "description": "Tax amount should equal net amount \u00d7 applicable tax rate (10% GST for AU)",
+                    "status": "PASS",
+                    "severity": "INFO",
+                    "message": "Tax correctly calculated: $109.09 \u00d7 10% GST = $10.909, rounded to $10.91. Matches invoice tax amount.",
+                    "expectedValue": "$10.91",
+                    "actualValue": "$10.91",
+                    "matchedAgainst": "AU GST rate 10%"
+                },
+                {
+                    "ruleId": "AMT-001",
+                    "ruleName": "Invoice Amount Positive",
+                    "description": "Invoice total amount must be greater than zero",
+                    "status": "PASS",
+                    "severity": "INFO",
+                    "message": "Invoice total amount $120.00 is positive.",
+                    "actualValue": "$120.00"
+                },
+                {
+                    "ruleId": "AMT-002",
+                    "ruleName": "Arithmetic Consistency",
+                    "description": "Net amount + tax amount must equal total amount",
+                    "status": "PASS",
+                    "severity": "INFO",
+                    "message": "Arithmetic check passed: $109.09 (net) + $10.91 (tax) = $120.00 (total).",
+                    "expectedValue": "$120.00",
+                    "actualValue": "$120.00"
+                },
+                {
+                    "ruleId": "ENT-001",
+                    "ruleName": "Entity-Country Alignment",
+                    "description": "Australian vendor (ABN) must bill to Australian entity",
+                    "status": "PASS",
+                    "severity": "INFO",
+                    "message": "Vendor has an ABN (Australian Business Number) and invoice is addressed to Johnson Health Tech Australia Pty Ltd (AU entity). Entity alignment is correct.",
+                    "expectedValue": "AU entity",
+                    "actualValue": "AU entity"
+                },
+                {
+                    "ruleId": "ENT-002",
+                    "ruleName": "Currency Matches Entity",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "severity": "INFO",
+                    "message": "Invoice currency AUD matches Australian entity.",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD"
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:22:39.209953Z",
+    "updatedAt": "2026-03-31T03:24:51.225923Z",
+    "slaDeadline": "2026-04-02T03:22:39.209953Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "AU",
+    "isRead": false
+}

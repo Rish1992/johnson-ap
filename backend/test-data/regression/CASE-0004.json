@@ -1,0 +1,563 @@
+{
+    "id": "CASE-0004",
+    "status": "IN_REVIEW",
+    "category": "SUBCONTRACTOR",
+    "email": {
+        "from": "accounts@cflservices.co.nz",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice INV-7340 - CFL Services",
+        "receivedAt": "2026-03-31T03:16:35.925566Z",
+        "body": "Hi,\n\nPlease find attached invoice INV-7340 for services rendered.\n\nRegards,\nCFL Services",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "CFL_Services_INV-7340.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 1308568,
+            "fileUrl": "/uploads/file-1c99c3613596_CFL_Services_INV-7340.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "INV-7340",
+        "invoiceDate": "2025-12-28",
+        "dueDate": "2026-01-20",
+        "invoiceType": "Tax Invoice",
+        "currency": "NZD",
+        "totalAmount": 4559.77,
+        "taxAmount": 594.77,
+        "netAmount": 3965.0,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "",
+        "paymentTerms": "Due 20 Jan 2026",
+        "companyCode": "NZ",
+        "plantCode": "",
+        "costCenter": "Commercial",
+        "glAccount": "614100",
+        "taxCode": "GST 15%",
+        "description": "Subcontractor warranty repair services - CFL Services (Charles Leith) - 10 job sheets covering gym equipment servicing for NZ Defence Force and Jetts Lower Hutt"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "JNZ251100005 - Warranty Repair (NZ Defence Force, Trentham) - TBCC-02 Matrix Total Body Cycle - SPM of all gym equipment",
+            "quantity": 5.5,
+            "unitPrice": 170.0,
+            "unit": "hours",
+            "totalAmount": 935.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-002",
+            "lineNumber": 2,
+            "description": "JNZ251100005 Consumables",
+            "quantity": 1.0,
+            "unitPrice": 35.0,
+            "unit": "each",
+            "totalAmount": 35.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-003",
+            "lineNumber": 3,
+            "description": "JNZ251100006 - Warranty Repair (NZ Defence Force, Trentham) - TBCC-02 Matrix Total Body Cycle - SPM of all gym equipment",
+            "quantity": 5.0,
+            "unitPrice": 170.0,
+            "unit": "hours",
+            "totalAmount": 850.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-004",
+            "lineNumber": 4,
+            "description": "JNZ251100006 Consumables",
+            "quantity": 1.0,
+            "unitPrice": 35.0,
+            "unit": "each",
+            "totalAmount": 35.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-005",
+            "lineNumber": 5,
+            "description": "JNZ251100007 - Warranty Repair (NZ Defence Force, Trentham) - TBCC-02 Matrix Total Body Cycle - SPM of all gym equipment",
+            "quantity": 5.5,
+            "unitPrice": 170.0,
+            "unit": "hours",
+            "totalAmount": 935.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-006",
+            "lineNumber": 6,
+            "description": "JNZ251100007 Consumables",
+            "quantity": 1.0,
+            "unitPrice": 35.0,
+            "unit": "each",
+            "totalAmount": 35.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-007",
+            "lineNumber": 7,
+            "description": "JNZ251200188 - Warranty Repair (Jetts Lower Hutt) - T-ES-02-F MX Endurance Treadmill - Power cord replacement",
+            "quantity": 2.5,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 237.5,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-008",
+            "lineNumber": 8,
+            "description": "JNZ251200391 - Warranty Repair (Jetts Lower Hutt) - VS-S40H Matrix Versa Biceps Curl - Loose cable, tension cables & adjust",
+            "quantity": 1.5,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 142.5,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-009",
+            "lineNumber": 9,
+            "description": "JNZ251200392 - Warranty Repair (Jetts Lower Hutt) - G3-S73-03 Matrix Aura Prone Leg Curl - Loose cable, tension cables & adjust",
+            "quantity": 1.0,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 95.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-010",
+            "lineNumber": 10,
+            "description": "JNZ251200393 - Warranty Repair (Jetts Lower Hutt) - VS-S70P Matrix Versa Leg Press / Calf Press - Loose cable, tension cables & adjust",
+            "quantity": 1.0,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 95.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-011",
+            "lineNumber": 11,
+            "description": "JNZ251200394 - Warranty Repair (Jetts Lower Hutt) - MG-PL23-03 Matrix MG Shoulder Press - Runner not smooth, lubricate & adjust",
+            "quantity": 1.0,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 95.0,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-012",
+            "lineNumber": 12,
+            "description": "JNZ251200395 - Warranty Repair (Jetts Lower Hutt) - VS-S23H Matrix Versa Converging Shoulder Press - Runners adjustment, weight stack guide rod collars & lube",
+            "quantity": 1.5,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 142.5,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        },
+        {
+            "id": "LI-013",
+            "lineNumber": 13,
+            "description": "JNZ251200622 - Warranty Repair (Jetts Lower Hutt) - MG-PL70-05 Matrix MG 45 Degree Leg Press - Multiple issue, adjust & auto smith machine, assess fan on x-trainer & resistance on bike order parts",
+            "quantity": 3.5,
+            "unitPrice": 95.0,
+            "unit": "hours",
+            "totalAmount": 332.5,
+            "taxAmount": 0,
+            "glAccount": "614100",
+            "costCenter": "Commercial"
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "INV-7340",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.11026,
+                "width": 0.05661,
+                "height": 0.01069
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "28 Dec 2025",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.07619,
+                "width": 0.07593,
+                "height": 0.01069
+            }
+        },
+        "dueDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "20 Jan 2026",
+            "bbox": {
+                "page": 1,
+                "x": 0.12653,
+                "y": 0.75964,
+                "width": 0.08796,
+                "height": 0.01283
+            }
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "NZD",
+            "bbox": {
+                "page": 1,
+                "x": 0.92084,
+                "y": 0.27211,
+                "width": 0.0267,
+                "height": 0.01069
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "4,559.77",
+            "bbox": {
+                "page": 1,
+                "x": 0.89371,
+                "y": 0.70619,
+                "width": 0.05383,
+                "height": 0.01069
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "594.77",
+            "bbox": {
+                "page": 1,
+                "x": 0.90549,
+                "y": 0.67901,
+                "width": 0.04206,
+                "height": 0.01069
+            }
+        },
+        "netAmount": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "3,965.00",
+            "bbox": {
+                "page": 1,
+                "x": 0.89405,
+                "y": 0.65271,
+                "width": 0.05348,
+                "height": 0.01069
+            }
+        },
+        "vendorName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "CFL Services",
+            "bbox": {
+                "page": 1,
+                "x": 0.77143,
+                "y": 0.06466,
+                "width": 0.07471,
+                "height": 0.01069
+            }
+        },
+        "vendorAddress": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "33 Oratia Street, Waikanae Beach, Waikanae 5036"
+        },
+        "gstNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "41-229-926",
+            "bbox": {
+                "page": 1,
+                "x": 0.59048,
+                "y": 0.14434,
+                "width": 0.07046,
+                "height": 0.01069
+            }
+        },
+        "bankDetails": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "06-0529-0484412-00",
+            "bbox": {
+                "page": 1,
+                "x": 0.04762,
+                "y": 0.78765,
+                "width": 0.12864,
+                "height": 0.01069
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech New Zealand / Johnson Health Tech Australia"
+        },
+        "costCenter": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "Commercial (from all contractor worksheets Branch: Commercial)"
+        },
+        "glAccount": {
+            "value": 0.97,
+            "level": "HIGH",
+            "extractedValue": "614100 (Subcontractor Warranty - all worksheets show Job Category: Warranty-Repair)"
+        },
+        "branchGLCode": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "NZ011001 / 60100503"
+        },
+        "jobSheetNumbers": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "JNZ251100005, JNZ251100006, JNZ251100007, JNZ251200188, JNZ251200391, JNZ251200392, JNZ251200393, JNZ251200394, JNZ251200395, JNZ251200622"
+        },
+        "jobCategory": {
+            "value": 0.98,
+            "level": "HIGH",
+            "extractedValue": "Warranty-Repair (all 10 worksheets)"
+        },
+        "lineItems": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "13 line items extracted from invoice matching 10 job sheets (3 jobs include separate consumables lines)"
+        },
+        "vendorMatch": {
+            "value": 0.2,
+            "level": "LOW",
+            "extractedValue": "CFL Services - not found in master vendor list"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "",
+    "vendorName": "CFL Services",
+    "vendorNumber": "",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": true,
+                "presentDocs": [
+                    "Invoice",
+                    "Contractor Worksheet"
+                ],
+                "missingDocs": [],
+                "confidence": 0.98,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-1c99c3613596_CFL_Services_INV-7340.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice INV-7340 from CFL Services dated 28 Dec 2025, totalling NZD 4,559.77 (incl. 15% GST). Page 1 of the PDF. Contains line items referencing JNZ job numbers with services and consumables. Payment advice on page 2."
+                    },
+                    {
+                        "documentType": "Contractor Worksheet",
+                        "fileName": "file-1c99c3613596_CFL_Services_INV-7340.pdf",
+                        "status": "PRESENT",
+                        "notes": "10 Contractor Worksheets present on pages 3-12, covering all job references on the invoice: JNZ251100005, JNZ251100006, JNZ251100007, JNZ251200188, JNZ251200391, JNZ251200392, JNZ251200393, JNZ251200394, JNZ251200395, JNZ251200622. All are Warranty-Repair jobs performed by contractor CFL (Charles), signed by technician and customer."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VND-MATCH-001",
+                    "ruleName": "Vendor Master Match",
+                    "description": "Vendor name must exist in vendor master",
+                    "status": "FAIL",
+                    "message": "CFL Services is not found in the vendor master list. No matching vendor record exists for this supplier.",
+                    "severity": "ERROR",
+                    "expectedValue": "Vendor present in master list",
+                    "actualValue": "CFL Services \u2014 not found",
+                    "matchedAgainst": "vendors.json"
+                },
+                {
+                    "ruleId": "VND-BANK-002",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank account on invoice must match vendor master record",
+                    "status": "SKIPPED",
+                    "message": "Cannot verify bank details because vendor CFL Services is not in the vendor master. Bank account on invoice: 06-0529-0484412-00.",
+                    "severity": "WARNING",
+                    "actualValue": "06-0529-0484412-00",
+                    "matchedAgainst": "vendors.json"
+                },
+                {
+                    "ruleId": "ENT-ENTITY-001",
+                    "ruleName": "Entity-Country Alignment",
+                    "description": "NZ vendor (GST/IRD number) must bill to NZ entity",
+                    "status": "PASS",
+                    "message": "Vendor has NZ GST number (41-229-926) and invoice is billed to NZ entity (companyCode: NZ). Entity alignment is correct.",
+                    "severity": "INFO",
+                    "expectedValue": "NZ entity",
+                    "actualValue": "NZ",
+                    "matchedAgainst": "email.json entity field"
+                },
+                {
+                    "ruleId": "ENT-CURRENCY-002",
+                    "ruleName": "Currency-Entity Match",
+                    "description": "Currency must match entity (NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency is NZD and entity is NZ. Currency matches entity correctly.",
+                    "severity": "INFO",
+                    "expectedValue": "NZD",
+                    "actualValue": "NZD"
+                },
+                {
+                    "ruleId": "TAX-CALC-001",
+                    "ruleName": "Tax Calculation Accuracy",
+                    "description": "Tax amount should equal net \u00d7 applicable GST rate (15% for NZ)",
+                    "status": "WARNING",
+                    "message": "Tax amount has a minor $0.02 rounding discrepancy. Expected $594.75 (3,965.00 \u00d7 15%), invoice shows $594.77. Likely due to per-line rounding.",
+                    "severity": "WARNING",
+                    "expectedValue": "594.75",
+                    "actualValue": "594.77",
+                    "details": "Difference of $0.02 \u2014 within acceptable rounding tolerance for multi-line invoices"
+                },
+                {
+                    "ruleId": "TAX-CODE-002",
+                    "ruleName": "Tax Code Verification",
+                    "description": "Tax code must be appropriate for entity jurisdiction",
+                    "status": "PASS",
+                    "message": "Tax code is GST 15% which is correct for a New Zealand entity invoice.",
+                    "severity": "INFO",
+                    "expectedValue": "GST 15%",
+                    "actualValue": "GST 15%"
+                },
+                {
+                    "ruleId": "AMT-POSITIVE-001",
+                    "ruleName": "Positive Invoice Amount",
+                    "description": "Invoice total amount must be positive",
+                    "status": "PASS",
+                    "message": "Invoice total amount $4,559.77 is positive.",
+                    "severity": "INFO",
+                    "expectedValue": "> 0",
+                    "actualValue": "4559.77"
+                },
+                {
+                    "ruleId": "AMT-TOTAL-002",
+                    "ruleName": "Total = Net + Tax",
+                    "description": "Invoice total must equal net amount plus tax amount",
+                    "status": "PASS",
+                    "message": "Total $4,559.77 equals net $3,965.00 + tax $594.77. Arithmetic is correct.",
+                    "severity": "INFO",
+                    "expectedValue": "4559.77",
+                    "actualValue": "4559.77"
+                },
+                {
+                    "ruleId": "AMT-LINESUM-003",
+                    "ruleName": "Line Items Sum to Net",
+                    "description": "Sum of all line item totals must equal the invoice net amount",
+                    "status": "PASS",
+                    "message": "Sum of 13 line item totals ($3,965.00) matches invoice net amount ($3,965.00).",
+                    "severity": "INFO",
+                    "expectedValue": "3965.00",
+                    "actualValue": "3965.00"
+                },
+                {
+                    "ruleId": "RATE-SVC-001",
+                    "ruleName": "Service Rate Card Match",
+                    "description": "Unit prices on invoice must match service rate card for the vendor",
+                    "status": "SKIPPED",
+                    "message": "No service rate card exists for CFL Services. Invoice uses two hourly rates: $170/hr (NZ Defence Force SPM jobs) and $95/hr (Jetts Lower Hutt warranty repairs). Cannot validate rates without a rate card for this vendor.",
+                    "severity": "WARNING",
+                    "actualValue": "$170/hr and $95/hr",
+                    "matchedAgainst": "service-rate-cards.json",
+                    "details": "Service rate cards only cover VND-REVO ($165 warranty, $195 chargeable) and VND-DI-01 ($220/$350). CFL Services has no rate card on file."
+                },
+                {
+                    "ruleId": "DOC-WORKSHEET-001",
+                    "ruleName": "Supporting Document Presence",
+                    "description": "Subcontractor invoices must include contractor worksheets / job sheets",
+                    "status": "PASS",
+                    "message": "10 contractor worksheets are referenced and appear to be included in the invoice PDF. Job sheet numbers: JNZ251100005, JNZ251100006, JNZ251100007, JNZ251200188, JNZ251200391, JNZ251200392, JNZ251200393, JNZ251200394, JNZ251200395, JNZ251200622.",
+                    "severity": "INFO",
+                    "expectedValue": "Contractor Worksheet / Service Job Sheet / Work Order",
+                    "actualValue": "10 job sheets present",
+                    "matchedAgainst": "category-config.json (SUBCONTRACTOR required docs)"
+                },
+                {
+                    "ruleId": "DOC-JOBMATCH-002",
+                    "ruleName": "Invoice Line Items Match Job Sheets",
+                    "description": "Each invoice line must reference a valid contractor worksheet number",
+                    "status": "PASS",
+                    "message": "All 13 line items reference one of the 10 job sheet numbers. 3 jobs (JNZ251100005, JNZ251100006, JNZ251100007) have separate consumables lines at $35 each, accounting for the 13 lines vs 10 worksheets.",
+                    "severity": "INFO",
+                    "expectedValue": "All lines matched to worksheets",
+                    "actualValue": "13 lines matched to 10 worksheets"
+                },
+                {
+                    "ruleId": "LINE-MATH-001",
+                    "ruleName": "Line Item Arithmetic",
+                    "description": "Each line item total must equal quantity \u00d7 unit price",
+                    "status": "PASS",
+                    "message": "All 13 line items have correct quantity \u00d7 unit price calculations.",
+                    "severity": "INFO",
+                    "expectedValue": "quantity \u00d7 unitPrice = totalAmount for all lines",
+                    "actualValue": "All 13 lines verified correct"
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:18:02.421510Z",
+    "updatedAt": "2026-03-31T03:21:19.322146Z",
+    "slaDeadline": "2026-04-02T03:18:02.421510Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "NZ",
+    "isRead": false
+}

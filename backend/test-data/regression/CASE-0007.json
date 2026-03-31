@@ -1,0 +1,403 @@
+{
+    "id": "CASE-0007",
+    "status": "IN_REVIEW",
+    "category": "SUBCONTRACTOR",
+    "email": {
+        "from": "billing@hwlebsworth.com.au",
+        "to": "ap@jhta.com.au",
+        "subject": "Invoice 2017446 - HWL Ebsworth Lawyers",
+        "receivedAt": "2026-03-31T03:28:27.213771Z",
+        "body": "Dear Accounts Payable,\n\nPlease find attached our tax invoice 2017446 for legal services.\n\nKind regards,\nHWL Ebsworth Lawyers",
+        "attachmentCount": 1
+    },
+    "attachments": [
+        {
+            "fileName": "HWL_2017446.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 212006,
+            "fileUrl": "/uploads/file-ff6cbd2e9258_HWL_2017446.pdf"
+        }
+    ],
+    "headerData": {
+        "invoiceNumber": "2017446",
+        "invoiceDate": "2025-11-27",
+        "dueDate": "2025-12-11",
+        "invoiceType": "Tax Invoice",
+        "currency": "AUD",
+        "totalAmount": 3941.85,
+        "taxAmount": 358.35,
+        "netAmount": 3583.5,
+        "purchaseOrderNumber": "",
+        "deliveryNoteNumber": "",
+        "paymentTerms": "14 days",
+        "companyCode": "AU",
+        "plantCode": "",
+        "costCenter": "",
+        "glAccount": "",
+        "taxCode": "GST",
+        "description": "Product Warranty Advice - Professional Services to 25 November 2025"
+    },
+    "lineItems": [
+        {
+            "id": "LI-001",
+            "lineNumber": 1,
+            "description": "Professional Services Rendered - Product Warranty Advice",
+            "quantity": 1,
+            "unitPrice": 3583.5,
+            "unit": "EA",
+            "totalAmount": 3941.85,
+            "taxAmount": 358.35,
+            "glAccount": "",
+            "costCenter": ""
+        }
+    ],
+    "confidenceScores": {
+        "invoiceNumber": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "2017446",
+            "bbox": {
+                "page": 1,
+                "x": 0.76845,
+                "y": 0.12264,
+                "width": 0.09152,
+                "height": 0.01856
+            }
+        },
+        "invoiceDate": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "27 Nov 2025",
+            "bbox": {
+                "page": 1,
+                "x": 0.76246,
+                "y": 0.16891,
+                "width": 0.09711,
+                "height": 0.01325
+            }
+        },
+        "dueDate": {
+            "value": 0.95,
+            "level": "HIGH",
+            "extractedValue": "11 Dec 2025 (derived: invoice date + 14 days payment terms)"
+        },
+        "currency": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "AUD",
+            "bbox": {
+                "page": 2,
+                "x": 0.30965,
+                "y": 0.28128,
+                "width": 0.03544,
+                "height": 0.01325
+            }
+        },
+        "totalAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$3,941.85",
+            "bbox": {
+                "page": 1,
+                "x": 0.78806,
+                "y": 0.35833,
+                "width": 0.06534,
+                "height": 0.01325
+            }
+        },
+        "taxAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$358.35",
+            "bbox": {
+                "page": 1,
+                "x": 0.67064,
+                "y": 0.35833,
+                "width": 0.05135,
+                "height": 0.01325
+            }
+        },
+        "netAmount": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "$3,583.50",
+            "bbox": {
+                "page": 1,
+                "x": 0.51839,
+                "y": 0.35833,
+                "width": 0.06534,
+                "height": 0.01325
+            }
+        },
+        "vendorName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "HWL Ebsworth Lawyers",
+            "bbox": {
+                "page": 1,
+                "x": 0.09524,
+                "y": 0.66852,
+                "width": 0.19129,
+                "height": 0.01325
+            }
+        },
+        "entityName": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Johnson Health Tech. Australia Pty Ltd (ACN 141 256 715)"
+        },
+        "abn": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "37 246 549 189",
+            "bbox": {
+                "page": 2,
+                "x": 0.2234,
+                "y": 0.1106,
+                "width": 0.11675,
+                "height": 0.01325
+            }
+        },
+        "bankDetails": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Westpac BSB 033-003 Account 313388 SWIFT WPACAU2S"
+        },
+        "paymentTerms": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "14 days",
+            "bbox": {
+                "page": 2,
+                "x": 0.2234,
+                "y": 0.18851,
+                "width": 0.05882,
+                "height": 0.01325
+            }
+        },
+        "purchaseOrderNumber": {
+            "value": 0.3,
+            "level": "LOW",
+            "extractedValue": "Not found on invoice"
+        },
+        "costCenter": {
+            "value": 0.15,
+            "level": "LOW",
+            "extractedValue": "Unable to determine - legal services invoice does not fit standard category taxonomy; no branch code or job sheet present"
+        },
+        "glAccount": {
+            "value": 0.15,
+            "level": "LOW",
+            "extractedValue": "Unable to determine - legal/professional services not covered by defined GL code derivation rules (614100/614200/615100/616xxx)"
+        },
+        "description": {
+            "value": 0.99,
+            "level": "HIGH",
+            "extractedValue": "Product Warranty Advice - Professional Services to 25 November 2025"
+        }
+    },
+    "overallConfidence": 0.0,
+    "overallConfidenceLevel": "LOW",
+    "vendorId": "VND-HWL",
+    "vendorName": "HWL Ebsworth Lawyers",
+    "vendorNumber": "V200012",
+    "contractNumber": null,
+    "contractStatus": null,
+    "businessRuleResults": [
+        {
+            "step": "verify_docs",
+            "output": {
+                "verified": false,
+                "presentDocs": [
+                    "Invoice"
+                ],
+                "missingDocs": [
+                    "Contractor Worksheet / Service Job Sheet / Work Order"
+                ],
+                "confidence": 0.92,
+                "details": [
+                    {
+                        "documentType": "Invoice",
+                        "fileName": "file-ff6cbd2e9258_HWL_2017446.pdf",
+                        "status": "PRESENT",
+                        "notes": "Tax Invoice No 2017446 from HWL Ebsworth Lawyers dated 27 Nov 2025 for 'Product Warranty Advice' professional services totalling AUD $3,941.85 including GST. Includes remittance advice on page 2. Note: this is a legal/professional services invoice, not a typical subcontractor invoice."
+                    },
+                    {
+                        "documentType": "Contractor Worksheet / Service Job Sheet / Work Order",
+                        "fileName": null,
+                        "status": "MISSING",
+                        "notes": "No Contractor Worksheet, Service Job Sheet, or Work Order found in attachments. Only one attachment exists and it contains the invoice and remittance advice only. The SUBCONTRACTOR category requires a supporting worksheet or job sheet, which is absent."
+                    }
+                ]
+            }
+        },
+        {
+            "step": "validate",
+            "output": [
+                {
+                    "ruleId": "VLD-001",
+                    "ruleName": "Vendor Name Match",
+                    "description": "Invoice vendor name must match vendor master record",
+                    "status": "PASS",
+                    "message": "Vendor name 'HWL Ebsworth Lawyers' matches vendor master record VND-HWL.",
+                    "severity": "ERROR",
+                    "expectedValue": "HWL Ebsworth Lawyers",
+                    "actualValue": "HWL Ebsworth Lawyers",
+                    "matchedAgainst": "vendors.json \u2192 VND-HWL"
+                },
+                {
+                    "ruleId": "VLD-002",
+                    "ruleName": "Vendor ABN Match",
+                    "description": "ABN on invoice must match vendor master record",
+                    "status": "WARNING",
+                    "message": "Invoice contains ABN 37 246 549 189 but vendor master record VND-HWL has no taxId on file. Cannot verify ABN match.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "37 246 549 189",
+                    "matchedAgainst": "vendors.json \u2192 VND-HWL"
+                },
+                {
+                    "ruleId": "VLD-003",
+                    "ruleName": "Bank Details Match",
+                    "description": "Bank details on invoice must match vendor master record",
+                    "status": "WARNING",
+                    "message": "Invoice shows bank details (Westpac BSB 033-003 Account 313388 SWIFT WPACAU2S) but vendor master has no bank details on file. Cannot verify match \u2014 manual review recommended.",
+                    "severity": "WARNING",
+                    "expectedValue": "(not on file)",
+                    "actualValue": "Westpac BSB 033-003 Account 313388 SWIFT WPACAU2S",
+                    "matchedAgainst": "vendors.json \u2192 VND-HWL"
+                },
+                {
+                    "ruleId": "VLD-004",
+                    "ruleName": "Payment Terms Match",
+                    "description": "Payment terms on invoice should align with vendor master",
+                    "status": "PASS",
+                    "message": "Invoice payment terms '14 days' aligns with vendor master 'NET14'.",
+                    "severity": "INFO",
+                    "expectedValue": "NET14",
+                    "actualValue": "14 days",
+                    "matchedAgainst": "vendors.json \u2192 VND-HWL"
+                },
+                {
+                    "ruleId": "VLD-005",
+                    "ruleName": "Entity-Country Alignment",
+                    "description": "Australian vendor must bill to Australian entity",
+                    "status": "PASS",
+                    "message": "Vendor HWL Ebsworth Lawyers is based in Australia and invoice is billed to AU entity (Johnson Health Tech. Australia Pty Ltd).",
+                    "severity": "ERROR",
+                    "expectedValue": "AU",
+                    "actualValue": "AU",
+                    "matchedAgainst": "vendors.json \u2192 VND-HWL (country: Australia)"
+                },
+                {
+                    "ruleId": "VLD-006",
+                    "ruleName": "Currency-Entity Match",
+                    "description": "Currency must match entity (AUD for AU, NZD for NZ)",
+                    "status": "PASS",
+                    "message": "Invoice currency AUD matches expected currency for AU entity.",
+                    "severity": "ERROR",
+                    "expectedValue": "AUD",
+                    "actualValue": "AUD",
+                    "matchedAgainst": "Entity rule: AU \u2192 AUD"
+                },
+                {
+                    "ruleId": "VLD-007",
+                    "ruleName": "Positive Invoice Amount",
+                    "description": "Invoice total amount must be positive",
+                    "status": "PASS",
+                    "message": "Invoice total amount $3,941.85 is positive.",
+                    "severity": "ERROR",
+                    "expectedValue": "> 0",
+                    "actualValue": "3941.85"
+                },
+                {
+                    "ruleId": "VLD-008",
+                    "ruleName": "Tax Calculation Accuracy",
+                    "description": "Tax amount should equal net amount \u00d7 applicable GST rate (10% for AU)",
+                    "status": "PASS",
+                    "message": "Tax amount $358.35 equals net amount $3,583.50 \u00d7 10% GST. Calculation is correct.",
+                    "severity": "ERROR",
+                    "expectedValue": "358.35",
+                    "actualValue": "358.35",
+                    "matchedAgainst": "AU GST rate 10%"
+                },
+                {
+                    "ruleId": "VLD-009",
+                    "ruleName": "Supporting Document - Contractor Worksheet",
+                    "description": "SUBCONTRACTOR invoices require a Contractor Worksheet / Service Job Sheet / Work Order as supporting document",
+                    "status": "FAIL",
+                    "message": "Invoice is classified as SUBCONTRACTOR but no contractor worksheet or service job sheet was attached. Only the invoice PDF was provided. This is a legal/professional services invoice which may be misclassified \u2014 legal services do not typically have contractor worksheets.",
+                    "severity": "ERROR",
+                    "expectedValue": "Contractor Worksheet / Service Job Sheet / Work Order",
+                    "actualValue": "Not provided",
+                    "matchedAgainst": "category-config.json \u2192 SUBCONTRACTOR requiredDocs",
+                    "details": "Email contained 1 attachment: HWL_2017446.pdf (invoice only). Category config requires both an Invoice and a Contractor Worksheet for SUBCONTRACTOR category."
+                },
+                {
+                    "ruleId": "VLD-010",
+                    "ruleName": "Service Rate Card Match",
+                    "description": "Service rates must match service rate card for vendor",
+                    "status": "SKIPPED",
+                    "message": "No service rate card exists for vendor HWL Ebsworth Lawyers (VND-HWL). This is a legal/professional services invoice; rate card validation is not applicable.",
+                    "severity": "INFO",
+                    "matchedAgainst": "service-rate-cards.json"
+                },
+                {
+                    "ruleId": "VLD-011",
+                    "ruleName": "Invoice Category Classification",
+                    "description": "Invoice category should match the nature of services provided",
+                    "status": "WARNING",
+                    "message": "Invoice is classified as SUBCONTRACTOR but is from a law firm (HWL Ebsworth Lawyers) for 'Product Warranty Advice - Professional Services'. Legal/professional services may not fit the SUBCONTRACTOR category. No matching approval rule exists for legal services. Manual review of classification recommended.",
+                    "severity": "WARNING",
+                    "actualValue": "SUBCONTRACTOR",
+                    "expectedValue": "LEGAL / PROFESSIONAL_SERVICES (not defined in category config)",
+                    "matchedAgainst": "category-config.json, approval-rules.json"
+                },
+                {
+                    "ruleId": "VLD-012",
+                    "ruleName": "Purchase Order Reference",
+                    "description": "Check if a PO number is present on the invoice",
+                    "status": "WARNING",
+                    "message": "No purchase order number found on invoice. This is a NON_PO invoice. Manual approval routing may be required.",
+                    "severity": "WARNING",
+                    "expectedValue": "PO number",
+                    "actualValue": "Not found"
+                },
+                {
+                    "ruleId": "VLD-013",
+                    "ruleName": "GL Account Derivation",
+                    "description": "GL account should be derivable from invoice category and details",
+                    "status": "WARNING",
+                    "message": "Unable to derive GL account. Legal/professional services do not map to any defined GL code derivation rules. Extraction confidence for GL account is LOW (0.15). Manual GL coding required.",
+                    "severity": "WARNING",
+                    "expectedValue": "Valid GL account code",
+                    "actualValue": "Not determined",
+                    "details": "Standard GL codes (614100/614200/615100/616xxx) do not cover legal/professional services."
+                }
+            ]
+        }
+    ],
+    "approvalChain": null,
+    "assignedAgentId": null,
+    "assignedAgentName": null,
+    "lockedBy": null,
+    "lockedAt": null,
+    "createdAt": "2026-03-31T03:29:32.283098Z",
+    "updatedAt": "2026-03-31T03:31:22.845310Z",
+    "slaDeadline": "2026-04-02T03:29:32.283098Z",
+    "isSlaBreach": false,
+    "sapDocumentNumber": null,
+    "postedAt": null,
+    "returnedBy": null,
+    "returnedByName": null,
+    "returnReason": null,
+    "returnedAt": null,
+    "returnedFromStep": null,
+    "rejectedBy": null,
+    "rejectedByName": null,
+    "rejectionReason": null,
+    "rejectedAt": null,
+    "poType": "NON_PO",
+    "entity": "AU",
+    "isRead": false
+}

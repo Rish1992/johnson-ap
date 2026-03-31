@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -131,34 +131,38 @@ export function Playground() {
   const [files, setFiles] = useState<File[]>([]);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
+  const [testCases, setTestCases] = useState<any[]>([]);
+  const [selectedTestCase, setSelectedTestCase] = useState<string>('');
   const [loadingTestCase, setLoadingTestCase] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadTestCase = useCallback(async () => {
+  useEffect(() => {
+    fetch(`${BASE}/api/test-cases`).then(r => r.json()).then(setTestCases).catch(console.error);
+  }, []);
+
+  const loadTestCase = useCallback(async (id: string) => {
+    if (!id) return;
+    const tc = testCases.find((c: any) => c.id === id);
+    if (!tc) return;
+    setSelectedTestCase(id);
     setLoadingTestCase(true);
     try {
-      const resp = await fetch(`${BASE}/api/test-cases`);
-      const cases = await resp.json();
-      if (!cases.length) return;
-      const tc = cases[0]; // Load first test case
       setFromAddress(tc.fromAddress);
       setFromName(tc.fromName);
       setSubject(tc.subject);
       setBody(tc.body);
-      // Download the test files and convert to File objects
-      const filePromises = tc.files.map(async (f: { name: string; url: string }) => {
+      const filePromises = (tc.files || []).map(async (f: { name: string; url: string }) => {
         const fileResp = await fetch(`${BASE}${f.url}`);
         const blob = await fileResp.blob();
-        return new File([blob], f.name, { type: 'application/pdf' });
+        return new File([blob], f.name, { type: blob.type || 'application/pdf' });
       });
-      const testFiles = await Promise.all(filePromises);
-      setFiles(testFiles);
+      setFiles(await Promise.all(filePromises));
     } catch (err) {
       console.error('Failed to load test case:', err);
     } finally {
       setLoadingTestCase(false);
     }
-  }, []);
+  }, [testCases]);
 
   const handleFiles = useCallback((newFiles: FileList | null) => {
     if (newFiles) setFiles(prev => [...prev, ...Array.from(newFiles)]);
@@ -209,10 +213,20 @@ export function Playground() {
               <FlaskConical className="h-4 w-4 text-primary" />
               Compose Test Email
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={loadTestCase} disabled={loadingTestCase || running} className="gap-1.5 text-xs">
-              {loadingTestCase ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
-              Load Test Case
-            </Button>
+            <div className="flex items-center gap-2">
+              {loadingTestCase && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+              <select
+                value={selectedTestCase}
+                onChange={e => loadTestCase(e.target.value)}
+                disabled={loadingTestCase || running}
+                className="h-8 rounded-md border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">Load test case...</option>
+                {testCases.map(tc => (
+                  <option key={tc.id} value={tc.id}>{tc.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
