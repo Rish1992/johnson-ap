@@ -60,15 +60,14 @@ export function MastersHub() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
-                <TableHead>Vendor #</TableHead>
-                <TableHead>Name</TableHead>
+                <TableHead>Vendor Number</TableHead>
+                <TableHead>Vendor Name</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>ABN No</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Tax ID</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead>Branch Code</TableHead>
+                <TableHead>Bank</TableHead>
                 <TableHead>Currency</TableHead>
-                <TableHead>Payment Terms</TableHead>
-                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,17 +75,12 @@ export function MastersHub() {
                 <TableRow key={v.id}>
                   <TableCell className="font-mono">{v.vendorNumber}</TableCell>
                   <TableCell className="font-medium">{v.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{v.address}{v.city ? `, ${v.city}` : ''}</TableCell>
+                  <TableCell className="font-mono text-sm">{v.taxId}</TableCell>
+                  <TableCell>{v.country}</TableCell>
                   <TableCell className="text-sm">{v.email}</TableCell>
-                  <TableCell className="text-sm">{v.taxId}</TableCell>
-                  <TableCell>{v.city}</TableCell>
-                  <TableCell className="font-mono">{v.branchCode}</TableCell>
+                  <TableCell className="font-mono text-xs">{v.bankAccount}</TableCell>
                   <TableCell>{v.currency}</TableCell>
-                  <TableCell>{v.paymentTerms}</TableCell>
-                  <TableCell>
-                    <Badge variant={v.isActive ? 'default' : 'secondary'}>
-                      {v.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -178,44 +172,29 @@ export function MastersHub() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
-                <TableHead>ID</TableHead>
-                <TableHead>Invoice Type</TableHead>
-                <TableHead>Sequence Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Approval Steps</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Invoice Category</TableHead>
+                <TableHead>Approver 1 Name</TableHead>
+                <TableHead>Approver 1 Email ID</TableHead>
+                <TableHead>Approver 2 Name</TableHead>
+                <TableHead>Approver 2 Email ID</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sequences.map(s => {
                 const typeConfig = INVOICE_TYPE_CONFIG[s.invoiceType];
+                const step1 = s.steps.find(st => st.stepNumber === 1);
+                const step2 = s.steps.find(st => st.stepNumber === 2);
                 return (
                   <TableRow key={s.id}>
-                    <TableCell className="font-mono">{s.id}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn('text-xs', typeConfig?.bgColor, typeConfig?.color)}>
                         {typeConfig?.label || s.invoiceType}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground max-w-[250px] truncate">{s.description}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        {s.steps.map(step => (
-                          <span key={step.stepNumber} className="text-xs">
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 mr-1">
-                              Step {step.stepNumber}
-                            </Badge>
-                            {step.approverName}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={s.isActive ? 'default' : 'secondary'}>
-                        {s.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
+                    <TableCell className="font-medium">{step1?.approverName ?? '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{step1?.approverEmail ?? '—'}</TableCell>
+                    <TableCell className="font-medium">{step2?.approverName ?? '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{step2?.approverEmail ?? '—'}</TableCell>
                   </TableRow>
                 );
               })}

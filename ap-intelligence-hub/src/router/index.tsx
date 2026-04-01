@@ -105,7 +105,7 @@ export const router = createBrowserRouter([
 
           // Approver routes
           {
-            element: <RoleGuard allowedRoles={['AP_REVIEWER', 'SUPER_ADMIN']} />,
+            element: <RoleGuard allowedRoles={['AP_REVIEWER', 'L2_APPROVER', 'SUPER_ADMIN']} />,
             children: [
               {
                 path: '/approver/queue',
