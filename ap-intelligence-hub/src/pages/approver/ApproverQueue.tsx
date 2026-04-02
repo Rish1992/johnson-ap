@@ -48,13 +48,15 @@ export function ApproverQueue() {
   }, [user]);
 
   const pendingCases = cases.filter(c => c.status === 'APPROVAL_PENDING');
-  const isL2OrSuper = user?.role === 'SUPER_ADMIN' || (user?.approvalLimit && user.approvalLimit >= 100000);
+  const isL2OrSuper = user?.role === 'L2_APPROVER' || user?.role === 'SUPER_ADMIN';
   const isSuperUser = user?.role === 'SUPER_ADMIN';
   const overdueCases = pendingCases.filter(c => {
     const created = new Date(c.approvalChain?.createdAt || c.createdAt).getTime();
     return Date.now() - created > 48 * 60 * 60 * 1000;
   });
   const pendingTotal = pendingCases.reduce((s, c) => s + (c.headerData?.totalAmount || 0), 0);
+  const selectedCases = pendingCases.filter(c => selectedIds.has(c.id));
+  const selectedTotal = selectedCases.reduce((s, c) => s + (c.headerData?.totalAmount || 0), 0);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -179,6 +181,8 @@ export function ApproverQueue() {
       {isL2OrSuper && selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-card border shadow-lg rounded-lg px-5 py-3 z-50">
           <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <span className="text-sm text-muted-foreground">{formatCurrency(selectedTotal, 'AUD')}</span>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>Clear</Button>
           <Button className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => setShowBulkApprove(true)}>
             <CheckCircle className="h-4 w-4" />
             Bulk Approve
@@ -190,16 +194,36 @@ export function ApproverQueue() {
       <AlertDialog open={showBulkApprove} onOpenChange={setShowBulkApprove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bulk Approve {selectedIds.size} Cases</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will approve all selected invoices. This action cannot be undone.
+            <AlertDialogTitle>Bulk Approve {selectedIds.size} {selectedIds.size === 1 ? 'Invoice' : 'Invoices'}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>The following invoices will be approved. This action cannot be undone.</p>
+                <div className="border rounded-md divide-y max-h-48 overflow-y-auto text-xs">
+                  {selectedCases.map(c => (
+                    <div key={c.id} className="flex items-center justify-between px-3 py-2">
+                      <span className="font-mono font-medium">{c.id}</span>
+                      <span className="text-muted-foreground">{c.vendorName}</span>
+                      <span className="font-semibold">{formatCurrency(c.headerData.totalAmount, c.headerData.currency)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                  <span>Total</span>
+                  <span>{formatCurrency(selectedTotal, 'AUD')}</span>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction className="bg-green-600 hover:bg-green-700" onClick={() => {
-              toast.success(`${selectedIds.size} cases approved`);
+              const count = selectedIds.size;
+              setCases(prev => prev.map(c =>
+                selectedIds.has(c.id) ? { ...c, status: 'APPROVED' as const } : c
+              ));
               setSelectedIds(new Set());
+              setShowBulkApprove(false);
+              toast.success(`${count} ${count === 1 ? 'invoice' : 'invoices'} approved successfully`);
             }}>
               Approve All
             </AlertDialogAction>

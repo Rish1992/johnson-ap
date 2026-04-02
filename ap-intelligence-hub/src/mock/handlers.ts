@@ -1473,8 +1473,8 @@ const mockApprovalSequences: ApprovalSequenceMaster[] = [
     name: 'Standard Invoice Approval',
     description: 'Default approval flow for standard invoices',
     steps: [
-      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Emma Thompson', approverId: 'approver-002' },
-      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'John Williams', approverId: 'approver-001' },
+      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Emma Thompson', approverId: 'approver-002', approverEmail: 'emma.thompson@company.com' },
+      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'John Williams', approverId: 'approver-001', approverEmail: 'john.williams@company.com' },
     ],
     isActive: true,
   },
@@ -1484,7 +1484,7 @@ const mockApprovalSequences: ApprovalSequenceMaster[] = [
     name: 'Credit Note Approval',
     description: 'Approval flow for credit notes requiring finance review',
     steps: [
-      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'David Martinez', approverId: 'approver-003' },
+      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'David Martinez', approverId: 'approver-003', approverEmail: 'david.martinez@company.com' },
     ],
     isActive: true,
   },
@@ -1494,8 +1494,8 @@ const mockApprovalSequences: ApprovalSequenceMaster[] = [
     name: 'Debit Note Approval',
     description: 'Approval flow for debit notes',
     steps: [
-      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Emma Thompson', approverId: 'approver-002' },
-      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'David Martinez', approverId: 'approver-003' },
+      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Emma Thompson', approverId: 'approver-002', approverEmail: 'emma.thompson@company.com' },
+      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'David Martinez', approverId: 'approver-003', approverEmail: 'david.martinez@company.com' },
     ],
     isActive: true,
   },
@@ -1505,7 +1505,7 @@ const mockApprovalSequences: ApprovalSequenceMaster[] = [
     name: 'Proforma Invoice Approval',
     description: 'Lightweight approval for proforma invoices',
     steps: [
-      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Robert Johnson', approverId: 'approver-005' },
+      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'Robert Johnson', approverId: 'approver-005', approverEmail: 'robert.johnson@company.com' },
     ],
     isActive: true,
   },
@@ -1515,8 +1515,8 @@ const mockApprovalSequences: ApprovalSequenceMaster[] = [
     name: 'Recurring Invoice Approval',
     description: 'Auto-approval for recurring invoices within threshold',
     steps: [
-      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'John Williams', approverId: 'approver-001' },
-      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'Robert Johnson', approverId: 'approver-005' },
+      { stepNumber: 1, approverRole: 'AP Reviewer', approverName: 'John Williams', approverId: 'approver-001', approverEmail: 'john.williams@company.com' },
+      { stepNumber: 2, approverRole: 'AP Reviewer', approverName: 'Robert Johnson', approverId: 'approver-005', approverEmail: 'robert.johnson@company.com' },
     ],
     isActive: true,
   },
@@ -1558,6 +1558,9 @@ const VALID_CREDENTIALS: Record<string, string> = {
   'alex.kumar@company.com': 'password123',
   'rachel.green@company.com': 'password123',
   'lisa.park@company.com': 'password123',
+  'james.whitfield@company.com': 'password123',
+  'priya.nair@company.com': 'password123',
+  'tom.harvey@company.com': 'password123',
 };
 
 export async function login(email: string, password: string): Promise<Session> {
@@ -2101,7 +2104,7 @@ export async function updateApprovalChain(
 
 export async function fetchApproverCases(approverId: string, role?: string): Promise<Case[]> {
   await randomDelay();
-  if (role === 'SUPER_ADMIN') {
+  if (role === 'SUPER_ADMIN' || role === 'L2_APPROVER') {
     return db.cases.filter((c) => c.status === 'APPROVAL_PENDING');
   }
   return db.cases.filter(

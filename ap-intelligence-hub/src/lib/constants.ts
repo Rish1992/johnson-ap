@@ -39,6 +39,7 @@ export const CONFIDENCE_LEVEL_CONFIG: Record<ConfidenceLevel, { label: string; c
 export const ROLE_CONFIG: Record<UserRole, { label: string; color: string; bgColor: string; homePath: string }> = {
   AP_AGENT: { label: 'AP Agent', color: 'text-blue-700', bgColor: 'bg-blue-100', homePath: '/agent/validation' },
   AP_REVIEWER: { label: 'AP Reviewer', color: 'text-purple-700', bgColor: 'bg-purple-100', homePath: '/approver/queue' },
+  L2_APPROVER: { label: 'L2 Approver', color: 'text-amber-700', bgColor: 'bg-amber-100', homePath: '/approver/queue' },
   SUPER_ADMIN: { label: 'Super Admin', color: 'text-emerald-700', bgColor: 'bg-emerald-100', homePath: '/admin/dashboard' },
 };
 

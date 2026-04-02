@@ -45,6 +45,11 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: 'Case Browser', path: '/approver/cases', icon: <Search className="h-5 w-5" /> },
     { label: 'Analytics', path: '/approver/analytics', icon: <BarChart3 className="h-5 w-5" /> },
   ],
+  L2_APPROVER: [
+    { label: 'My Approvals', path: '/approver/queue', icon: <CheckCircle className="h-5 w-5" /> },
+    { label: 'Case Browser', path: '/approver/cases', icon: <Search className="h-5 w-5" /> },
+    { label: 'Analytics', path: '/approver/analytics', icon: <BarChart3 className="h-5 w-5" /> },
+  ],
   SUPER_ADMIN: [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: 'Case Browser', path: '/admin/cases', icon: <Search className="h-5 w-5" /> },

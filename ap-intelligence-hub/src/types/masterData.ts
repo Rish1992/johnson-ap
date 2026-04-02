@@ -129,6 +129,7 @@ export interface ApprovalSequenceStep {
   approverRole: string;
   approverName: string;
   approverId: string;
+  approverEmail?: string;
 }
 
 export interface ApprovalSequenceMaster {
