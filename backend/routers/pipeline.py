@@ -296,9 +296,12 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         case_ws = Path(__file__).parent.parent / "workspaces" / case_id
         for f in (temp_ws / "results").glob("*.json"):
             shutil.copy2(str(f), str(case_ws / "results" / f.name))
+        # Sync split attachments (temp_ws has split fragments, case_ws has unsplit originals)
+        for f in (temp_ws / "attachments").iterdir():
+            shutil.copy2(str(f), str(case_ws / "attachments" / f.name))
 
         # Steps 4-6: verify_docs, extract, validate
-        remaining = [("verify_docs", case_id, case_ws), ("extract", case_id, case_ws), ("validate", case_id, case_ws)]
+        remaining = [("verify_docs", case_id, temp_ws), ("extract", case_id, temp_ws), ("validate", case_id, temp_ws)]
         for step_name, sid, ws in remaining:
             template = db.query(PromptTemplate).filter(
                 PromptTemplate.step_name == step_name, PromptTemplate.is_active == True
@@ -337,6 +340,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 return
 
             job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
+            flag_modified(job, "steps")
             db.commit()
 
             # Update case record with step results
@@ -372,10 +376,18 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 case.updated_at = utcnow()
                 db.commit()
 
+            # Copy step results to case workspace (system of record)
+            for suffix in (f"{step_name}.json", f"{step_name}_debug.json"):
+                src = temp_ws / "results" / suffix
+                if src.exists():
+                    shutil.copy2(str(src), str(case_ws / "results" / suffix))
+
         job.status = "COMPLETED"
         job.current_step = None
         job.completed_at = utcnow()
         db.commit()
+        # Cleanup temp workspace (session data no longer needed, results are in case_ws)
+        shutil.rmtree(temp_ws, ignore_errors=True)
     finally:
         db.close()
 

@@ -157,16 +157,16 @@ function generateBusinessRules(
       ruleId: 'BRC-001',
       ruleName: 'Duplicate Invoice Detection',
       description: 'Check for duplicate invoices by invoice_number + vendor within a 90-day window.',
-      status: (i % 11 === 0 || i === 3) ? 'FAIL' : 'PASS',
-      message: (i % 11 === 0 || i === 3)
+      status: (i % 11 === 0 || i === 2) ? 'FAIL' : 'PASS',
+      message: (i % 11 === 0 || i === 2)
         ? `Potential duplicate: INV-${2025000 + i} matches INV-${2025000 + i - 9} from same vendor.`
         : 'No duplicate invoices found for this vendor within the lookback window.',
       fieldPath: 'headerData.invoiceNumber',
-      severity: (i % 11 === 0 || i === 3) ? 'ERROR' : 'INFO',
+      severity: (i % 11 === 0 || i === 2) ? 'ERROR' : 'INFO',
       expectedValue: 'Unique invoice number per vendor',
-      actualValue: (i % 11 === 0 || i === 3) ? `INV-${2025000 + i} (duplicate of INV-${2025000 + i - 9})` : `INV-${2025000 + i}`,
+      actualValue: (i % 11 === 0 || i === 2) ? `INV-${2025000 + i} (duplicate of INV-${2025000 + i - 9})` : `INV-${2025000 + i}`,
       matchedAgainst: 'Invoice History (90-day window)',
-      details: (i % 11 === 0 || i === 3)
+      details: (i % 11 === 0 || i === 2)
         ? `Invoice INV-${2025000 + i} from ${vendor.name} matches a previously processed invoice. Original posted on ${new Date(now - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}.`
         : `Searched all invoices from ${vendor.name} within the last 90 days. No matching invoice number found.`,
     },
@@ -212,14 +212,14 @@ function generateBusinessRules(
       ruleId: 'BRC-004',
       ruleName: 'Tax Validation - GST',
       description: 'Validate GST = total tax amount, and correct tax rate (10%) is applied.',
-      status: (i % 13 === 0 || i === 3) ? 'FAIL' : 'PASS',
-      message: (i % 13 === 0 || i === 3)
+      status: (i % 13 === 0 || i === 2) ? 'FAIL' : 'PASS',
+      message: (i % 13 === 0 || i === 2)
         ? `Tax mismatch: GST (AUD ${(taxAmount + 150).toLocaleString()}) != expected AUD ${taxAmount.toLocaleString()}.`
         : `GST validation passed. GST AUD ${taxAmount.toLocaleString()} at 10%.`,
       fieldPath: 'headerData.taxAmount',
-      severity: (i % 13 === 0 || i === 3) ? 'ERROR' : 'INFO',
+      severity: (i % 13 === 0 || i === 2) ? 'ERROR' : 'INFO',
       expectedValue: `GST = AUD ${taxAmount.toLocaleString()} (10% of net)`,
-      actualValue: (i % 13 === 0 || i === 3)
+      actualValue: (i % 13 === 0 || i === 2)
         ? `GST AUD ${(taxAmount + 150).toLocaleString()}`
         : `GST AUD ${taxAmount.toLocaleString()}`,
       matchedAgainst: 'GST Tax Rules (Tax Code GST10)',
