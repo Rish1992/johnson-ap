@@ -490,7 +490,9 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Your t
 ## Output
 Output only classification and a brief reasoning sentence for audit.
 
-Read email.json in this workspace for the email content and attachments/ for attachment content.""",
+Read email.json in this workspace for the email content and attachments/ for attachment content.
+
+If DOCUMENT_TEXT.md exists in the workspace, read it for document content instead of reading large PDFs. Read preview_*.pdf files in attachments/ for visual reference (letterhead, logos, formatting).""",
             business_rules="""## Classification Rules
 
 Analyze THREE signals and combine them:
@@ -543,7 +545,8 @@ Return a JSON object with category, entity, poType, freightType, vendorMatch, do
 3. Read master-data/vendors.json for vendor matching against sender name/domain.
 4. At this point, attempt category determination from: classify signals, email subject (job refs like JAU/CNR/CAS, vendor names, keywords like "freight", "delivery"), and vendor match.
 5. Only open files in attachments/ if steps 1-4 are insufficient — i.e., email subject is generic, no job references found, vendor not matched, and classify attachment analysis doesn't identify the document type clearly enough to determine category.
-6. After determining category, check attachment FILENAMES first — the document splitter names fragments like {stem}_doc1_invoice.pdf, {stem}_doc2_job_sheet.pdf, {stem}_doc3_supporting.pdf. Match filenames against required document types. Only read full PDF content if filenames are ambiguous.""",
+6. After determining category, check attachment FILENAMES first — the document splitter names fragments like {stem}_doc1_invoice.pdf, {stem}_doc2_job_sheet.pdf, {stem}_doc3_supporting.pdf. Match filenames against required document types. Only read full PDF content if filenames are ambiguous.
+7. If DOCUMENT_TEXT.md exists in the workspace, use it as your primary text source for identifying documents and page ranges. Read preview_*.pdf files for visual reference only. Do NOT read other large PDFs.""",
             business_rules="""## Categories (Phase 1)
 
 ### SUBCONTRACTOR
@@ -617,7 +620,7 @@ After determining category, identify which documents are present in the attachme
 | FREIGHT_ADDITIONAL_CHARGES | Invoice only |
 
 For each expected document type for this category (Invoice + supporting docs from FIELD_LIST.md), report whether it is PRESENT or MISSING.
-For PRESENT documents, include the filename. For MISSING documents, set file to null.
+For PRESENT documents, include the filename and list the page numbers the document spans in the original PDF. For example, if the Invoice is on pages 1-2 and the Contractor Worksheet is on page 3, output pages: [1, 2] and pages: [3] respectively. For MISSING documents, set file to null and pages to an empty array [].
 
 ### Document Type Identification
 - Invoice: contains "Tax Invoice", "Invoice Number", amounts
@@ -650,9 +653,10 @@ For PRESENT documents, include the filename. For MISSING documents, set file to 
                             "properties": {
                                 "type": {"type": "string"},
                                 "file": {"type": "string"},
+                                "pages": {"type": "array", "items": {"type": "integer"}, "description": "Page numbers in the original PDF that belong to this document"},
                                 "status": {"type": "string", "enum": ["PRESENT", "MISSING"]}
                             },
-                            "required": ["type", "status"]
+                            "required": ["type", "pages", "status"]
                         }
                     },
                     "reasoning": {"type": "string"}
@@ -733,7 +737,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Extrac
 
 {{BUSINESS_RULES}}
 
-Read attachments/ for invoice and supporting document content.
+The attachments/ directory may have been updated since the previous step. List all files in attachments/ before reading them. Do NOT rely on earlier knowledge of what files exist — the documents may have been split into separate files by document type.
 Read results/categorize.json for category context.""",
             business_rules="""## Extraction Instructions
 

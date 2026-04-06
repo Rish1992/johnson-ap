@@ -82,6 +82,13 @@ def _validate_categorize(result: dict, category: str | None, db, workspace: Path
                 errors.append(f"documents[{i}] missing 'type'")
             if "status" not in d:
                 errors.append(f"documents[{i}] missing 'status'")
+            pages = d.get("pages")
+            if pages is not None and not isinstance(pages, list):
+                errors.append(f"documents[{i}].pages must be a list")
+            elif isinstance(pages, list):
+                for p in pages:
+                    if not isinstance(p, int) or p < 1:
+                        errors.append(f"documents[{i}].pages contains invalid page number: {p}")
     if not result.get("reasoning"):
         errors.append("missing or empty 'reasoning' field")
     return errors

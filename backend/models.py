@@ -157,7 +157,11 @@ class Case(Base):
             "email": self.email or {},
             "attachments": self.attachments or [],
             "headerData": self.header_data or {},
-            "lineItems": self.line_items or [],
+            "lineItems": [
+                {**li, "totalAmount": li.get("total", 0), "taxAmount": li.get("tax", 0),
+                 "lineNumber": li.get("line", i+1), "id": str(i+1)}
+                for i, li in enumerate(self.line_items or [])
+            ],
             "confidenceScores": self.confidence_scores or {},
             "supportingData": self.supporting_data or {},
             "extractedFields": self.extracted_fields or [],

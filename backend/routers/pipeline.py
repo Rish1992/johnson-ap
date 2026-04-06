@@ -21,7 +21,7 @@ from agents.runner import (
     RESUME_PROMPT_TEXT,
 )
 from agents.validators import validate_step_output
-from agents.doc_splitter import split_merged_pdf
+from agents.doc_splitter import split_merged_pdf, generate_document_text, extract_first_n_pages, split_pdf_by_pages
 from agents.bbox_locator import find_invoice_pdf, locate_bboxes
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
@@ -186,8 +186,24 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
     try:
         job = db.query(Job).filter(Job.id == job_id).first()
 
-        # Split merged PDFs before pipeline starts
-        await _split_pdfs_in_workspace(ws)
+        # Large doc optimization: extract text + preview for classify/categorize
+        import subprocess as _sp
+        import re as _re
+        is_large_doc = False
+        original_pdf_path = None
+        for pdf_path in list((ws / "attachments").glob("*.pdf")) + list((ws / "attachments").glob("*.PDF")):
+            try:
+                proc = _sp.run(["pdfinfo", str(pdf_path)], capture_output=True, text=True, timeout=10)
+                match = _re.search(r"Pages:\s+(\d+)", proc.stdout)
+                if match and int(match.group(1)) > 10:
+                    is_large, num_pages = generate_document_text(str(pdf_path), ws)
+                    if is_large:
+                        is_large_doc = True
+                        original_pdf_path = str(pdf_path)
+                        extract_first_n_pages(str(pdf_path), ws, n=2)
+                        log.info(f"Large doc ({num_pages} pages): DOCUMENT_TEXT.md + preview created")
+            except Exception as e:
+                log.warning(f"Large doc detection failed: {e}")
 
         pipeline_session_id = None  # Chain sessions across steps
 
@@ -242,6 +258,37 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
 
                 job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
                 flag_modified(job, "steps")
+
+                # Post-categorize: split PDF by LLM-identified page numbers
+                if step_name == "categorize" and result:
+                    cat_docs = result.get("documents", [])
+                    page_map = [(d.get("type"), d.get("pages"), d.get("status")) for d in cat_docs]
+                    log.info(f"[{case_id}] Categorize page mapping: {page_map}")
+                    docs_with_pages = [d for d in cat_docs if d.get("pages") and d.get("status") == "PRESENT"]
+                    if docs_with_pages:
+                        pdf_to_split = original_pdf_path
+                        if not pdf_to_split:
+                            for f in (ws / "attachments").glob("*.pdf"):
+                                if f.name.startswith("preview_"):
+                                    continue
+                                try:
+                                    proc = _sp.run(["pdfinfo", str(f)], capture_output=True, text=True, timeout=10)
+                                    m = _re.search(r"Pages:\s+(\d+)", proc.stdout)
+                                    if m and int(m.group(1)) > 1:
+                                        pdf_to_split = str(f)
+                                        break
+                                except Exception:
+                                    continue
+                        if pdf_to_split:
+                            fragments = split_pdf_by_pages(pdf_to_split, docs_with_pages, ws)
+                            if fragments:
+                                Path(pdf_to_split).unlink(missing_ok=True)
+                                for f in (ws / "attachments").glob("preview_*.pdf"):
+                                    f.unlink(missing_ok=True)
+                                dt = ws / "DOCUMENT_TEXT.md"
+                                if dt.exists():
+                                    dt.unlink()
+                                log.info(f"Split into {len(fragments)} fragments: {[f['document_type'] for f in fragments]}")
 
                 # Post-processing: locate bounding boxes after extract step
                 if step_name == "extract" and result:
@@ -300,8 +347,29 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         (temp_ws / "email.json").write_text(json.dumps(email_data, indent=2))
         write_master_data(temp_ws, db)
 
-        # Split merged PDFs before pipeline starts
-        await _split_pdfs_in_workspace(temp_ws)
+        # Large doc optimization: extract text + preview for classify/categorize
+        import subprocess as _sp
+        import re as _re
+        is_large_doc = False
+        original_pdf_path = None
+        for pdf_path in list((temp_ws / "attachments").glob("*.pdf")) + list((temp_ws / "attachments").glob("*.PDF")):
+            try:
+                proc = _sp.run(["pdfinfo", str(pdf_path)], capture_output=True, text=True, timeout=10)
+                match = _re.search(r"Pages:\s+(\d+)", proc.stdout)
+                if match and int(match.group(1)) > 10:
+                    is_large, num_pages = generate_document_text(str(pdf_path), temp_ws)
+                    if is_large:
+                        is_large_doc = True
+                        original_pdf_path = str(pdf_path)
+                        extract_first_n_pages(str(pdf_path), temp_ws, n=2)
+                        log.info(f"Large doc ({num_pages} pages): DOCUMENT_TEXT.md + preview created")
+            except Exception as e:
+                log.warning(f"Large doc detection failed: {e}")
+
+        # Log workspace state before classify
+        ws_files = [f.name for f in (temp_ws / "attachments").iterdir()] if (temp_ws / "attachments").exists() else []
+        has_doc_text = (temp_ws / "DOCUMENT_TEXT.md").exists()
+        log.info(f"[{email_id}] Pre-classify workspace: attachments={ws_files}, DOCUMENT_TEXT.md={has_doc_text}, is_large_doc={is_large_doc}")
 
         # Run classify
         job.current_step = "classify"
@@ -398,6 +466,40 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             email.po_type = result.get("poType")
             db.commit()
 
+            # Post-categorize: split PDF by LLM-identified page numbers
+            cat_docs = result.get("documents", [])
+            docs_with_pages = [d for d in cat_docs if d.get("pages") and d.get("status") == "PRESENT"]
+            page_map = [(d.get("type"), d.get("pages"), d.get("status")) for d in cat_docs]
+            log.info(f"[{email_id}] Categorize page mapping: {page_map}")
+            if docs_with_pages:
+                pdf_to_split = original_pdf_path
+                if not pdf_to_split:
+                    for f in (temp_ws / "attachments").glob("*.pdf"):
+                        if f.name.startswith("preview_"):
+                            continue
+                        try:
+                            proc = _sp.run(["pdfinfo", str(f)], capture_output=True, text=True, timeout=10)
+                            m = _re.search(r"Pages:\s+(\d+)", proc.stdout)
+                            if m and int(m.group(1)) > 1:
+                                pdf_to_split = str(f)
+                                break
+                        except Exception:
+                            continue
+                if pdf_to_split:
+                    fragments = split_pdf_by_pages(pdf_to_split, docs_with_pages, temp_ws)
+                    if fragments:
+                        Path(pdf_to_split).unlink(missing_ok=True)
+                        for f in (temp_ws / "attachments").glob("preview_*.pdf"):
+                            f.unlink(missing_ok=True)
+                        dt = temp_ws / "DOCUMENT_TEXT.md"
+                        if dt.exists():
+                            dt.unlink()
+                        log.info(f"Split into {len(fragments)} fragments: {[f['document_type'] for f in fragments]}")
+
+        # Log workspace state before extract
+        post_split_files = [f.name for f in (temp_ws / "attachments").iterdir()] if (temp_ws / "attachments").exists() else []
+        log.info(f"[{email_id}] Pre-extract workspace: attachments={post_split_files}")
+
         # Step 3: Create case (code-only, not tracked as AI step)
         from agents.code_steps import create_case as do_create_case
         case_dict = do_create_case(email_id, db)
@@ -429,31 +531,31 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                     case.business_rule_results = existing_br
                     flag_modified(case, "business_rule_results")
 
-                # Build attachment list from categorize documents — each PRESENT doc = one attachment.
-                # Handles all cases: pre-split files, merged PDFs (split fragments), mixed.
-                atts = case.attachments or []
-                present_docs = [d for d in docs if d.get("status") == "PRESENT" and d.get("file")]
-                if present_docs:
-                    new_atts = []
-                    for doc in present_docs:
-                        fname = doc["file"]
-                        normalized = "INVOICE" if "invoice" in doc.get("type", "").lower() else "JOB_SHEET"
-                        # Try to match an existing attachment (pre-split case)
-                        matched = next((a for a in atts if fname in a.get("fileUrl", "")), None)
-                        if matched:
-                            matched["documentType"] = normalized
-                            new_atts.append(matched)
-                        else:
-                            # Split fragment — copy to uploads/ and create new attachment entry
-                            frag_path = temp_ws / "attachments" / fname
-                            if frag_path.exists():
-                                uploads_dir = Path(__file__).parent.parent / "uploads"
-                                shutil.copy2(str(frag_path), str(uploads_dir / fname))
-                            new_atts.append({
-                                "fileName": fname,
-                                "fileUrl": f"/uploads/{fname}",
-                                "documentType": normalized,
-                            })
+                # Build attachment list from actual files in workspace attachments/.
+                # After the LLM-guided split, fragments are named {stem}_{DocType}.pdf.
+                # For pre-split files, original filenames remain.
+                new_atts = []
+                uploads_dir = Path(__file__).parent.parent / "uploads"
+                present_doc_types = {d["type"]: d for d in docs if d.get("status") == "PRESENT"}
+                for fpath in sorted((temp_ws / "attachments").iterdir()):
+                    if not fpath.suffix.lower() == ".pdf":
+                        continue
+                    fname = fpath.name
+                    # Determine documentType from filename or categorize docs
+                    normalized = "INVOICE"  # default
+                    for doc_type in present_doc_types:
+                        safe = doc_type.replace(" ", "_").replace("/", "_")
+                        if safe in fname or doc_type.lower().replace(" ", "_") in fname.lower():
+                            normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
+                            break
+                    # Copy to uploads/ for serving
+                    shutil.copy2(str(fpath), str(uploads_dir / fname))
+                    new_atts.append({
+                        "fileName": fname,
+                        "fileUrl": f"/uploads/{fname}",
+                        "documentType": normalized,
+                    })
+                if new_atts:
                     atts = new_atts
 
                 case.attachments = atts

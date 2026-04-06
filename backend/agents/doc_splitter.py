@@ -223,6 +223,139 @@ Page contents:
     return classifications
 
 
+def generate_document_text(pdf_path: str, workspace: Path) -> tuple[bool, int]:
+    """Extract text per page from PDF. OCR scanned pages. Write DOCUMENT_TEXT.md.
+    Returns (is_large_doc, page_count).
+    """
+    page_texts = _extract_page_texts(pdf_path)
+    num_pages = len(page_texts)
+    is_large = num_pages > 10
+
+    if not is_large:
+        return False, num_pages
+
+    md_lines = []
+    for i, text in enumerate(page_texts, 1):
+        md_lines.append(f"# Page {i}")
+        if len(text.strip()) < 50:
+            text = _ocr_page(pdf_path, i)
+        md_lines.append(text if text.strip() else "(no text extracted)")
+
+    (workspace / "DOCUMENT_TEXT.md").write_text("\n\n".join(md_lines))
+    return True, num_pages
+
+
+def _ocr_page(pdf_path: str, page_num: int) -> str:
+    """Render a single PDF page to image and OCR it. Tries AWS Textract first, falls back to Tesseract."""
+    try:
+        from pdf2image import convert_from_path
+        images = convert_from_path(pdf_path, first_page=page_num, last_page=page_num, dpi=200)
+        if not images:
+            return ""
+        import io
+        buf = io.BytesIO()
+        images[0].save(buf, format="PNG")
+        image_bytes = buf.getvalue()
+
+        # Try AWS Textract first (higher quality, handles complex layouts)
+        text = _ocr_textract(image_bytes, page_num)
+        if text:
+            return text
+
+        # Fallback to Tesseract
+        log.info(f"Textract unavailable for page {page_num}, falling back to Tesseract")
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
+            tmp.write(image_bytes)
+            tmp.flush()
+            proc = subprocess.run(
+                ["tesseract", tmp.name, "stdout"], capture_output=True, text=True, timeout=60
+            )
+            return proc.stdout if proc.returncode == 0 else ""
+    except Exception as e:
+        log.warning(f"OCR failed for page {page_num}: {e}")
+        return ""
+
+
+def _ocr_textract(image_bytes: bytes, page_num: int) -> str:
+    """OCR a page image using AWS Textract. Returns extracted text or empty string on failure."""
+    try:
+        import boto3
+        import os
+        key = os.environ.get("AWS_ACCESS_KEY_ID_FOR_AWS_TEXT_RACT")
+        secret = os.environ.get("AWS_SECRET_ACCESS_KEY_FOR_AWS_TEXT_RACT")
+        if not key or not secret:
+            return ""
+        client = boto3.client("textract",
+            aws_access_key_id=key, aws_secret_access_key=secret,
+            region_name="us-east-1",
+        )
+        response = client.detect_document_text(Document={"Bytes": image_bytes})
+        lines = [b["Text"] for b in response.get("Blocks", []) if b["BlockType"] == "LINE"]
+        text = "\n".join(lines)
+        log.info(f"Textract OCR page {page_num}: {len(lines)} lines extracted")
+        return text
+    except Exception as e:
+        log.warning(f"Textract failed for page {page_num}: {e}")
+        return ""
+
+
+def extract_first_n_pages(pdf_path: str, workspace: Path, n: int = 2) -> str:
+    """Extract first N pages from PDF as a separate file for visual context."""
+    from pypdf import PdfReader, PdfWriter
+    reader = PdfReader(pdf_path)
+    writer = PdfWriter()
+    for i in range(min(n, len(reader.pages))):
+        writer.add_page(reader.pages[i])
+    out_name = f"preview_{Path(pdf_path).stem}.pdf"
+    out_path = workspace / "attachments" / out_name
+    with open(out_path, "wb") as f:
+        writer.write(f)
+    return out_name
+
+
+def split_pdf_by_pages(pdf_path: str, documents: list[dict], workspace: Path) -> list[dict]:
+    """Split PDF into fragments based on categorize document page mapping.
+    documents: list of {type, pages, status} from categorize.json
+    Returns list of {file_path, document_type, pages, fileName} for created fragments.
+    """
+    from pypdf import PdfReader, PdfWriter
+    reader = PdfReader(pdf_path)
+    attachments_dir = workspace / "attachments"
+    stem = Path(pdf_path).stem
+    results = []
+
+    for doc in documents:
+        if doc.get("status") != "PRESENT":
+            continue
+        pages = doc.get("pages", [])
+        if not pages:
+            continue
+        doc_type = doc.get("type", "Unknown")
+        if doc_type == "Other":
+            continue
+
+        writer = PdfWriter()
+        for p in sorted(pages):
+            if 1 <= p <= len(reader.pages):
+                writer.add_page(reader.pages[p - 1])
+
+        safe_type = doc_type.replace(" ", "_").replace("/", "_")
+        out_name = f"{stem}_{safe_type}.pdf"
+        out_path = attachments_dir / out_name
+        with open(out_path, "wb") as f:
+            writer.write(f)
+
+        results.append({
+            "file_path": str(out_path),
+            "document_type": doc_type,
+            "pages": pages,
+            "fileName": out_name,
+        })
+
+    return results
+
+
 async def split_merged_pdf(pdf_path: str, workspace: Path, model: str = None) -> list[dict]:
     """Split a merged PDF into individual documents.
 
