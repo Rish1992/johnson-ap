@@ -544,8 +544,8 @@ Return a JSON object with category, entity, poType, freightType, vendorMatch, do
 2. Read email.json for sender/subject context.
 3. Read master-data/vendors.json for vendor matching against sender name/domain.
 4. At this point, attempt category determination from: classify signals, email subject (job refs like JAU/CNR/CAS, vendor names, keywords like "freight", "delivery"), and vendor match.
-5. Only open files in attachments/ if steps 1-4 are insufficient — i.e., email subject is generic, no job references found, vendor not matched, and classify attachment analysis doesn't identify the document type clearly enough to determine category.
-6. After determining category, check attachment FILENAMES first — the document splitter names fragments like {stem}_doc1_invoice.pdf, {stem}_doc2_job_sheet.pdf, {stem}_doc3_supporting.pdf. Match filenames against required document types. Only read full PDF content if filenames are ambiguous.
+5. Only open files in attachments/ if steps 1-4 are insufficient for CATEGORY determination.
+6. IMPORTANT: You MUST read ALL pages of every PDF (or DOCUMENT_TEXT.md) to identify which documents are present and which pages they span. Do NOT stop after finding the invoice — supporting documents (worksheets, job sheets) are often on later pages of the same PDF. Report page numbers for EVERY document found.
 7. If DOCUMENT_TEXT.md exists in the workspace, use it as your primary text source for identifying documents and page ranges. Read preview_*.pdf files for visual reference only. Do NOT read other large PDFs.""",
             business_rules="""## Categories (Phase 1)
 
