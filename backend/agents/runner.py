@@ -105,8 +105,17 @@ async def run_claude_step(
     try:
         result = json.loads(raw_result)
     except (json.JSONDecodeError, KeyError):
-        save_debug(workspace, step_name, "RESULT_PARSE_ERROR", stdout, stderr)
-        return False, None, f"Agent output was not valid JSON: {raw_result[:200]}", returned_sid
+        # Fallback: extract first { ... } block (handles text preamble before JSON)
+        brace_start = raw_result.find("{")
+        if brace_start > 0:
+            try:
+                result = json.loads(raw_result[brace_start:])
+            except (json.JSONDecodeError, KeyError):
+                save_debug(workspace, step_name, "RESULT_PARSE_ERROR", stdout, stderr)
+                return False, None, f"Agent output was not valid JSON: {raw_result[:200]}", returned_sid
+        else:
+            save_debug(workspace, step_name, "RESULT_PARSE_ERROR", stdout, stderr)
+            return False, None, f"Agent output was not valid JSON: {raw_result[:200]}", returned_sid
 
     # Success
     save_debug(workspace, step_name, "SUCCESS", stdout, stderr)
