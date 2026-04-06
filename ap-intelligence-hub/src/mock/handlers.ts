@@ -26,6 +26,7 @@ import type {
   FreightRateCard,
   ServiceRateCard,
   AgreementMaster,
+  CategoryFieldConfig,
 } from '@/types/masterData';
 import type { User, Session } from '@/types/user';
 
@@ -2375,6 +2376,131 @@ export async function fetchAgreementMasters(): Promise<AgreementMaster[]> {
 export async function fetchInvoiceCategoryConfigs(): Promise<typeof mockInvoiceCategoryConfigs> {
   await delay(200);
   return [...mockInvoiceCategoryConfigs];
+}
+
+// ---------------------------------------------------------------------------
+// Category Field Configs (mock GT data)
+// ---------------------------------------------------------------------------
+
+const mockCategoryFieldConfigs: Record<string, CategoryFieldConfig> = {
+  SUBCONTRACTOR: {
+    category: 'SUBCONTRACTOR',
+    invoiceFields: [
+      { key: 'vendorName', label: 'Vendor Name', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'vendorAddress', label: 'Vendor Address', type: 'text', required: false },
+      { key: 'vendorAbn', label: 'Vendor ABN', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'billTo', label: 'Bill To', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'invoiceNumber', label: 'Invoice Number', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'invoiceDate', label: 'Invoice Date', type: 'date', required: true, edgeCaseAction: 'flag_user' },
+      { key: 'attachmentReference', label: 'Attachment Reference', type: 'text', required: false },
+      { key: 'description', label: 'Description', type: 'text', required: false },
+      { key: 'quantity', label: 'Quantity', type: 'number', required: false },
+      { key: 'unitPrice', label: 'Unit Price', type: 'currency', required: false },
+      { key: 'totalPrice', label: 'Total Price', type: 'currency', required: false },
+      { key: 'subTotal', label: 'Sub-total', type: 'currency', required: true, validation: 'sum_of_line_totals' },
+      { key: 'taxAmount', label: 'Tax Amount', type: 'currency', required: true },
+      { key: 'grandTotal', label: 'Grand Total', type: 'currency', required: true, validation: 'subtotal_plus_tax' },
+      { key: 'currency', label: 'Currency', type: 'select', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'bankDetails', label: 'Bank Details', type: 'text', required: false },
+    ],
+    supportingFields: {
+      'Work Order': [
+        { key: 'workOrderNumber', label: 'Work Order Number', type: 'text', required: true },
+        { key: 'customer', label: 'Customer', type: 'text', required: true },
+        { key: 'customerAddress', label: 'Customer Address', type: 'text', required: false },
+        { key: 'model', label: 'Model', type: 'text', required: false },
+        { key: 'baseSerial', label: 'Base Serial #', type: 'text', required: false },
+        { key: 'warrantyStatus', label: 'Warranty Status', type: 'text', required: false },
+        { key: 'notes', label: 'Notes', type: 'text', required: false },
+        { key: 'complaint', label: 'Complaint', type: 'text', required: false },
+        { key: 'workOrderDetails', label: 'Work Order Details', type: 'text', required: false },
+      ],
+      'Contractor Worksheet': [
+        { key: 'caseNumber', label: 'Case Number', type: 'text', required: true },
+        { key: 'dateJobBooked', label: 'Date Job Booked', type: 'date', required: true },
+        { key: 'customerName', label: 'Customer Name', type: 'text', required: true },
+        { key: 'customerAddress', label: 'Customer Address', type: 'text', required: false },
+        { key: 'branch', label: 'Branch', type: 'text', required: true, edgeCaseAction: 'flag_user', sourceHint: 'Read from worksheet directly' },
+        { key: 'model', label: 'Model', type: 'text', required: false },
+        { key: 'serialNumber', label: 'Serial Number', type: 'text', required: false },
+        { key: 'jobCategory', label: 'Job Category', type: 'text', required: false },
+        { key: 'customerPurchaseDate', label: 'Customer Purchase Date', type: 'date', required: false },
+        { key: 'customerIssues', label: 'Customer Issues', type: 'text', required: false },
+        { key: 'actionTaken', label: 'Action Taken', type: 'text', required: false },
+        { key: 'timeOn', label: 'Time On', type: 'text', required: false },
+        { key: 'timeOff', label: 'Time Off', type: 'text', required: false },
+        { key: 'customerSignature', label: 'Customer Signature', type: 'text', required: false },
+        { key: 'technicianSignature', label: 'Technician Signature', type: 'text', required: false },
+      ],
+    },
+    validationRules: [
+      { ruleId: 'VR-001', ruleName: 'Math Check', condition: 'grandTotal == subTotal + taxAmount', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-002', ruleName: 'Entity Check', condition: 'billTo entity is AU or NZ', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-003', ruleName: 'Currency Match', condition: 'currency matches entity (AUD for AU, NZD for NZ)', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-004', ruleName: 'Duplicate Check', condition: 'invoiceNumber + vendor unique within 90 days', severity: 'WARNING', action: 'Flag to user' },
+      { ruleId: 'VR-005', ruleName: 'Missing ABN', condition: 'vendorAbn is present', severity: 'WARNING', action: 'Flag to user' },
+    ],
+  },
+  DELIVERY_INSTALLATION: {
+    category: 'DELIVERY_INSTALLATION',
+    invoiceFields: [
+      { key: 'vendorName', label: 'Vendor Name', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'vendorAddress', label: 'Vendor Address', type: 'text', required: false },
+      { key: 'vendorAbn', label: 'Vendor ABN', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'billTo', label: 'Bill To', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'invoiceNumber', label: 'Invoice Number', type: 'text', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'invoiceDate', label: 'Invoice Date', type: 'date', required: true, edgeCaseAction: 'flag_user' },
+      { key: 'attachmentReference', label: 'Attachment Reference', type: 'text', required: false },
+      { key: 'description', label: 'Description', type: 'text', required: false },
+      { key: 'quantity', label: 'Quantity', type: 'number', required: false },
+      { key: 'unitPrice', label: 'Unit Price', type: 'currency', required: false },
+      { key: 'totalPrice', label: 'Total Price', type: 'currency', required: false },
+      { key: 'subTotal', label: 'Sub-total', type: 'currency', required: true, validation: 'sum_of_line_totals' },
+      { key: 'taxAmount', label: 'Tax Amount', type: 'currency', required: true },
+      { key: 'grandTotal', label: 'Grand Total', type: 'currency', required: true, validation: 'subtotal_plus_tax' },
+      { key: 'currency', label: 'Currency', type: 'select', required: true, edgeCaseAction: 'flag_reviewer' },
+      { key: 'bankDetails', label: 'Bank Details', type: 'text', required: false },
+    ],
+    supportingFields: {
+      'Installation Worksheet': [
+        { key: 'caseNumber', label: 'Case Number', type: 'text', required: true },
+        { key: 'dateJobBooked', label: 'Date Job Booked', type: 'date', required: true },
+        { key: 'jobMgr', label: 'Job MGR', type: 'text', required: false },
+        { key: 'customerName', label: 'Customer Name', type: 'text', required: true },
+        { key: 'customerAddress', label: 'Customer Address', type: 'text', required: false },
+        { key: 'salesOrderNumber', label: 'Sales Order Number', type: 'text', required: false },
+        { key: 'jobCategory', label: 'Job Category', type: 'text', required: false },
+        { key: 'quoteAmount', label: 'Quote Amount', type: 'currency', required: false },
+        { key: 'actionTaken', label: 'Action Taken', type: 'text', required: false },
+        { key: 'timeOn', label: 'Time On', type: 'text', required: false },
+        { key: 'timeOff', label: 'Time Off', type: 'text', required: false },
+        { key: 'customerSignature', label: 'Customer Signature', type: 'text', required: false },
+        { key: 'technicianSignature', label: 'Technician Signature', type: 'text', required: false },
+        { key: 'dateJobCompleted', label: 'Date of Job Completed', type: 'date', required: false },
+      ],
+    },
+    validationRules: [
+      { ruleId: 'VR-001', ruleName: 'Math Check', condition: 'grandTotal == subTotal + taxAmount', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-002', ruleName: 'Entity Check', condition: 'billTo entity is AU or NZ', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-003', ruleName: 'Currency Match', condition: 'currency matches entity (AUD for AU, NZD for NZ)', severity: 'ERROR', action: 'Flag to reviewer' },
+      { ruleId: 'VR-004', ruleName: 'Duplicate Check', condition: 'invoiceNumber + vendor unique within 90 days', severity: 'WARNING', action: 'Flag to user' },
+      { ruleId: 'VR-005', ruleName: 'Branch Code', condition: 'branch requires CRM lookup — flag to user', severity: 'WARNING', action: 'Flag to user' },
+    ],
+  },
+};
+
+export async function fetchCategoryConfigs(): Promise<CategoryFieldConfig[]> {
+  await delay(200);
+  return Object.values(mockCategoryFieldConfigs);
+}
+
+export async function fetchCategoryFields(category: string): Promise<CategoryFieldConfig> {
+  await delay(200);
+  return mockCategoryFieldConfigs[category] ?? mockCategoryFieldConfigs['SUBCONTRACTOR']!;
+}
+
+export async function updateCategoryFields(_category: string, _fields: CategoryFieldConfig): Promise<void> {
+  await delay(200);
 }
 
 // Prompt stubs (admin-only, real API required)

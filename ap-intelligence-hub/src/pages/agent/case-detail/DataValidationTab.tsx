@@ -115,6 +115,8 @@ export function DataValidationTab() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [missingDocsDismissed, setMissingDocsDismissed] = useState(false);
   const [activeBbox, setActiveBbox] = useState<BoundingBox | null>(null);
+  const [dynamicInvoiceFields, setDynamicInvoiceFields] = useState<{ key: string; label: string; type: string }[] | null>(null);
+  const [dynamicSupportingFields, setDynamicSupportingFields] = useState<Record<string, { key: string; label: string; type: string }[]> | null>(null);
 
   // Determine which document types are available based on category
   const availableDocTypes = useMemo(() => {
@@ -165,6 +167,26 @@ export function DataValidationTab() {
       });
     });
   }, [initDraft, selectedCase]);
+
+  // Fetch dynamic field definitions from API (fallback to hardcoded on failure)
+  useEffect(() => {
+    if (!selectedCase?.category) return;
+    import('@/lib/handlers').then(({ fetchCategoryFields }) => {
+      fetchCategoryFields(selectedCase.category).then((cfg) => {
+        if (cfg?.invoiceFields?.length) setDynamicInvoiceFields(cfg.invoiceFields);
+        if (cfg?.supportingFields && Object.keys(cfg.supportingFields).length) {
+          // Flatten all supporting doc types into a single array for the JOB_SHEET tab
+          const allSupporting = Object.values(cfg.supportingFields).flat();
+          if (allSupporting.length) setDynamicSupportingFields(cfg.supportingFields);
+        }
+      }).catch(() => { /* fallback to hardcoded */ });
+    });
+  }, [selectedCase?.category]);
+
+  const supportingData = useMemo(() => {
+    const sd = selectedCase?.supportingData || {};
+    return Object.values(sd).reduce((acc, docFields) => ({ ...acc, ...(docFields || {}) }), {} as Record<string, unknown>);
+  }, [selectedCase?.supportingData]);
 
   if (!selectedCase || !draftHeaderData) return null;
 
@@ -285,39 +307,13 @@ export function DataValidationTab() {
 
   const selectedApproversCount = approvers.filter(a => a.selected).length;
 
-  // Fields shown for invoice documents
-  const invoiceFields = [
-    { key: 'invoiceNumber', label: 'Invoice Number', type: 'text' },
-    { key: 'invoiceType', label: 'Invoice Type', type: 'select', options: INVOICE_TYPES },
-    { key: 'invoiceDate', label: 'Invoice Date', type: 'date' },
-    { key: 'dueDate', label: 'Due Date', type: 'date' },
-    { key: 'currency', label: 'Currency', type: 'select', options: CURRENCIES },
-    { key: 'totalAmount', label: 'Total Amount', type: 'number' },
-    { key: 'taxAmount', label: 'Tax Amount', type: 'number' },
-    { key: 'netAmount', label: 'Net Amount', type: 'number' },
-    { key: 'purchaseOrderNumber', label: 'PO Number', type: 'text' },
-    { key: 'deliveryNoteNumber', label: 'Delivery Note', type: 'text' },
-    { key: 'paymentTerms', label: 'Payment Terms', type: 'text' },
-    { key: 'companyCode', label: 'Company Code', type: 'text' },
-    { key: 'plantCode', label: 'Plant Code', type: 'text' },
-    { key: 'costCenter', label: 'Cost Center', type: 'text' },
-    { key: 'glAccount', label: 'GL Account', type: 'text' },
-    { key: 'taxCode', label: 'Tax Code', type: 'text' },
-    { key: 'description', label: 'Description', type: 'text' },
-  ] as const;
-
-  // Fields shown for job sheet documents
-  const jobSheetFields = [
-    { key: 'purchaseOrderNumber', label: 'PO / Work Order', type: 'text' },
-    { key: 'deliveryNoteNumber', label: 'Delivery Note', type: 'text' },
-    { key: 'invoiceDate', label: 'Completion Date', type: 'date' },
-    { key: 'companyCode', label: 'Company Code', type: 'text' },
-    { key: 'plantCode', label: 'Plant Code', type: 'text' },
-    { key: 'costCenter', label: 'Cost Center', type: 'text' },
-    { key: 'description', label: 'Work Description', type: 'text' },
-  ] as const;
-
+  // Fields shown — dynamic from API, no hardcoded fallback
+  const invoiceFields = dynamicInvoiceFields ?? [];
+  const jobSheetFields = dynamicSupportingFields
+    ? Object.values(dynamicSupportingFields).flat()
+    : [];
   const headerFields = activeDocumentType === 'JOB_SHEET' ? jobSheetFields : invoiceFields;
+  const fieldConfigMissing = !dynamicInvoiceFields;
 
   return (
     <>
@@ -329,6 +325,15 @@ export function DataValidationTab() {
           returnReason={selectedCase.returnReason}
           variant="div"
         />
+      )}
+
+      {fieldConfigMissing && (
+        <div className="p-4 mb-4 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+          <p className="text-sm text-amber-700 dark:text-amber-400">
+            Failed to load field configuration for category: {selectedCase?.category || 'unknown'}. Contact admin to verify category config exists.
+          </p>
+        </div>
       )}
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-[600px] rounded-lg border">
@@ -407,7 +412,8 @@ export function DataValidationTab() {
                   {headerFields.map((field) => {
                     const confidence = getFieldConfidence(field.key);
                     const bbox = selectedCase.confidenceScores[field.key]?.bbox ?? null;
-                    const value = (headerData as unknown as Record<string, unknown>)[field.key];
+                    const dataSource = activeDocumentType === 'JOB_SHEET' ? supportingData : headerData as unknown as Record<string, unknown>;
+                    const value = dataSource[field.key];
                     const original = (selectedCase.headerData as unknown as Record<string, unknown>)[field.key];
                     const isModified = draftHeaderData[field.key as keyof typeof draftHeaderData] !== undefined &&
                       draftHeaderData[field.key as keyof typeof draftHeaderData] !== original;

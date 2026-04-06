@@ -179,7 +179,7 @@ export function LoginPage() {
             </form>
 
             <div className="mt-8 p-4 bg-accent/50 rounded-xl">
-              <p className="text-xs text-muted-foreground font-semibold mb-2">Demo Accounts:</p>
+              <p className="text-xs text-muted-foreground font-semibold mb-2">Test Accounts:</p>
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p><span className="font-medium">Agent:</span> sarah.chen@company.com</p>
                 <p><span className="font-medium">Approver:</span> emma.thompson@company.com</p>

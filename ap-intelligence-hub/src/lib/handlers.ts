@@ -78,3 +78,8 @@ export const overrideEmailClassification = src.overrideEmailClassification;
 export const fetchPrompts = src.fetchPrompts;
 export const fetchPromptByStep = src.fetchPromptByStep;
 export const updatePrompt = src.updatePrompt;
+
+// Category Field Configs
+export const fetchCategoryConfigs = src.fetchCategoryConfigs;
+export const fetchCategoryFields = src.fetchCategoryFields;
+export const updateCategoryFields = src.updateCategoryFields;

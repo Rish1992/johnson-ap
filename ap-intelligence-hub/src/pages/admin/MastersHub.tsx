@@ -16,6 +16,7 @@ import { Plus, Search, ClipboardCheck, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { INVOICE_TYPE_CONFIG } from '@/lib/constants';
 import { toast } from 'sonner';
+import type { CategoryFieldConfig } from '@/types/masterData';
 
 interface PendingChange {
   id: string;
@@ -37,6 +38,8 @@ const TABS = [
   { key: 'service-rates', label: 'Service Rates' },
   { key: 'agreements', label: 'Agreements' },
   { key: 'invoice-categories', label: 'Invoice Categories' },
+  { key: 'extraction-fields', label: 'Extraction Fields' },
+  { key: 'validation-rules', label: 'Validation Rules' },
 ];
 
 export function MastersHub() {
@@ -45,9 +48,13 @@ export function MastersHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
   const [showPendingChanges, setShowPendingChanges] = useState(false);
+  const [categoryConfigs, setCategoryConfigs] = useState<CategoryFieldConfig[]>([]);
 
   useEffect(() => {
     store.fetchAll();
+    import('@/lib/handlers').then(({ fetchCategoryConfigs }) => {
+      fetchCategoryConfigs().then(setCategoryConfigs).catch(() => {});
+    });
   }, []);
 
   const renderContent = () => {
@@ -306,6 +313,86 @@ export function MastersHub() {
             </TableBody>
           </Table>
         );
+      case 'extraction-fields': {
+        const allRows = categoryConfigs.flatMap(cfg => {
+          const invoiceRows = cfg.invoiceFields.map(f => ({ ...f, category: cfg.category, document: 'Invoice' }));
+          const supportingRows = Object.entries(cfg.supportingFields).flatMap(([docType, fields]) =>
+            fields.map(f => ({ ...f, category: cfg.category, document: docType }))
+          );
+          return [...invoiceRows, ...supportingRows];
+        }).filter(r =>
+          !searchQuery || r.label.toLowerCase().includes(searchQuery.toLowerCase()) || r.category.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40">
+                <TableHead>Category</TableHead>
+                <TableHead>Document</TableHead>
+                <TableHead>Field Key</TableHead>
+                <TableHead>Label</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Required</TableHead>
+                <TableHead>Validation</TableHead>
+                <TableHead>Edge Case</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allRows.map((r, i) => (
+                <TableRow key={`${r.category}-${r.document}-${r.key}-${i}`}>
+                  <TableCell><Badge variant="outline" className="text-xs">{r.category}</Badge></TableCell>
+                  <TableCell className="text-sm">{r.document}</TableCell>
+                  <TableCell className="font-mono text-xs">{r.key}</TableCell>
+                  <TableCell className="font-medium">{r.label}</TableCell>
+                  <TableCell><Badge variant="secondary" className="text-xs">{r.type}</Badge></TableCell>
+                  <TableCell>{r.required ? <Badge variant="default" className="text-xs">Yes</Badge> : <span className="text-muted-foreground text-xs">No</span>}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{r.validation ?? '—'}</TableCell>
+                  <TableCell className="text-xs">{r.edgeCaseAction ? <Badge variant="outline" className="text-xs">{r.edgeCaseAction}</Badge> : '—'}</TableCell>
+                </TableRow>
+              ))}
+              {allRows.length === 0 && (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No field configurations found.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        );
+      }
+      case 'validation-rules': {
+        const allRules = categoryConfigs.flatMap(cfg =>
+          cfg.validationRules.map(r => ({ ...r, category: cfg.category }))
+        ).filter(r =>
+          !searchQuery || r.ruleName.toLowerCase().includes(searchQuery.toLowerCase()) || r.category.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40">
+                <TableHead>Category</TableHead>
+                <TableHead>Rule ID</TableHead>
+                <TableHead>Rule Name</TableHead>
+                <TableHead>Condition</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allRules.map((r, i) => (
+                <TableRow key={`${r.category}-${r.ruleId}-${i}`}>
+                  <TableCell><Badge variant="outline" className="text-xs">{r.category}</Badge></TableCell>
+                  <TableCell className="font-mono text-xs">{r.ruleId}</TableCell>
+                  <TableCell className="font-medium">{r.ruleName}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">{r.condition}</TableCell>
+                  <TableCell><Badge variant={r.severity === 'ERROR' ? 'destructive' : r.severity === 'WARNING' ? 'default' : 'secondary'} className="text-xs">{r.severity}</Badge></TableCell>
+                  <TableCell className="text-sm">{r.action}</TableCell>
+                </TableRow>
+              ))}
+              {allRules.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No validation rules found.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        );
+      }
       default:
         return (
           <div className="text-center py-8 text-muted-foreground">

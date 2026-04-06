@@ -181,3 +181,28 @@ export interface InvoiceCategoryConfig {
   glAccount: string;
   isActive: boolean;
 }
+
+export interface FieldDefinition {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'currency' | 'date' | 'select';
+  required: boolean;
+  validation?: string;
+  edgeCaseAction?: 'flag_reviewer' | 'flag_user' | 'send_back';
+  sourceHint?: string;
+}
+
+export interface ValidationRule {
+  ruleId: string;
+  ruleName: string;
+  condition: string;
+  severity: 'ERROR' | 'WARNING' | 'INFO';
+  action: string;
+}
+
+export interface CategoryFieldConfig {
+  category: string;
+  invoiceFields: FieldDefinition[];
+  supportingFields: Record<string, FieldDefinition[]>;
+  validationRules: ValidationRule[];
+}

@@ -25,6 +25,7 @@ import type {
   ServiceRateCard,
   AgreementMaster,
   InvoiceCategoryConfig,
+  CategoryFieldConfig,
 } from '@/types/masterData';
 import type { User, Session } from '@/types/user';
 
@@ -374,4 +375,22 @@ export async function fetchPromptByStep(step: string): Promise<unknown> {
 
 export async function updatePrompt(id: string, data: { technicalPrompt?: string; businessRules?: string }): Promise<unknown> {
   return put<unknown>(`/api/admin/prompts/${id}`, data);
+}
+
+// ---------------------------------------------------------------------------
+// Category Field Configs
+// ---------------------------------------------------------------------------
+
+export async function fetchCategoryConfigs(): Promise<CategoryFieldConfig[]> {
+  const raw = await get<Record<string, unknown>[]>('/api/admin/category-configs');
+  return raw.map(r => ({ category: (r.name as string) || '', invoiceFields: r.invoiceFields, supportingFields: r.supportingFields, validationRules: r.validationRules }) as unknown as CategoryFieldConfig);
+}
+
+export async function fetchCategoryFields(category: string): Promise<CategoryFieldConfig> {
+  const raw = await get<Record<string, unknown>>(`/api/admin/category-configs/${category}/fields`);
+  return { category, ...raw } as unknown as CategoryFieldConfig;
+}
+
+export async function updateCategoryFields(category: string, fields: CategoryFieldConfig): Promise<void> {
+  return put<void>(`/api/admin/category-configs/${category}/fields`, fields);
 }

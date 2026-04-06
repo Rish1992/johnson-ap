@@ -5,11 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Calendar, Hash, ShieldCheck, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Hash, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
-import { formatDateTime, formatFileSize, formatCurrency } from '@/lib/formatters';
-import type { Vendor, VendorContract } from '@/types/masterData';
+import { formatDateTime, formatFileSize } from '@/lib/formatters';
+import type { Vendor } from '@/types/masterData';
 
 function SapExportButton({ caseId, isPosted }: { caseId: string; isPosted: boolean }) {
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,6 @@ function SapExportButton({ caseId, isPosted }: { caseId: string; isPosted: boole
 export function CaseDetailsTab() {
   const selectedCase = useCaseStore((s) => s.selectedCase);
   const [vendor, setVendor] = useState<Vendor | null>(null);
-  const [matchedContract, setMatchedContract] = useState<VendorContract | null>(null);
   const [viewingAttachment, setViewingAttachment] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,10 +61,6 @@ export function CaseDetailsTab() {
           || vendors.find((mv) => mv.name === selectedCase.vendorName);
         if (v) {
           setVendor(v);
-          const contract = v.contracts?.find(
-            (c) => c.contractNumber === selectedCase.contractNumber
-          ) ?? v.contracts?.find((c) => c.category === selectedCase.category) ?? null;
-          setMatchedContract(contract);
         }
       });
     });
@@ -73,7 +68,7 @@ export function CaseDetailsTab() {
 
   if (!selectedCase) return null;
 
-  const { email, attachments = [], vendorName, vendorNumber, contractNumber, contractStatus } = selectedCase;
+  const { email, attachments = [], vendorName, vendorNumber } = selectedCase;
   const viewedAtt = attachments.find((a: Record<string, unknown>) => (a.id || a.fileName) === viewingAttachment);
 
   return (
@@ -175,63 +170,6 @@ export function CaseDetailsTab() {
                 </div>
               )}
 
-              {contractNumber && matchedContract ? (
-                <div className="border rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold font-mono">{contractNumber}</p>
-                    <Badge variant="outline" className={
-                      contractStatus === 'ACTIVE'
-                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                    }>
-                      {contractStatus}
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Category</p>
-                      <p className="text-sm">{matchedContract.category}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Max Amount</p>
-                      <p className="text-sm font-medium">{formatCurrency(matchedContract.maxAmount, 'AUD')}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> Start Date
-                      </p>
-                      <p className="text-sm">{matchedContract.startDate}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> End Date
-                      </p>
-                      <p className="text-sm">{matchedContract.endDate}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Vendor and contract verified against master data
-                  </div>
-                </div>
-              ) : contractNumber ? (
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm font-mono">{contractNumber}</p>
-                  <Badge variant="outline" className={
-                    contractStatus === 'ACTIVE'
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }>
-                    {contractStatus || 'Unknown'}
-                  </Badge>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm text-amber-700 dark:text-amber-400">No contract matched for this vendor</span>
-                </div>
-              )}
             </div>
           </div>
         </CardContent>

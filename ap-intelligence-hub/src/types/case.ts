@@ -34,6 +34,7 @@ export interface Case {
   };
   attachments: Attachment[];
   headerData: InvoiceHeaderData;
+  supportingData?: Record<string, Record<string, unknown>>;
   lineItems: LineItem[];
   confidenceScores: Record<string, ConfidenceScore>;
   overallConfidence: number;

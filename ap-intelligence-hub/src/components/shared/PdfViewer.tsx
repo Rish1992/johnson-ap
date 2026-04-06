@@ -19,6 +19,12 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
   const renderedRef = useRef(false);
   const pageWrappersRef = useRef<Map<number, { el: HTMLElement; w: number; h: number }>>(new Map());
 
+  // Reset when URL changes so we re-render the new document
+  useEffect(() => {
+    renderedRef.current = false;
+    pageWrappersRef.current.clear();
+  }, [url]);
+
   // Load PDF — fetch as blob first to bypass CORS
   useEffect(() => {
     if (!url || renderedRef.current) return;
