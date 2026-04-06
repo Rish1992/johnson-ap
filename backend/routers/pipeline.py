@@ -418,6 +418,8 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                     case.contract_number = vm.get("contractNumber")
                     case.contract_status = vm.get("contractStatus")
 
+                case.freight_type = cat_output.get("freightType")
+
                 # Store missing docs in business_rule_results (backward compat: key="verify_docs" for frontend)
                 docs = cat_output.get("documents", [])
                 missing = [d["type"] for d in docs if d.get("status") == "MISSING"]
@@ -427,16 +429,33 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                     case.business_rule_results = existing_br
                     flag_modified(case, "business_rule_results")
 
-                # Tag attachments with documentType from categorize documents array
+                # Build attachment list from categorize documents — each PRESENT doc = one attachment.
+                # Handles all cases: pre-split files, merged PDFs (split fragments), mixed.
                 atts = case.attachments or []
-                for doc in docs:
-                    doc_type = doc.get("type", "")
-                    fname = doc.get("file", "")
-                    if fname and doc.get("status") == "PRESENT":
-                        normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
-                        for att in atts:
-                            if fname in att.get("fileUrl", ""):
-                                att["documentType"] = normalized
+                present_docs = [d for d in docs if d.get("status") == "PRESENT" and d.get("file")]
+                if present_docs:
+                    new_atts = []
+                    for doc in present_docs:
+                        fname = doc["file"]
+                        normalized = "INVOICE" if "invoice" in doc.get("type", "").lower() else "JOB_SHEET"
+                        # Try to match an existing attachment (pre-split case)
+                        matched = next((a for a in atts if fname in a.get("fileUrl", "")), None)
+                        if matched:
+                            matched["documentType"] = normalized
+                            new_atts.append(matched)
+                        else:
+                            # Split fragment — copy to uploads/ and create new attachment entry
+                            frag_path = temp_ws / "attachments" / fname
+                            if frag_path.exists():
+                                uploads_dir = Path(__file__).parent.parent / "uploads"
+                                shutil.copy2(str(frag_path), str(uploads_dir / fname))
+                            new_atts.append({
+                                "fileName": fname,
+                                "fileUrl": f"/uploads/{fname}",
+                                "documentType": normalized,
+                            })
+                    atts = new_atts
+
                 case.attachments = atts
                 flag_modified(case, "attachments")
                 case.updated_at = utcnow()

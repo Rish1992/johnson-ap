@@ -145,6 +145,7 @@ class Case(Base):
     rejected_at = Column(DateTime, nullable=True)
     po_type = Column(String, nullable=True)
     entity = Column(String, nullable=True)
+    freight_type = Column(String, nullable=True)  # SEA | AIR (freight categories only)
     is_read = Column(Boolean, default=False)
     email_id = Column(String, nullable=True)  # link back to Email record
 
@@ -190,6 +191,7 @@ class Case(Base):
             "rejectedAt": self.rejected_at.isoformat() + "Z" if self.rejected_at else None,
             "poType": self.po_type,
             "entity": self.entity,
+            "freightType": self.freight_type,
             "isRead": self.is_read,
         }
 
