@@ -183,6 +183,7 @@ export function LoginPage() {
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p><span className="font-medium">Agent:</span> sarah.chen@company.com</p>
                 <p><span className="font-medium">Approver:</span> emma.thompson@company.com</p>
+                <p><span className="font-medium">L2 Approver:</span> priya.nair@company.com</p>
                 <p><span className="font-medium">Admin:</span> alex.kumar@company.com</p>
                 <p className="mt-1"><span className="font-medium">Password:</span> password123</p>
               </div>
