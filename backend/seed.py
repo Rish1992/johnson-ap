@@ -594,7 +594,8 @@ Return a JSON object with category, entity, poType, freightType, vendorMatch, do
 
 ## Vendor Matching
 - Compare sender/invoice vendor name against vendors.json in master-data/
-- Return best match with vendorId and vendorName
+- Return best match with vendorId, vendorName, vendorNumber, contractNumber, and contractStatus
+- If no match found, set vendorId and vendorName to empty strings, contractStatus to "NONE"
 
 ## Classification Priority
 1. Vendor-based identification (highest priority)
@@ -636,7 +637,10 @@ For PRESENT documents, include the filename. For MISSING documents, set file to 
                         "type": "object",
                         "properties": {
                             "vendorId": {"type": "string"},
-                            "vendorName": {"type": "string"}
+                            "vendorName": {"type": "string"},
+                            "vendorNumber": {"type": "string", "description": "SAP vendor number from vendors.json"},
+                            "contractNumber": {"type": "string", "description": "Active contract number from vendors.json"},
+                            "contractStatus": {"type": "string", "enum": ["ACTIVE", "EXPIRED", "NONE"]}
                         }
                     },
                     "documents": {
