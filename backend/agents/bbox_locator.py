@@ -100,11 +100,11 @@ def find_invoice_pdf(attachments_dir: Path) -> Path | None:
     return pdf_files[0]
 
 
-def locate_bboxes(pdf_path: str, extract_result: dict) -> dict:
-    """Enrich confidenceScores with bbox locations from PDF text layer."""
-    scores = extract_result.get("confidenceScores", {})
-    if not scores:
-        return scores
+def locate_bboxes(pdf_path: str, fields: list[dict]) -> list[dict]:
+    """Find bounding boxes for fields in a PDF using their `text` values.
+    Mutates field dicts in-place, adding 'bbox' key. Returns the list."""
+    if not fields:
+        return fields
 
     try:
         proc = subprocess.run(
@@ -113,19 +113,16 @@ def locate_bboxes(pdf_path: str, extract_result: dict) -> dict:
         )
         if proc.returncode != 0:
             log.warning(f"pdftotext failed: {proc.stderr[:200]}")
-            return scores
+            return fields
         words = _parse_bbox_xml(proc.stdout)
     except Exception as e:
         log.warning(f"bbox parse failed: {e}")
-        return scores
+        return fields
 
-    header = extract_result.get("headerData", {})
-    for field_name, entry in scores.items():
-        if not isinstance(entry, dict):
-            continue
-        value = entry.get("extractedValue") or str(header.get(field_name, ""))
-        bbox = _find_bbox(words, value)
+    for field in fields:
+        value = field.get("text") or field.get("value") or ""
+        bbox = _find_bbox(words, str(value))
         if bbox:
-            entry["bbox"] = bbox
+            field["bbox"] = bbox
 
-    return scores
+    return fields

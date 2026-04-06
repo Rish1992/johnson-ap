@@ -122,10 +122,11 @@ async def run_claude_step(
     elif step_name == "verify_docs":
         summary = f"verified={result.get('verified')}, present={result.get('presentDocs')}, missing={result.get('missingDocs')}"
     elif step_name == "extract":
-        hd_keys = len(result.get("headerData", {}))
-        sd_keys = list(result.get("supportingData", {}).keys())
+        fields = result.get("fields", [])
+        inv_count = sum(1 for f in fields if f.get("doc") == "Invoice")
+        sup_docs = list(set(f.get("doc") for f in fields if f.get("doc") != "Invoice"))
         li_count = len(result.get("lineItems", []))
-        summary = f"headerData={hd_keys} fields, supportingData={sd_keys}, lineItems={li_count}"
+        summary = f"fields={len(fields)} (invoice={inv_count}, supporting={sup_docs}), lineItems={li_count}"
     elif step_name == "validate":
         rules = result.get("results", [])
         summary = f"rules={len(rules)}, pass={sum(1 for r in rules if r.get('status')=='PASS')}, fail={sum(1 for r in rules if r.get('status')=='FAIL')}"
@@ -165,7 +166,19 @@ def prepare_step(workspace: Path, prompt_text: str, output_schema: dict | None, 
         sup_count = sum(len(v) for v in (field_config.get("supportingFields") or {}).values())
         rule_count = len(field_config.get("validationRules") or [])
         log.info(f"[prepare_step] FIELD_LIST.md: {inv_count} invoice fields, {sup_count} supporting fields ({sup_types}), {rule_count} validation rules")
-        lines = ["# Field Definitions for Extraction\n"]
+        lines = [
+            "# Field Definitions for Extraction\n",
+            'Return a flat `fields` array. For each field below, output:',
+            '  {"doc": "<Document Type>", "key": "<Key>", "text": "<exact text from document>", "value": <normalized value or null>, "page": <page number>, "file": "<filename>"}\n',
+            '- `text` = exact text as it appears on the document (for OCR matching)',
+            '- `value` = normalized value (ISO dates like 2026-03-17, cleaned numbers like 109.09, canonical formats)',
+            '- `page` = page number within the file (starting from 1)',
+            '- `file` = filename from the attachments directory',
+            '- If a field is present on the document but blank, set value to null and include the page/file where you looked',
+            '- If a field is not found on any document, omit it entirely from the output\n',
+            'Document type for Invoice Fields = "Invoice"',
+            'Document type for supporting fields = the section header below (e.g., "Contractor Worksheet")\n',
+        ]
         # Invoice fields
         inv = field_config.get("invoiceFields") or []
         if inv:

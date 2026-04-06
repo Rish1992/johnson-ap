@@ -29,11 +29,11 @@ def validate_step_output(step_name: str, workspace: Path, category: str = None, 
     if not validator:
         return True, []
 
-    errors = validator(result, category, db)
+    errors = validator(result, category, db, workspace)
     return len(errors) == 0, errors
 
 
-def _validate_classify(result: dict, category: str | None, db) -> list[str]:
+def _validate_classify(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
     errors = []
     c = result.get("classification")
     if c is None:
@@ -48,7 +48,7 @@ def _validate_classify(result: dict, category: str | None, db) -> list[str]:
     return errors
 
 
-def _validate_categorize(result: dict, category: str | None, db) -> list[str]:
+def _validate_categorize(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
     errors = []
     cat = result.get("category")
     if cat is None:
@@ -70,7 +70,7 @@ def _validate_categorize(result: dict, category: str | None, db) -> list[str]:
     return errors
 
 
-def _validate_verify_docs(result: dict, category: str | None, db) -> list[str]:
+def _validate_verify_docs(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
     errors = []
     if not isinstance(result.get("verified"), bool):
         errors.append("'verified' must be a boolean")
@@ -88,48 +88,68 @@ def _validate_verify_docs(result: dict, category: str | None, db) -> list[str]:
     return errors
 
 
-def _validate_extract(result: dict, category: str | None, db) -> list[str]:
+def _validate_extract(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
     errors = []
-    if not isinstance(result.get("headerData"), dict):
-        errors.append("'headerData' must be a dict")
-    if "supportingData" not in result:
-        errors.append("missing 'supportingData' field")
+    fields = result.get("fields")
+    if not isinstance(fields, list):
+        errors.append("'fields' must be a list")
+        return errors
+
     if not isinstance(result.get("lineItems"), list):
         errors.append("'lineItems' must be a list")
-    if not isinstance(result.get("confidenceScores"), dict):
-        errors.append("'confidenceScores' must be a dict")
+
+    # Check each field has hard-required keys only
+    for i, f in enumerate(fields):
+        if not isinstance(f, dict):
+            errors.append(f"fields[{i}] must be an object")
+            continue
+        for req in ("doc", "key"):
+            if req not in f:
+                errors.append(f"fields[{i}] missing '{req}'")
 
     # DB-driven field validation
     if category and db:
         from models import InvoiceCategoryConfig
         cfg = db.query(InvoiceCategoryConfig).filter(InvoiceCategoryConfig.name == category).first()
         if cfg:
-            # Check invoice fields
-            expected_invoice = {f["key"] for f in (cfg.invoice_fields or [])}
-            actual_invoice = set(result.get("headerData", {}).keys()) if isinstance(result.get("headerData"), dict) else set()
-            missing_inv = expected_invoice - actual_invoice
-            if missing_inv:
-                errors.append(f"headerData missing keys: {', '.join(sorted(missing_inv))}")
+            # Determine which doc types are actually present (from verify_docs)
+            present_docs = {"Invoice"}  # Invoice is always expected
+            if workspace:
+                verify_file = workspace / "results" / "verify_docs.json"
+                if verify_file.exists():
+                    try:
+                        vd = json.loads(verify_file.read_text())
+                        for detail in vd.get("details", []):
+                            if detail.get("status") == "PRESENT":
+                                present_docs.add(detail.get("documentType", ""))
+                    except (json.JSONDecodeError, KeyError):
+                        pass
 
-            # Check supporting fields (flattened across doc types)
-            expected_supporting = set()
-            for fields in (cfg.supporting_fields or {}).values():
-                for f in fields:
-                    expected_supporting.add(f["key"])
-            if expected_supporting:
-                actual_supporting = set()
-                sd = result.get("supportingData")
-                if isinstance(sd, dict):
-                    for doc_fields in sd.values():
-                        if isinstance(doc_fields, dict):
-                            actual_supporting.update(doc_fields.keys())
-                missing_sup = expected_supporting - actual_supporting
-                if missing_sup:
-                    errors.append(f"supportingData missing keys: {', '.join(sorted(missing_sup))}")
+            # Build expected (doc, key) pairs — only for present doc types
+            expected = set()
+            for f in (cfg.invoice_fields or []):
+                expected.add(("Invoice", f["key"]))
+            for doc_type, doc_fields in (cfg.supporting_fields or {}).items():
+                if doc_type in present_docs:
+                    for f in doc_fields:
+                        expected.add((doc_type, f["key"]))
+
+            # Check actual fields
+            actual = {(f.get("doc"), f.get("key")) for f in fields if isinstance(f, dict)}
+            missing = expected - actual
+            if missing:
+                missing_str = ", ".join(f"{d}.{k}" for d, k in sorted(missing))
+                errors.append(f"Missing fields: {missing_str}")
+
+            # Check doc values are valid
+            valid_docs = {"Invoice"} | set((cfg.supporting_fields or {}).keys())
+            for f in fields:
+                if isinstance(f, dict) and f.get("doc") not in valid_docs:
+                    errors.append(f"Invalid doc type: '{f.get('doc')}' (expected one of {valid_docs})")
     return errors
 
 
-def _validate_validate(result: dict, category: str | None, db) -> list[str]:
+def _validate_validate(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
     errors = []
     results_list = result.get("results")
     if not isinstance(results_list, list):

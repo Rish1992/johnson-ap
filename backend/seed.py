@@ -332,6 +332,7 @@ def _seed_invoice_category_configs(db: Session):
         {"key": "timeOff", "label": "Time Off", "type": "time", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Time section"},
         {"key": "customerSignature", "label": "Customer Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
         {"key": "technicianSignature", "label": "Technician Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
+        {"key": "dateJobCompleted", "label": "Date of Job Completed", "type": "date", "required": False, "validation": "date_check", "edgeCaseAction": "flag_reviewer"},
     ]
 
     # --- D&I supporting: Installation Worksheet ---
@@ -350,6 +351,25 @@ def _seed_invoice_category_configs(db: Session):
         {"key": "customerSignature", "label": "Customer Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
         {"key": "technicianSignature", "label": "Technician Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
         {"key": "dateJobCompleted", "label": "Date Job Completed", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Footer"},
+    ]
+
+    # --- Freight-specific invoice fields (extend _INV_FIELDS with 9 freight data points) ---
+    _FREIGHT_INV_FIELDS = _INV_FIELDS + [
+        {"key": "consignor", "label": "Consignor", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Shipment details"},
+        {"key": "consignee", "label": "Consignee", "type": "text", "required": True, "validation": "entity_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Shipment details — used for entity ID"},
+        {"key": "goodsDescription", "label": "Goods Description", "type": "text", "required": True, "validation": "category_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Identifies Finished Goods vs Spare Parts"},
+        {"key": "importCustomsBroker", "label": "Import Customs Broker", "type": "text", "required": False, "validation": "sea_air_indicator", "edgeCaseAction": "flag_reviewer", "sourceHint": "If 'MAINFREIGHT AIR & OCEAN' → Sea"},
+        {"key": "origin", "label": "Origin", "type": "text", "required": True, "validation": "rate_card_lookup", "edgeCaseAction": "flag_reviewer", "sourceHint": "Shipment origin city/port"},
+        {"key": "destination", "label": "Destination", "type": "text", "required": True, "validation": "rate_card_lookup", "edgeCaseAction": "flag_reviewer", "sourceHint": "Shipment destination city/port"},
+        {"key": "containerNumber", "label": "Container Number", "type": "text", "required": False, "validation": "sea_only", "edgeCaseAction": "flag_reviewer", "sourceHint": "Sea invoice only — presence indicates Sea"},
+        {"key": "containerType", "label": "Container Type", "type": "text", "required": False, "validation": "rate_card_lookup", "edgeCaseAction": "flag_reviewer", "sourceHint": "e.g. 40 High Cube — Sea invoice only"},
+        {"key": "flightDetails", "label": "Flight Details", "type": "text", "required": False, "validation": "air_only", "edgeCaseAction": "flag_reviewer", "sourceHint": "Flight Number & Date — Air invoice only"},
+    ]
+
+    # --- Freight supporting: Commercial Invoice ---
+    _COMMERCIAL_INV_FIELDS = [
+        {"key": "commercialInvoiceNumber", "label": "Commercial Invoice Number", "type": "text", "required": True, "validation": "required", "edgeCaseAction": "flag_reviewer"},
+        {"key": "totalValue", "label": "Total Value", "type": "number", "required": True, "validation": "required", "edgeCaseAction": "flag_reviewer"},
     ]
 
     # --- Validation rules ---
@@ -375,11 +395,11 @@ def _seed_invoice_category_configs(db: Session):
         ("DELIVERY_INSTALLATION", ["Invoice", "Installation Worksheet"], "GL-DI",
          _INV_FIELDS, {"Installation Worksheet": _INSTALL_FIELDS}, _DI_RULES),
         ("FREIGHT_FINISHED_GOODS", ["Invoice", "Commercial Invoice"], "GL-FRT-FG",
-         _INV_FIELDS, {"Commercial Invoice": []}, _COMMON_RULES),
+         _FREIGHT_INV_FIELDS, {"Commercial Invoice": _COMMERCIAL_INV_FIELDS}, _COMMON_RULES),
         ("FREIGHT_SPARE_PARTS", ["Invoice", "Commercial Invoice"], "GL-FRT-SP",
-         _INV_FIELDS, {"Commercial Invoice": []}, _COMMON_RULES),
+         _FREIGHT_INV_FIELDS, {"Commercial Invoice": _COMMERCIAL_INV_FIELDS}, _COMMON_RULES),
         ("FREIGHT_ADDITIONAL_CHARGES", ["Invoice"], "GL-FRT-ADD",
-         _INV_FIELDS, {}, _COMMON_RULES),
+         _FREIGHT_INV_FIELDS, {}, _COMMON_RULES),
     ]
     for name, docs, gl, inv_f, sup_f, val_r in configs:
         db.add(InvoiceCategoryConfig(
@@ -489,11 +509,19 @@ Non-invoice indicators: "payment reminder", "overdue payment", "statement of acc
 
 ### Signal 3: Attachment Content
 - If attachment is present AND contains keywords "Tax Invoice" or "Invoice" AND email body does NOT indicate payment reminder -> INVOICE
-- No attachments or only images/signatures -> NON_INVOICE""",
+- No attachments or only images/signatures -> NON_INVOICE
+
+## Edge Case Handling
+
+1. **Excel Format Invoice**: If the attachment is an Excel file (.xlsx, .xls, .csv), still classify as INVOICE if it contains invoice-like content (vendor name, amounts, line items). Do not reject based on file format alone.
+
+2. **Handwritten Invoice**: If the document appears handwritten or scanned with poor quality, attempt classification. If content is unreadable, classify as AMBIGUOUS with low confidence.
+
+3. **Unreadable Document**: If the document is completely unreadable (blank pages, corrupted, heavily redacted), classify as NON_INVOICE with a note in reasoning explaining the document is unreadable.""",
             output_schema={
                 "type": "object",
                 "properties": {
-                    "classification": {"type": "string", "enum": ["INVOICE", "NON_INVOICE"]},
+                    "classification": {"type": "string", "enum": ["INVOICE", "NON_INVOICE", "AMBIGUOUS"]},
                     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                     "signals": {
                         "type": "object",
@@ -668,12 +696,6 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Extrac
 
 {{BUSINESS_RULES}}
 
-## Confidence Scoring
-For each extracted field, provide a confidence score (0-1) and level (HIGH/MEDIUM/LOW).
-HIGH: clearly readable, unambiguous
-MEDIUM: readable but could be misread (handwriting, low quality)
-LOW: guessed or derived from context
-
 Read attachments/ for invoice and supporting document content.
 Read results/categorize.json for category context.""",
             business_rules="""## Extraction Instructions
@@ -687,10 +709,15 @@ Read results/categorize.json for category context.""",
 4. Extract all fields listed in FIELD_LIST.md from the appropriate document.
 
 ## Output Structure
-- `headerData`: all invoice-level fields (vendorName, invoiceNumber, amounts, etc.)
-- `supportingData`: all supporting document fields, keyed by document type name (e.g. "Work Order", "Contractor Worksheet", "Installation Worksheet")
-- `lineItems`: description/quantity/unitPrice/totalPrice rows from the invoice
-- `confidenceScores`: per-field confidence
+Return a flat `fields` array. For each field, output {doc, key, text, value, page, file} where:
+- `text` is the exact text as it appears on the document (for OCR matching)
+- `value` is the normalized value (ISO dates like 2026-03-17, cleaned numbers like 109.09, canonical formats)
+- `file` is the filename in the attachments directory
+- `page` is the page number within that file (starting from 1)
+
+The `doc` value MUST be one of the document types listed in FIELD_LIST.md. The `key` MUST be one of the field keys defined for that document type.
+
+Also return `lineItems` as an array of line item objects from the invoice.
 
 ## GL Code Derivation
 - Subcontractor Warranty -> 614100
@@ -703,69 +730,53 @@ Read results/categorize.json for category context.""",
 - RevoFit vendor: always Commercial
 - Freight: always Commercial
 
-## Supporting Data Requirement
-You MUST populate the supportingData object. For each supporting document (contractor worksheet, work order, installation worksheet, service job sheet), extract all fields into supportingData keyed by document type. If no supporting document is present in the attachments, return supportingData as an empty object {}.""",
+## Edge Case Handling
+
+1. **Entity Not Clearly Mentioned**: If the entity (AU vs NZ) is not explicitly stated, determine from: (a) Bill To address — look for Australian vs New Zealand addresses, (b) Currency — AUD implies AU, NZD implies NZ, (c) ABN format implies AU, NZBN implies NZ. If still unclear, set entity field value to null and the text to "UNCLEAR".
+
+2. **Multiple Entity Names on Invoice**: If the invoice mentions both Australian and New Zealand entities (e.g., both ABN and NZBN), use the currency as the tiebreaker. AUD = AU entity, NZD = NZ entity. If currency is also ambiguous, set value to null.
+
+3. **Handwritten Fields**: For handwritten text, extract your best reading. If a field is illegible, set value to null and text to "ILLEGIBLE".
+
+4. **Confusing/Unstructured Description**: If the description field is a long paragraph rather than structured line items, summarize the key service/product in the value field. Keep the full original text in the text field.
+
+5. **Missing Unit Price or Quantity**: If unit price or quantity is not explicitly stated but can be inferred (e.g., only one line item and total is given), infer the value. If truly missing, set value to null.
+
+6. **Date Formats**: Normalize all dates to ISO format (YYYY-MM-DD) in the value field. Keep the original format in the text field (e.g., text="17th March 2026", value="2026-03-17").""",
             output_schema={
                 "type": "object",
                 "properties": {
-                    "headerData": {
-                        "type": "object",
-                        "properties": {
-                            "invoiceNumber": {"type": "string"},
-                            "invoiceDate": {"type": "string"},
-                            "dueDate": {"type": "string"},
-                            "invoiceType": {"type": "string"},
-                            "currency": {"type": "string"},
-                            "totalAmount": {"type": "number"},
-                            "taxAmount": {"type": "number"},
-                            "netAmount": {"type": "number"},
-                            "purchaseOrderNumber": {"type": "string"},
-                            "deliveryNoteNumber": {"type": "string"},
-                            "paymentTerms": {"type": "string"},
-                            "companyCode": {"type": "string"},
-                            "plantCode": {"type": "string"},
-                            "costCenter": {"type": "string"},
-                            "glAccount": {"type": "string"},
-                            "taxCode": {"type": "string"},
-                            "description": {"type": "string"}
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "doc": {"type": "string"},
+                                "key": {"type": "string"},
+                                "text": {"type": "string"},
+                                "value": {},
+                                "page": {"type": "integer"},
+                                "file": {"type": "string"}
+                            },
+                            "required": ["doc", "key"]
                         }
-                    },
-                    "supportingData": {
-                        "type": "object",
-                        "description": "Supporting document fields keyed by doc type name",
-                        "additionalProperties": {"type": "object"}
                     },
                     "lineItems": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "id": {"type": "string"},
-                                "lineNumber": {"type": "integer"},
+                                "line": {"type": "integer"},
                                 "description": {"type": "string"},
                                 "quantity": {"type": "number"},
                                 "unitPrice": {"type": "number"},
-                                "unit": {"type": "string"},
-                                "totalAmount": {"type": "number"},
-                                "taxAmount": {"type": "number"},
-                                "glAccount": {"type": "string"},
-                                "costCenter": {"type": "string"}
-                            }
-                        }
-                    },
-                    "confidenceScores": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                                "value": {"type": "number"},
-                                "level": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
-                                "extractedValue": {"type": "string"}
+                                "total": {"type": "number"},
+                                "tax": {"type": "number"}
                             }
                         }
                     }
                 },
-                "required": ["headerData", "supportingData", "lineItems", "confidenceScores"]
+                "required": ["fields", "lineItems"]
             },
         ),
         # --- Step 5: Validate ---
@@ -792,7 +803,7 @@ For each validation, return:
 - Any WARNING but no ERROR fails -> "WARNING"
 
 ## Efficiency Protocol — follow these rules exactly
-- Read ONLY results/extract.json for all extracted invoice data.
+- Read ONLY results/extract.json for all extracted data. It contains a flat `fields` array (each entry: {doc, key, text, value, page, file}) and a `lineItems` array.
 - Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json) for validation rules.
 - Do NOT read files in attachments/. The extract step has already read and interpreted the source documents. All data you need is in extract.json.
 - Keep output CONCISE: one-sentence messages per rule. For PASS rules, omit the details field.""",
@@ -806,8 +817,15 @@ Read FIELD_LIST.md for the validation rules defined for this category. For each 
 - Output a result with the exact ruleId from FIELD_LIST.md
 - Use the severity and action specified in the config
 
+## Reading extract.json — Flat Fields Format
+Read results/extract.json — it contains a flat `fields` array where each entry has {doc, key, text, value, page, file}.
+- Invoice fields have doc="Invoice". Supporting doc fields have doc="<document type name>" (e.g., "Contractor Worksheet").
+- To find a specific field, filter by doc and key: e.g., find the field where doc="Invoice" and key="grandTotal".
+- For cross-document matching, compare value fields across different doc types.
+- Line items are in the `lineItems` array (unchanged).
+
 ## Reading Order
-1. Read results/extract.json for all extracted data (headerData, supportingData, lineItems).
+1. Read results/extract.json for all extracted data (fields array + lineItems).
 2. Read FIELD_LIST.md for validation rules.
 3. Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json).
 4. Do NOT read attachments/ — all data is in extract.json.
@@ -815,24 +833,61 @@ Read FIELD_LIST.md for the validation rules defined for this category. For each 
 ## 4-Way Matching
 
 ### 1. Invoice <-> Supporting Documents
-- SUBCONTRACTOR: attachmentReference on invoice must match worksheet caseNumber/workOrderNumber.
+- SUBCONTRACTOR: attachmentReference (doc="Invoice", key="attachmentReference") must match worksheet caseNumber/workOrderNumber (doc="Contractor Worksheet").
 - D&I: attachmentReference must match installation worksheet caseNumber. subTotal must match quoteAmount.
 - FREIGHT: Rates on invoice must match freight rate card.
 
 ### 2. Invoice <-> Vendor Master
-- vendorName and vendorABN must match vendor master record
+- vendorName and vendorABN (doc="Invoice") must match vendor master record
 - bankDetails must match vendor master
 
 ### 3. Math & Tax Checks
-- grandTotal must equal subTotal + taxAmount
+- grandTotal must equal subTotal + taxAmount (all doc="Invoice" fields)
 - Tax rate: 10% for AU entity, 15% for NZ entity
 
 ### 4. Entity & Currency
-- billTo must map to AU or NZ entity
+- billTo (doc="Invoice") must map to AU or NZ entity
 - currency must match entity (AUD for AU, NZD for NZ)
 
 ### 5. Duplicate Check
-- invoiceNumber + vendorName must be unique within 90-day window""",
+- invoiceNumber + vendorName (doc="Invoice") must be unique within 90-day window
+
+### 6. Rate Card Matching
+
+#### Service Invoices (SUBCONTRACTOR, RUST_SUBCONTRACTOR)
+- Compare extracted unitPrice (doc="Invoice", key="unitPrice") against `master-data/service-rate-cards.json` for the matched vendor. Find the rate card entry where vendorId matches and service type matches the description. If unitPrice != rate, report FAIL with expected rate vs actual.
+
+#### Freight Invoices (FREIGHT_FINISHED_GOODS, FREIGHT_SPARE_PARTS)
+- For Sea freight: compare line item rates against `master-data/freight-rate-cards.json` by origin + destination + container type. If rate doesn't match, report FAIL.
+- For Freight: verify bankDetails (doc="Invoice", key="bankDetails") matches vendor master data.
+
+### 7. Sea vs Air Classification
+- Classify as Sea if: Import Customs Broker contains "MAINFREIGHT AIR & OCEAN" OR Container Number/Type present.
+- Classify as Air if: Flight Details present.
+- Default to Air if neither indicator is present.
+- If unable to determine, flag to reviewer.
+
+## D&I Category — Additional Matching Rules
+
+1. **Quote Amount Match**: For DELIVERY_INSTALLATION cases, compare Invoice subTotal (doc="Invoice", key="subTotal") against Installation Worksheet quoteAmount (doc="Installation Worksheet", key="quoteAmount"). If they don't match, report FAIL with both values.
+
+2. **Job MGR Identification**: The Installation Worksheet's "Job MGR" field identifies the approver. Flag if missing — this is required for approval routing.
+
+3. **Sales Order Number → Branch**: For D&I, the Sales Order Number from the Installation Worksheet determines the Branch Code. If Sales Order Number is missing, flag as "Branch cannot be determined."
+
+## Additional Validation Rules (All Categories)
+
+1. **Invoice Date Recency**: Invoice date (doc="Invoice", key="invoiceDate") must be within 7 days after the Date of Job Completed (doc="Contractor Worksheet"/"Installation Worksheet", key="dateJobCompleted" or similar). If invoiceDate > jobDate + 7 days, flag as WARNING: "Invoice date is more than 7 days after job completion."
+
+2. **Entity-Currency Consistency**:
+   - AU entity → currency must be AUD (except Sea Freight which uses USD)
+   - NZ entity → currency must be NZD
+   - If mismatch, flag as FAIL.
+
+3. **Math Verification**: grandTotal must equal subTotal + taxAmount. If mismatch, flag as FAIL with calculated vs stated values.
+
+4. **Duplicate Invoice Check**: Flag if invoiceNumber + vendorName combination has been seen before (within 90-day window). Note: this requires checking against existing cases — if not possible in this step, flag as INFO: "Duplicate check requires database lookup."
+""",
             output_schema={
                 "type": "object",
                 "properties": {

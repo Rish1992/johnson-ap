@@ -88,16 +88,27 @@ def _update_step(steps: list[dict], name: str, status: str, output=None, error=N
 # Helpers
 # ---------------------------------------------------------------------------
 def _enrich_bboxes(ws: Path, result: dict) -> dict:
-    """Locate bounding boxes on the invoice PDF and enrich confidenceScores."""
+    """Locate bounding boxes for fields in the extract result, grouped by file."""
+    from collections import defaultdict
     try:
-        invoice_pdf = find_invoice_pdf(ws / "attachments")
-        if invoice_pdf:
-            enriched = locate_bboxes(str(invoice_pdf), result)
-            if enriched:
-                result["confidenceScores"] = enriched
+        fields = result.get("fields", [])
+        if not fields:
+            return result
+
+        by_file = defaultdict(list)
+        for f in fields:
+            if f.get("file"):
+                by_file[f["file"]].append(f)
+
+        attachments_dir = ws / "attachments"
+        for filename, file_fields in by_file.items():
+            pdf_path = attachments_dir / filename
+            if pdf_path.exists():
+                locate_bboxes(str(pdf_path), file_fields)
+
+        result["fields"] = fields
     except Exception as e:
-        import logging
-        logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
+        log.warning(f"bbox locator failed: {e}")
     return result
 
 
@@ -500,31 +511,35 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 db.commit()
             elif step_name == "extract" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
-                case.header_data = result.get("headerData", {})
+                fields = result.get("fields", [])
+                case.extracted_fields = fields
                 case.line_items = result.get("lineItems", [])
-                case.confidence_scores = result.get("confidenceScores", {})
-                case.supporting_data = result.get("supportingData", {})
-                if not result.get("supportingData"):
-                    log.warning(f"[{case_id}] extract produced no supportingData — flagging for review")
-                # Compute overall_confidence from per-field scores
-                scores = result.get("confidenceScores", {})
-                if scores:
-                    numeric = []
-                    for v in scores.values():
-                        if isinstance(v, (int, float)):
-                            numeric.append(v)
-                        elif isinstance(v, dict) and isinstance(v.get("value"), (int, float)):
-                            numeric.append(v["value"])
-                    if numeric:
-                        avg = sum(numeric) / len(numeric)
-                        case.overall_confidence = round(avg, 4)
-                        case.overall_confidence_level = "HIGH" if avg >= 0.85 else "MEDIUM" if avg >= 0.6 else "LOW"
+
+                # Backward compat: populate header_data and supporting_data from flat fields
+                case.header_data = {f["key"]: f["value"] for f in fields if f.get("doc") == "Invoice"}
+                case.supporting_data = {}
+                for f in fields:
+                    if f.get("doc") and f["doc"] != "Invoice":
+                        case.supporting_data.setdefault(f["doc"], {})[f["key"]] = f["value"]
+
+                # overall_confidence: field completeness (deterministic confidence computed later)
+                total_expected = len(fields)
+                total_present = sum(1 for f in fields if f.get("value") is not None)
+                if total_expected > 0:
+                    case.overall_confidence = round(total_present / total_expected, 4)
+                    case.overall_confidence_level = "HIGH" if case.overall_confidence >= 0.85 else "MEDIUM" if case.overall_confidence >= 0.6 else "LOW"
+
                 case.status = "EXTRACTED"
                 case.updated_at = utcnow()
                 result = _enrich_bboxes(ws, result)
-                case.confidence_scores = result.get("confidenceScores", {})
-                flag_modified(case, "confidence_scores")
+                # bboxes are now embedded in fields; update extracted_fields
+                case.extracted_fields = result.get("fields", fields)
+                case.confidence_scores = {
+                    f["key"]: {"bbox": f["bbox"]} for f in result.get("fields", []) if f.get("bbox")
+                }
+                flag_modified(case, "extracted_fields")
                 flag_modified(case, "supporting_data")
+                flag_modified(case, "confidence_scores")
                 db.commit()
             elif step_name == "validate" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()

@@ -114,6 +114,7 @@ class Case(Base):
     line_items = Column(JSON, default=list)
     confidence_scores = Column(JSON, default=dict)
     supporting_data = Column(JSON, default=dict)
+    extracted_fields = Column(JSON, default=list)
     overall_confidence = Column(Float, default=0.0)
     overall_confidence_level = Column(String, default="LOW")
     vendor_id = Column(String, default="")
@@ -158,6 +159,7 @@ class Case(Base):
             "lineItems": self.line_items or [],
             "confidenceScores": self.confidence_scores or {},
             "supportingData": self.supporting_data or {},
+            "extractedFields": self.extracted_fields or [],
             "overallConfidence": self.overall_confidence,
             "overallConfidenceLevel": self.overall_confidence_level,
             "vendorId": self.vendor_id,
