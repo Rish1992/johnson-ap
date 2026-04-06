@@ -113,6 +113,7 @@ class Case(Base):
     header_data = Column(JSON, default=dict)
     line_items = Column(JSON, default=list)
     confidence_scores = Column(JSON, default=dict)
+    supporting_data = Column(JSON, default=dict)
     overall_confidence = Column(Float, default=0.0)
     overall_confidence_level = Column(String, default="LOW")
     vendor_id = Column(String, default="")
@@ -156,6 +157,7 @@ class Case(Base):
             "headerData": self.header_data or {},
             "lineItems": self.line_items or [],
             "confidenceScores": self.confidence_scores or {},
+            "supportingData": self.supporting_data or {},
             "overallConfidence": self.overall_confidence,
             "overallConfidenceLevel": self.overall_confidence_level,
             "vendorId": self.vendor_id,
@@ -586,6 +588,9 @@ class InvoiceCategoryConfig(Base):
     extraction_template_id = Column(String, default="")
     auth_chain_id = Column(String, default="")
     gl_account = Column(String, default="")
+    invoice_fields = Column(JSON, default=list)       # [{key, label, type, required, validation, edgeCaseAction, sourceHint}]
+    supporting_fields = Column(JSON, default=dict)     # {docTypeName: [{key, label, type, required, ...}]}
+    validation_rules = Column(JSON, default=list)      # [{ruleId, ruleName, condition, severity, action}]
     is_active = Column(Boolean, default=True)
 
     def to_dict(self):
@@ -594,7 +599,11 @@ class InvoiceCategoryConfig(Base):
             "requiredDocs": self.required_docs or [],
             "extractionTemplateId": self.extraction_template_id,
             "authChainId": self.auth_chain_id,
-            "glAccount": self.gl_account, "isActive": self.is_active,
+            "glAccount": self.gl_account,
+            "invoiceFields": self.invoice_fields or [],
+            "supportingFields": self.supporting_fields or {},
+            "validationRules": self.validation_rules or [],
+            "isActive": self.is_active,
         }
 
 

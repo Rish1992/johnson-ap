@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db import get_db
-from models import PromptTemplate, User, Notification, new_id, utcnow
+from models import PromptTemplate, User, Notification, InvoiceCategoryConfig, new_id, utcnow
 from auth import get_current_user, hash_password
 
 router = APIRouter(prefix="/api", tags=["admin"])
@@ -130,3 +130,46 @@ def mark_all_read(user: User = Depends(get_current_user), db: Session = Depends(
     ).update({"is_read": True})
     db.commit()
     return {"success": True}
+
+
+# ---------------------------------------------------------------------------
+# Category Configs (field definitions, validation rules)
+# ---------------------------------------------------------------------------
+@router.get("/admin/category-configs")
+def list_category_configs(db: Session = Depends(get_db)):
+    """List all category configs with their fields."""
+    configs = db.query(InvoiceCategoryConfig).all()
+    return [c.to_dict() for c in configs]
+
+
+@router.get("/admin/category-configs/{category}/fields")
+def get_category_fields(category: str, db: Session = Depends(get_db)):
+    """Get field definitions for a specific category."""
+    c = db.query(InvoiceCategoryConfig).filter(InvoiceCategoryConfig.name == category).first()
+    if not c:
+        raise HTTPException(404, f"Category '{category}' not found")
+    return {
+        "invoiceFields": c.invoice_fields or [],
+        "supportingFields": c.supporting_fields or {},
+        "validationRules": c.validation_rules or [],
+    }
+
+
+@router.put("/admin/category-configs/{category}/fields")
+def update_category_fields(category: str, body: dict, db: Session = Depends(get_db)):
+    """Update field definitions for a category."""
+    from sqlalchemy.orm.attributes import flag_modified
+    c = db.query(InvoiceCategoryConfig).filter(InvoiceCategoryConfig.name == category).first()
+    if not c:
+        raise HTTPException(404, f"Category '{category}' not found")
+    if "invoiceFields" in body:
+        c.invoice_fields = body["invoiceFields"]
+        flag_modified(c, "invoice_fields")
+    if "supportingFields" in body:
+        c.supporting_fields = body["supportingFields"]
+        flag_modified(c, "supporting_fields")
+    if "validationRules" in body:
+        c.validation_rules = body["validationRules"]
+        flag_modified(c, "validation_rules")
+    db.commit()
+    return c.to_dict()

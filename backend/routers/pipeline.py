@@ -2,27 +2,57 @@
 
 import asyncio
 import json
+import logging
 import shutil
 import time
 from pathlib import Path
 from typing import Optional
+
+log = logging.getLogger("pipeline")
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 
 from db import get_db, SessionLocal
 from sqlalchemy.orm.attributes import flag_modified
-from models import Email, PromptTemplate, Case, Job, new_id, utcnow
+from models import Email, PromptTemplate, Case, Job, InvoiceCategoryConfig, new_id, utcnow
 from agents.runner import (
     run_claude_step, create_workspace, prepare_step, write_master_data,
     RESUME_PROMPT_TEXT,
 )
+from agents.validators import validate_step_output
 from agents.doc_splitter import split_merged_pdf
 from agents.bbox_locator import find_invoice_pdf, locate_bboxes
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
 
 STEPS_BACKEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
+
+
+def _load_field_config(ws: Path, db) -> dict | None:
+    """Load field config for the category identified in categorize.json."""
+    cat_file = ws / "results" / "categorize.json"
+    if not cat_file.exists():
+        log.debug(f"[field_config] No categorize.json in {ws.name}")
+        return None
+    try:
+        cat = json.loads(cat_file.read_text()).get("category")
+    except (json.JSONDecodeError, KeyError):
+        log.warning(f"[field_config] Failed to parse categorize.json in {ws.name}")
+        return None
+    if not cat:
+        return None
+    cfg = db.query(InvoiceCategoryConfig).filter(InvoiceCategoryConfig.name == cat).first()
+    if not cfg:
+        log.warning(f"[field_config] No InvoiceCategoryConfig for category={cat}")
+        return None
+    fc = {
+        "invoiceFields": cfg.invoice_fields or [],
+        "supportingFields": cfg.supporting_fields or {},
+        "validationRules": cfg.validation_rules or [],
+    }
+    log.info(f"[field_config] Loaded config for {cat}: {len(fc['invoiceFields'])} invoice fields, {len(fc['validationRules'])} rules")
+    return fc
 STEPS_FRONTEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
 PROMPT_TEXT = (
     "Read PROMPT.md for your instructions and OUTPUT_SCHEMA.json for the expected output format. "
@@ -69,6 +99,46 @@ def _enrich_bboxes(ws: Path, result: dict) -> dict:
         import logging
         logging.getLogger("pipeline").warning(f"bbox locator failed: {e}")
     return result
+
+
+def _get_category_from_workspace(ws: Path) -> str | None:
+    """Read category from categorize.json if it exists."""
+    cat_file = ws / "results" / "categorize.json"
+    if cat_file.exists():
+        try:
+            return json.loads(cat_file.read_text()).get("category")
+        except (json.JSONDecodeError, KeyError):
+            pass
+    return None
+
+
+async def _validate_and_retry(
+    case_id: str, step_name: str, ws: Path, session_id: str,
+    category: str | None, db,
+) -> tuple[bool, str | None, str | None]:
+    """Validate step output; retry once on failure. Returns (valid, session_id, error)."""
+    valid, errors = validate_step_output(step_name, ws, category, db)
+    if valid:
+        return True, session_id, None
+
+    log.warning(f"[{case_id}/{step_name}] Validation failed (attempt 1): {errors}")
+    retry_prompt = (
+        f"Your {step_name} output failed validation. Errors:\n"
+        + "\n".join(f"- {e}" for e in errors)
+        + "\n\nFix these errors and re-output the complete JSON."
+    )
+    retry_ok, retry_result, retry_error, session_id = await run_claude_step(
+        case_id, step_name, str(ws), retry_prompt, session_id=session_id,
+    )
+    if not retry_ok:
+        return False, session_id, f"Retry LLM call failed: {retry_error}"
+
+    valid2, errors2 = validate_step_output(step_name, ws, category, db)
+    if valid2:
+        log.info(f"[{case_id}/{step_name}] Retry succeeded")
+        return True, session_id, None
+
+    return False, session_id, f"Retry validation failed: {errors2}"
 
 
 async def _split_pdfs_in_workspace(ws: Path):
@@ -131,7 +201,8 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
             flag_modified(job, "steps")
             db.commit()
 
-            prepare_step(ws, template.assembled_prompt, template.output_schema)
+            fc = _load_field_config(ws, db) if step_name in ("extract", "validate") else None
+            prepare_step(ws, template.assembled_prompt, template.output_schema, field_config=fc)
             start = time.time()
             # First step: fresh session. Subsequent steps: resume session.
             prompt = PROMPT_TEXT if not pipeline_session_id else RESUME_PROMPT_TEXT
@@ -141,6 +212,23 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
             duration = int((time.time() - start) * 1000)
 
             if success:
+                # Validate output and retry once on failure
+                category = _get_category_from_workspace(ws)
+                v_ok, pipeline_session_id, v_err = await _validate_and_retry(
+                    case_id, step_name, ws, pipeline_session_id, category, db,
+                )
+                if not v_ok:
+                    job.steps = _update_step(job.steps, step_name, "failed", error=v_err, duration_ms=duration)
+                    flag_modified(job, "steps")
+                    job.status = "FAILED"
+                    job.error = v_err
+                    job.current_step = None
+                    job.completed_at = utcnow()
+                    db.commit()
+                    return
+                # Re-read result after possible retry
+                result = json.loads((ws / "results" / f"{step_name}.json").read_text())
+
                 job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
                 flag_modified(job, "steps")
 
@@ -225,6 +313,20 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             db.commit()
             return
 
+        # Validate classify output (retry once on failure)
+        v_ok, pipeline_session_id, v_err = await _validate_and_retry(
+            email_id, "classify", temp_ws, pipeline_session_id, None, db,
+        )
+        if not v_ok:
+            job.steps = _update_step(job.steps, "classify", "failed", error=v_err, duration_ms=duration)
+            job.status = "FAILED"
+            job.error = v_err
+            job.current_step = None
+            job.completed_at = utcnow()
+            db.commit()
+            return
+        result = json.loads((temp_ws / "results" / "classify.json").read_text())
+
         job.steps = _update_step(job.steps, "classify", "success", output=result, duration_ms=duration)
         email.classification = result.get("classification", "INVOICE")
         email.classification_confidence = result.get("confidence", 0)
@@ -264,6 +366,20 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 job.completed_at = utcnow()
                 db.commit()
                 return
+
+            # Validate categorize output (retry once on failure)
+            v_ok, pipeline_session_id, v_err = await _validate_and_retry(
+                email_id, "categorize", temp_ws, pipeline_session_id, None, db,
+            )
+            if not v_ok:
+                job.steps = _update_step(job.steps, "categorize", "failed", error=v_err, duration_ms=duration)
+                job.status = "FAILED"
+                job.error = v_err
+                job.current_step = None
+                job.completed_at = utcnow()
+                db.commit()
+                return
+            result = json.loads((temp_ws / "results" / "categorize.json").read_text())
 
             job.steps = _update_step(job.steps, "categorize", "success", output=result, duration_ms=duration)
             email.invoice_category = result.get("category")
@@ -321,7 +437,8 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             flag_modified(job, "steps")
             db.commit()
 
-            prepare_step(ws, template.assembled_prompt, template.output_schema)
+            fc = _load_field_config(ws, db) if step_name in ("extract", "validate") else None
+            prepare_step(ws, template.assembled_prompt, template.output_schema, field_config=fc)
             start = time.time()
             # Resume session — agent already has context from prior steps
             success, result, error, pipeline_session_id = await run_claude_step(
@@ -339,6 +456,22 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 db.commit()
                 return
 
+            # Validate output and retry once on failure
+            category = _get_category_from_workspace(ws)
+            v_ok, pipeline_session_id, v_err = await _validate_and_retry(
+                sid, step_name, ws, pipeline_session_id, category, db,
+            )
+            if not v_ok:
+                job.steps = _update_step(job.steps, step_name, "failed", error=v_err, duration_ms=duration)
+                flag_modified(job, "steps")
+                job.status = "FAILED"
+                job.error = v_err
+                job.current_step = None
+                job.completed_at = utcnow()
+                db.commit()
+                return
+            result = json.loads((ws / "results" / f"{step_name}.json").read_text())
+
             job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
             flag_modified(job, "steps")
             db.commit()
@@ -352,6 +485,17 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                     verify_entry = {"step": "verify_docs", "output": result}
                     case.business_rule_results = existing_br + [verify_entry]
                     flag_modified(case, "business_rule_results")
+                    # Tag attachments with documentType from verify_docs
+                    atts = case.attachments or []
+                    for detail in result.get("details", []):
+                        doc_type = detail.get("documentType", "")
+                        fname = detail.get("fileName", "")
+                        normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
+                        for att in atts:
+                            if fname and fname in att.get("fileUrl", ""):
+                                att["documentType"] = normalized
+                    case.attachments = atts
+                    flag_modified(case, "attachments")
                     case.updated_at = utcnow()
                 db.commit()
             elif step_name == "extract" and result:
@@ -359,11 +503,28 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 case.header_data = result.get("headerData", {})
                 case.line_items = result.get("lineItems", [])
                 case.confidence_scores = result.get("confidenceScores", {})
+                case.supporting_data = result.get("supportingData", {})
+                if not result.get("supportingData"):
+                    log.warning(f"[{case_id}] extract produced no supportingData — flagging for review")
+                # Compute overall_confidence from per-field scores
+                scores = result.get("confidenceScores", {})
+                if scores:
+                    numeric = []
+                    for v in scores.values():
+                        if isinstance(v, (int, float)):
+                            numeric.append(v)
+                        elif isinstance(v, dict) and isinstance(v.get("value"), (int, float)):
+                            numeric.append(v["value"])
+                    if numeric:
+                        avg = sum(numeric) / len(numeric)
+                        case.overall_confidence = round(avg, 4)
+                        case.overall_confidence_level = "HIGH" if avg >= 0.85 else "MEDIUM" if avg >= 0.6 else "LOW"
                 case.status = "EXTRACTED"
                 case.updated_at = utcnow()
                 result = _enrich_bboxes(ws, result)
                 case.confidence_scores = result.get("confidenceScores", {})
                 flag_modified(case, "confidence_scores")
+                flag_modified(case, "supporting_data")
                 db.commit()
             elif step_name == "validate" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
@@ -544,7 +705,8 @@ async def run_single_step(
     if not template:
         raise HTTPException(404, f"No active prompt for step '{step_name}'")
 
-    prepare_step(ws, template.assembled_prompt, template.output_schema)
+    fc = _load_field_config(ws, db) if step_name in ("extract", "validate") else None
+    prepare_step(ws, template.assembled_prompt, template.output_schema, field_config=fc)
     start = time.time()
     success, result, error, _ = await run_claude_step(case_id, step_name, str(ws), PROMPT_TEXT)
     duration = int((time.time() - start) * 1000)

@@ -61,7 +61,8 @@ async def run_claude_step(
 
     pid = proc.pid
     start = time.time()
-    log.info(f"[{case_id}/{step_name}] Started claude -p, PID={pid}")
+    mode = "resume" if "--resume" in cmd else "fresh"
+    log.info(f"[{case_id}/{step_name}] Started claude -p, PID={pid}, mode={mode}, session={session_id[:8]}, model={model}, cwd={Path(workspace).name}")
 
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
@@ -112,7 +113,23 @@ async def run_claude_step(
     results_dir = Path(workspace) / "results"
     results_dir.mkdir(exist_ok=True)
     (results_dir / f"{step_name}.json").write_text(json.dumps(result, indent=2))
-    log.info(f"[{case_id}/{step_name}] Completed in {duration_ms}ms (session={returned_sid[:8]})")
+    # Log result summary per step type
+    summary = ""
+    if step_name == "classify":
+        summary = f"classification={result.get('classification')}, confidence={result.get('confidence')}"
+    elif step_name == "categorize":
+        summary = f"category={result.get('category')}, entity={result.get('entity')}, poType={result.get('poType')}"
+    elif step_name == "verify_docs":
+        summary = f"verified={result.get('verified')}, present={result.get('presentDocs')}, missing={result.get('missingDocs')}"
+    elif step_name == "extract":
+        hd_keys = len(result.get("headerData", {}))
+        sd_keys = list(result.get("supportingData", {}).keys())
+        li_count = len(result.get("lineItems", []))
+        summary = f"headerData={hd_keys} fields, supportingData={sd_keys}, lineItems={li_count}"
+    elif step_name == "validate":
+        rules = result.get("results", [])
+        summary = f"rules={len(rules)}, pass={sum(1 for r in rules if r.get('status')=='PASS')}, fail={sum(1 for r in rules if r.get('status')=='FAIL')}"
+    log.info(f"[{case_id}/{step_name}] Completed in {duration_ms}ms — {summary}")
     return True, result, None, returned_sid
 
 
@@ -137,11 +154,47 @@ def create_workspace(case_id: str) -> Path:
     return ws
 
 
-def prepare_step(workspace: Path, prompt_text: str, output_schema: dict | None):
-    """Write PROMPT.md and OUTPUT_SCHEMA.json to workspace before invocation."""
+def prepare_step(workspace: Path, prompt_text: str, output_schema: dict | None, field_config: dict | None = None):
+    """Write PROMPT.md, OUTPUT_SCHEMA.json, and optionally FIELD_LIST.md to workspace."""
     (workspace / "PROMPT.md").write_text(prompt_text)
     if output_schema:
         (workspace / "OUTPUT_SCHEMA.json").write_text(json.dumps(output_schema, indent=2))
+    if field_config:
+        inv_count = len(field_config.get("invoiceFields") or [])
+        sup_types = list((field_config.get("supportingFields") or {}).keys())
+        sup_count = sum(len(v) for v in (field_config.get("supportingFields") or {}).values())
+        rule_count = len(field_config.get("validationRules") or [])
+        log.info(f"[prepare_step] FIELD_LIST.md: {inv_count} invoice fields, {sup_count} supporting fields ({sup_types}), {rule_count} validation rules")
+        lines = ["# Field Definitions for Extraction\n"]
+        # Invoice fields
+        inv = field_config.get("invoiceFields") or []
+        if inv:
+            lines.append("## Invoice Fields\n")
+            lines.append("| # | Key | Label | Type | Required | Validation | Source Hint |")
+            lines.append("|---|-----|-------|------|----------|------------|-------------|")
+            for i, f in enumerate(inv, 1):
+                lines.append(f"| {i} | {f['key']} | {f['label']} | {f['type']} | {f['required']} | {f.get('validation','')} | {f.get('sourceHint','')} |")
+            lines.append("")
+        # Supporting fields by doc type
+        sup = field_config.get("supportingFields") or {}
+        for doc_type, fields in sup.items():
+            if fields:
+                lines.append(f"## Supporting: {doc_type}\n")
+                lines.append("| # | Key | Label | Type | Required | Validation | Source Hint |")
+                lines.append("|---|-----|-------|------|----------|------------|-------------|")
+                for i, f in enumerate(fields, 1):
+                    lines.append(f"| {i} | {f['key']} | {f['label']} | {f['type']} | {f['required']} | {f.get('validation','')} | {f.get('sourceHint','')} |")
+                lines.append("")
+        # Validation rules
+        val = field_config.get("validationRules") or []
+        if val:
+            lines.append("## Validation Rules\n")
+            lines.append("| Rule ID | Name | Condition | Severity | Action |")
+            lines.append("|---------|------|-----------|----------|--------|")
+            for r in val:
+                lines.append(f"| {r['ruleId']} | {r['ruleName']} | {r['condition']} | {r['severity']} | {r['action']} |")
+            lines.append("")
+        (workspace / "FIELD_LIST.md").write_text("\n".join(lines))
 
 
 def write_master_data(workspace: Path, db):

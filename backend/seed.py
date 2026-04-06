@@ -282,16 +282,110 @@ def _seed_business_rule_configs(db: Session):
 # Invoice Category Configs (from Process Design mandatory doc matrix)
 # ---------------------------------------------------------------------------
 def _seed_invoice_category_configs(db: Session):
-    configs = [
-        ("SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-WAR"),
-        ("RUST_SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-CHG"),
-        ("DELIVERY_INSTALLATION", ["Invoice", "Installation Worksheet"], "GL-DI"),
-        ("FREIGHT_FINISHED_GOODS", ["Invoice", "Commercial Invoice"], "GL-FRT-FG"),
-        ("FREIGHT_SPARE_PARTS", ["Invoice", "Commercial Invoice"], "GL-FRT-SP"),
-        ("FREIGHT_ADDITIONAL_CHARGES", ["Invoice"], "GL-FRT-ADD"),
+    # --- Common invoice fields (16 fields, shared across all categories) ---
+    _INV_FIELDS = [
+        {"key": "vendorName", "label": "Vendor Name", "type": "text", "required": True, "validation": "vendor_master", "edgeCaseAction": "flag_reviewer", "sourceHint": "Top of invoice"},
+        {"key": "vendorAddress", "label": "Vendor Address", "type": "text", "required": True, "validation": "vendor_master_au", "edgeCaseAction": "flag_reviewer", "sourceHint": "Below vendor name"},
+        {"key": "vendorABN", "label": "Vendor ABN", "type": "text", "required": True, "validation": "vendor_master", "edgeCaseAction": "flag_reviewer", "sourceHint": "Near vendor details"},
+        {"key": "billTo", "label": "Bill To", "type": "text", "required": True, "validation": "entity_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Bill To section"},
+        {"key": "invoiceNumber", "label": "Invoice Number", "type": "text", "required": True, "validation": "unique_duplicate_check", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header area"},
+        {"key": "invoiceDate", "label": "Invoice Date", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header area"},
+        {"key": "attachmentReference", "label": "Attachment Reference", "type": "text", "required": True, "validation": "cross_ref_worksheet", "edgeCaseAction": "flag_reviewer", "sourceHint": "Reference/job number on invoice"},
+        {"key": "description", "label": "Description", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Line item area"},
+        {"key": "quantity", "label": "Quantity", "type": "number", "required": True, "validation": "positive", "edgeCaseAction": "flag_reviewer", "sourceHint": "Line item area"},
+        {"key": "unitPrice", "label": "Unit Price", "type": "currency", "required": True, "validation": "rate_card", "edgeCaseAction": "flag_reviewer", "sourceHint": "Line item area"},
+        {"key": "totalPrice", "label": "Total Price", "type": "currency", "required": True, "validation": "math_check", "edgeCaseAction": "flag_reviewer", "sourceHint": "Line item area"},
+        {"key": "subTotal", "label": "Sub-total", "type": "currency", "required": True, "validation": "math_check", "edgeCaseAction": "flag_reviewer", "sourceHint": "Totals section"},
+        {"key": "taxAmount", "label": "Tax Amount", "type": "currency", "required": True, "validation": "tax_rate_check", "edgeCaseAction": "flag_reviewer", "sourceHint": "Totals section"},
+        {"key": "grandTotal", "label": "Grand Total", "type": "currency", "required": True, "validation": "math_sum_check", "edgeCaseAction": "flag_reviewer", "sourceHint": "Totals section"},
+        {"key": "currency", "label": "Currency", "type": "text", "required": True, "validation": "entity_currency_match", "edgeCaseAction": "flag_reviewer", "sourceHint": "Currency symbol or stated"},
+        {"key": "bankDetails", "label": "Bank Details", "type": "text", "required": True, "validation": "vendor_master", "edgeCaseAction": "flag_reviewer", "sourceHint": "Bottom of invoice"},
     ]
-    for name, docs, gl in configs:
-        db.add(InvoiceCategoryConfig(name=name, required_docs=docs, gl_account=gl))
+
+    # --- Contractor supporting: Work Order (RevoFit) ---
+    _WORK_ORDER_FIELDS = [
+        {"key": "workOrderNumber", "label": "Work Order Number", "type": "text", "required": True, "validation": "cross_ref_invoice", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header"},
+        {"key": "customer", "label": "Customer", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "customerAddress", "label": "Customer Address", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "model", "label": "Model", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Equipment section"},
+        {"key": "baseSerial", "label": "Base Serial #", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Equipment section"},
+        {"key": "warrantyStatus", "label": "Warranty Status", "type": "text", "required": True, "validation": "category_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Determines SUBCONTRACTOR vs RUST"},
+        {"key": "notes", "label": "Notes", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Notes section"},
+        {"key": "complaint", "label": "Complaint", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Complaint section"},
+        {"key": "workOrderDetails", "label": "Work Order Details", "type": "text", "required": True, "validation": "amount_match_invoice", "edgeCaseAction": "flag_reviewer", "sourceHint": "Details/amounts section"},
+    ]
+
+    # --- Contractor supporting: Contractor Worksheet ---
+    _WORKSHEET_FIELDS = [
+        {"key": "caseNumber", "label": "Case Number", "type": "text", "required": True, "validation": "cross_ref_invoice", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header (JAU/CNR)"},
+        {"key": "dateJobBooked", "label": "Date Job Booked", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header"},
+        {"key": "customerName", "label": "Customer Name", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "customerAddress", "label": "Customer Address", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "branch", "label": "Branch", "type": "text", "required": True, "validation": "cost_centre_map", "edgeCaseAction": "flag_reviewer", "sourceHint": "Determines cost centre"},
+        {"key": "model", "label": "Model", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Equipment section"},
+        {"key": "serialNumber", "label": "Serial Number", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Equipment section"},
+        {"key": "jobCategory", "label": "Job Category", "type": "text", "required": True, "validation": "category_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Determines GL code"},
+        {"key": "customerPurchaseDate", "label": "Customer Purchase Date", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "customerIssues", "label": "Customer Issues", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Issues section"},
+        {"key": "actionTaken", "label": "Action Taken", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Action section"},
+        {"key": "timeOn", "label": "Time On", "type": "time", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Time section"},
+        {"key": "timeOff", "label": "Time Off", "type": "time", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Time section"},
+        {"key": "customerSignature", "label": "Customer Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
+        {"key": "technicianSignature", "label": "Technician Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
+    ]
+
+    # --- D&I supporting: Installation Worksheet ---
+    _INSTALL_FIELDS = [
+        {"key": "caseNumber", "label": "Case Number", "type": "text", "required": True, "validation": "cross_ref_invoice", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header (CAS)"},
+        {"key": "dateJobBooked", "label": "Date Job Booked", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Header"},
+        {"key": "jobMgr", "label": "Job MGR", "type": "text", "required": True, "validation": "approver_id", "edgeCaseAction": "flag_reviewer", "sourceHint": "Identifies approver"},
+        {"key": "customerName", "label": "Customer Name", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "customerAddress", "label": "Customer Address", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Customer section"},
+        {"key": "salesOrderNumber", "label": "Sales Order Number", "type": "text", "required": True, "validation": "branch_lookup", "edgeCaseAction": "flag_reviewer", "sourceHint": "Determines branch"},
+        {"key": "jobCategory", "label": "Job Category", "type": "text", "required": True, "validation": "always_di", "edgeCaseAction": "flag_reviewer", "sourceHint": "Always 'Delivery & Install'"},
+        {"key": "quoteAmount", "label": "Quote Amount", "type": "currency", "required": True, "validation": "match_invoice_subtotal", "edgeCaseAction": "flag_reviewer", "sourceHint": "Must match invoice sub-total"},
+        {"key": "actionTaken", "label": "Action Taken", "type": "text", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Action section"},
+        {"key": "timeOn", "label": "Time On", "type": "time", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Time section"},
+        {"key": "timeOff", "label": "Time Off", "type": "time", "required": True, "validation": "not_empty", "edgeCaseAction": "flag_reviewer", "sourceHint": "Time section"},
+        {"key": "customerSignature", "label": "Customer Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
+        {"key": "technicianSignature", "label": "Technician Signature", "type": "signature", "required": True, "validation": "present", "edgeCaseAction": "flag_reviewer", "sourceHint": "Signature area"},
+        {"key": "dateJobCompleted", "label": "Date Job Completed", "type": "date", "required": True, "validation": "date_format", "edgeCaseAction": "flag_reviewer", "sourceHint": "Footer"},
+    ]
+
+    # --- Validation rules ---
+    _COMMON_RULES = [
+        {"ruleId": "MATH_CHECK", "ruleName": "Math Verification", "condition": "grandTotal == subTotal + taxAmount", "severity": "ERROR", "action": "flag_reviewer"},
+        {"ruleId": "DUPLICATE", "ruleName": "Duplicate Invoice Check", "condition": "invoiceNumber + vendorName unique within 90 days", "severity": "ERROR", "action": "flag_reviewer"},
+        {"ruleId": "VENDOR_MATCH", "ruleName": "Vendor Master Match", "condition": "vendorName matches vendor master record", "severity": "ERROR", "action": "flag_reviewer"},
+        {"ruleId": "ENTITY_CHECK", "ruleName": "Entity Identification", "condition": "billTo maps to AU or NZ entity", "severity": "ERROR", "action": "flag_reviewer"},
+        {"ruleId": "CURRENCY_CHECK", "ruleName": "Currency Match", "condition": "currency matches entity (AUD=AU, NZD=NZ)", "severity": "ERROR", "action": "flag_reviewer"},
+    ]
+    _CONTRACTOR_RULES = _COMMON_RULES + [
+        {"ruleId": "CROSS_REF", "ruleName": "Worksheet Cross-Reference", "condition": "attachmentReference matches worksheet caseNumber", "severity": "ERROR", "action": "flag_reviewer"},
+    ]
+    _DI_RULES = _CONTRACTOR_RULES + [
+        {"ruleId": "QUOTE_MATCH", "ruleName": "Quote Amount Match", "condition": "worksheet quoteAmount matches invoice subTotal", "severity": "ERROR", "action": "flag_reviewer"},
+    ]
+
+    configs = [
+        ("SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-WAR",
+         _INV_FIELDS, {"Work Order": _WORK_ORDER_FIELDS, "Contractor Worksheet": _WORKSHEET_FIELDS}, _CONTRACTOR_RULES),
+        ("RUST_SUBCONTRACTOR", ["Invoice", "Contractor Worksheet / Service Job Sheet / Work Order"], "GL-SUBCON-CHG",
+         _INV_FIELDS, {"Work Order": _WORK_ORDER_FIELDS, "Contractor Worksheet": _WORKSHEET_FIELDS}, _CONTRACTOR_RULES),
+        ("DELIVERY_INSTALLATION", ["Invoice", "Installation Worksheet"], "GL-DI",
+         _INV_FIELDS, {"Installation Worksheet": _INSTALL_FIELDS}, _DI_RULES),
+        ("FREIGHT_FINISHED_GOODS", ["Invoice", "Commercial Invoice"], "GL-FRT-FG",
+         _INV_FIELDS, {"Commercial Invoice": []}, _COMMON_RULES),
+        ("FREIGHT_SPARE_PARTS", ["Invoice", "Commercial Invoice"], "GL-FRT-SP",
+         _INV_FIELDS, {"Commercial Invoice": []}, _COMMON_RULES),
+        ("FREIGHT_ADDITIONAL_CHARGES", ["Invoice"], "GL-FRT-ADD",
+         _INV_FIELDS, {}, _COMMON_RULES),
+    ]
+    for name, docs, gl, inv_f, sup_f, val_r in configs:
+        db.add(InvoiceCategoryConfig(
+            name=name, required_docs=docs, gl_account=gl,
+            invoice_fields=inv_f, supporting_fields=sup_f, validation_rules=val_r,
+        ))
 
 
 # ---------------------------------------------------------------------------
@@ -582,52 +676,35 @@ LOW: guessed or derived from context
 
 Read attachments/ for invoice and supporting document content.
 Read results/categorize.json for category context.""",
-            business_rules="""## Common Data Points (all categories)
-- Entity Name (from "Bill To" section)
-- Vendor Name
-- Invoice Date
-- Invoice Number (-> SAP Reference Number)
-- Invoice Amount (total including tax)
-- Subtotal (net amount before tax)
-- Tax Amount
-- ABN / GST Number
-- Bank Details
-- Currency
+            business_rules="""## Extraction Instructions
 
-## Category-Specific Data Points
+**Read FIELD_LIST.md for the specific data points to extract for this invoice category.** It contains the complete field definitions, types, and source hints for both invoice and supporting documents.
 
-### SUBCONTRACTOR / RUST_SUBCONTRACTOR (from Invoice + Contractor Worksheet)
-- Job Sheet Number (JAU / CNR / Work Order)
-- Job Category (Warranty Repair or Chargeable Repairs -> determines GL Code)
-- Branch Code (-> determines Cost Centre: Home / Commercial / E-Commerce)
-- Description, Quantity, Unit Price per line item
+## Reading Order
+1. Read results/categorize.json for category and entity.
+2. Read FIELD_LIST.md for the exact fields to extract.
+3. Read each attachment in attachments/ — identify which is the invoice vs supporting docs.
+4. Extract all fields listed in FIELD_LIST.md from the appropriate document.
 
-### DELIVERY_INSTALLATION (from Invoice + Installation Worksheet)
-- Job Sheet Number (CAS)
-- Job Category (Delivery & Installation)
-- Branch / Sales Order Number (-> determines Cost Centre)
-- Quote Amount (from worksheet, to compare with invoice)
-- Description, Quantity, Unit Price per line item
-
-### FREIGHT (FG / SP / Additional) (from Invoice + Commercial Invoice)
-- Origin, Destination
-- Container Type
-- Goods Description
-- Commercial Invoice value (USD, for on-cost calculation)
-- Cost Centre = always Commercial
+## Output Structure
+- `headerData`: all invoice-level fields (vendorName, invoiceNumber, amounts, etc.)
+- `supportingData`: all supporting document fields, keyed by document type name (e.g. "Work Order", "Contractor Worksheet", "Installation Worksheet")
+- `lineItems`: description/quantity/unitPrice/totalPrice rows from the invoice
+- `confidenceScores`: per-field confidence
 
 ## GL Code Derivation
 - Subcontractor Warranty -> 614100
 - Subcontractor Chargeable (Rust) -> 614200
 - D&I -> 615100
-- Freight FG -> 616100
-- Freight SP -> 616200
-- Freight Additional -> 616300
+- Freight FG -> 616100, SP -> 616200, Additional -> 616300
 
 ## Cost Centre Derivation
 - Subcontractor/D&I: from Branch Code on job sheet (Home/Commercial/E-Commerce)
 - RevoFit vendor: always Commercial
-- Freight: always Commercial""",
+- Freight: always Commercial
+
+## Supporting Data Requirement
+You MUST populate the supportingData object. For each supporting document (contractor worksheet, work order, installation worksheet, service job sheet), extract all fields into supportingData keyed by document type. If no supporting document is present in the attachments, return supportingData as an empty object {}.""",
             output_schema={
                 "type": "object",
                 "properties": {
@@ -652,6 +729,11 @@ Read results/categorize.json for category context.""",
                             "taxCode": {"type": "string"},
                             "description": {"type": "string"}
                         }
+                    },
+                    "supportingData": {
+                        "type": "object",
+                        "description": "Supporting document fields keyed by doc type name",
+                        "additionalProperties": {"type": "object"}
                     },
                     "lineItems": {
                         "type": "array",
@@ -683,7 +765,7 @@ Read results/categorize.json for category context.""",
                         }
                     }
                 },
-                "required": ["headerData", "lineItems", "confidenceScores"]
+                "required": ["headerData", "supportingData", "lineItems", "confidenceScores"]
             },
         ),
         # --- Step 5: Validate ---
@@ -714,28 +796,43 @@ For each validation, return:
 - Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json) for validation rules.
 - Do NOT read files in attachments/. The extract step has already read and interpreted the source documents. All data you need is in extract.json.
 - Keep output CONCISE: one-sentence messages per rule. For PASS rules, omit the details field.""",
-            business_rules="""## 4-Way Matching
+            business_rules="""## Validation Instructions
+
+**Read FIELD_LIST.md for the specific validation rules defined for this invoice category.** Apply each rule listed in the Validation Rules section.
+
+## Config-Driven Rules
+Read FIELD_LIST.md for the validation rules defined for this category. For each rule listed:
+- Evaluate the condition against the extracted data
+- Output a result with the exact ruleId from FIELD_LIST.md
+- Use the severity and action specified in the config
+
+## Reading Order
+1. Read results/extract.json for all extracted data (headerData, supportingData, lineItems).
+2. Read FIELD_LIST.md for validation rules.
+3. Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json).
+4. Do NOT read attachments/ — all data is in extract.json.
+
+## 4-Way Matching
 
 ### 1. Invoice <-> Supporting Documents
-- SUBCONTRACTOR: Contractor worksheet number on invoice must match worksheet. Unit prices should match service rate master.
-- D&I: Job number on invoice must match installation worksheet. Subtotal must match quote amount.
+- SUBCONTRACTOR: attachmentReference on invoice must match worksheet caseNumber/workOrderNumber.
+- D&I: attachmentReference must match installation worksheet caseNumber. subTotal must match quoteAmount.
 - FREIGHT: Rates on invoice must match freight rate card.
 
 ### 2. Invoice <-> Vendor Master
-- Bank details on invoice must match vendor master record
-- Vendor name/ABN must match
-- Payment terms should align
+- vendorName and vendorABN must match vendor master record
+- bankDetails must match vendor master
 
-### 3. Invoice <-> Rate Cards / Business Rules
-- Service rates must match service rate card for vendor
-- Freight rates must match freight rate card for route/container
-- Invoice amount must be positive
-- Tax calculation: tax amount should equal net * applicable rate (10% AU, 15% NZ)
+### 3. Math & Tax Checks
+- grandTotal must equal subTotal + taxAmount
+- Tax rate: 10% for AU entity, 15% for NZ entity
 
-### 4. Invoice <-> Entity Rules
-- Australian vendor (ABN) must bill to Australian entity
-- New Zealand vendor must bill to NZ entity
-- Currency must match entity (AUD for AU, NZD for NZ)""",
+### 4. Entity & Currency
+- billTo must map to AU or NZ entity
+- currency must match entity (AUD for AU, NZD for NZ)
+
+### 5. Duplicate Check
+- invoiceNumber + vendorName must be unique within 90-day window""",
             output_schema={
                 "type": "object",
                 "properties": {

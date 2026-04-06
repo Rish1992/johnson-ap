@@ -17,10 +17,14 @@ async def lifespan(app: FastAPI):
     from db import create_tables
     from seed import seed_all
     from db import SessionLocal
+    from migrate import run_migrations
     from agents.runner import kill_orphaned_claude_processes
 
     log.info("Creating DB tables...")
     create_tables()
+
+    log.info("Running migrations...")
+    run_migrations()
 
     log.info("Seeding data (if empty)...")
     db = SessionLocal()
@@ -43,7 +47,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Johnson AP Backend", version="0.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5191", "http://localhost:5190", "https://johnson.dev.fiscalix.com"],
+    allow_origins=["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5181", "http://localhost:5191", "http://localhost:5190", "https://johnson.dev.fiscalix.com"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -54,7 +58,7 @@ class CORSStaticMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
         origin = request.headers.get("origin", "")
-        if origin in ["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5191", "https://johnson.dev.fiscalix.com"]:
+        if origin in ["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5181", "http://localhost:5191", "https://johnson.dev.fiscalix.com"]:
             response.headers["Access-Control-Allow-Origin"] = origin
         return response
 
