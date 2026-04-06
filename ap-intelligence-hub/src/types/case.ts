@@ -65,6 +65,7 @@ export interface Case {
   rejectedByName: string | null;
   rejectionReason: string | null;
   rejectedAt: string | null;
+  extractedFields?: ExtractedField[];
   poType?: 'PO' | 'NON_PO';
   entity?: 'AU' | 'NZ';
   isRead?: boolean;
@@ -112,6 +113,18 @@ export interface LineItem {
   taxAmount: number;
   glAccount: string;
   costCenter: string;
+}
+
+export interface ExtractedField {
+  doc: string;
+  key: string;
+  text: string;
+  value: string | number | null;
+  page: number;
+  file: string;
+  bbox?: { x: number; y: number; width: number; height: number };
+  status?: string;
+  flags?: string[];
 }
 
 export interface BoundingBox {

@@ -47,9 +47,9 @@ export function getSlaStatus(deadline: string): { label: string; variant: 'defau
 }
 
 export function formatConfidence(score: number): string {
-  // Score can be 0-1 or 0-100; normalize to percentage with 2 decimals
+  // Score can be 0-1 or 0-100; normalize to whole-number percentage
   const pct = score <= 1 ? score * 100 : score;
-  return pct.toFixed(2);
+  return String(Math.round(pct));
 }
 
 export function formatNumber(num: number): string {

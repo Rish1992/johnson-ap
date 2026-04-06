@@ -16,14 +16,26 @@
     {
       "doc": "Invoice",
       "key": "vendorName",
+      "text": "Blue SL Pty Ltd",
       "value": "Blue SL Pty Ltd",
-      "page": 1
+      "page": 1,
+      "file": "4. Blue SL  16156T-1-2.pdf"
+    },
+    {
+      "doc": "Invoice",
+      "key": "invoiceDate",
+      "text": "17th March 2026",
+      "value": "2026-03-17",
+      "page": 1,
+      "file": "4. Blue SL  16156T-1-2.pdf"
     },
     {
       "doc": "Contractor Worksheet",
       "key": "caseNumber",
+      "text": "JAU260100588",
       "value": "JAU260100588",
-      "page": 3
+      "page": 1,
+      "file": "4. Blue SL  16156T-3.pdf"
     }
   ],
   "lineItems": [
@@ -39,7 +51,15 @@
 }
 ```
 
-That's it. No `confidenceScores`, no `level`, no `extractedValue` duplication, no `headerData`/`supportingData` nesting.
+6 fields per extraction:
+- `doc` — document type from field config ("Invoice", "Contractor Worksheet", etc.)
+- `key` — field key from field config
+- `text` — exact text as it appears on the document (for OCR/bbox matching)
+- `value` — normalized value (ISO dates, cleaned numbers, canonical formats — for validation/comparison)
+- `page` — page number within the file
+- `file` — filename in the workspace (LLM already knows this)
+
+No `confidenceScores`, no `level`, no `extractedValue` duplication, no `headerData`/`supportingData` nesting.
 
 ### 1.2 Post-Processing Enrichment (what pipeline.py adds)
 

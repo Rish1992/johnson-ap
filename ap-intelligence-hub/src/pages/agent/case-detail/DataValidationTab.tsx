@@ -30,49 +30,16 @@ import {
 import { formatCurrency } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
 import { toast } from 'sonner';
-import type { ConfidenceLevel, BoundingBox } from '@/types/case';
+import type { ConfidenceLevel, BoundingBox, ExtractedField } from '@/types/case';
 
 // ---------------------------------------------------------------------------
-// Deterministic hash for a string -> number in [0, 1)
-// Used to generate synthetic confidence scores that are stable across renders
+// Simple field presence indicator (green check / red X)
 // ---------------------------------------------------------------------------
-function hashString(str: string): number {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash) / 2147483647; // normalise to 0-1
-}
-
-function syntheticConfidence(fieldKey: string, overallConfidence: number): { value: number; level: ConfidenceLevel } {
-  // Produce a deterministic value in [overall*0.85, overall*1.0]
-  const h = hashString(fieldKey);
-  const raw = overallConfidence * (0.85 + h * 0.15);
-  const clamped = Math.min(raw, 1);
-  const level: ConfidenceLevel = clamped >= 0.85 ? 'HIGH' : clamped >= 0.7 ? 'MEDIUM' : 'LOW';
-  return { value: clamped, level };
-}
-
-// ---------------------------------------------------------------------------
-// Format a 0-1 confidence score to "XX.XX" for display.
-// If the value is already > 1 (i.e. already on 0-100 scale), don't multiply.
-// ---------------------------------------------------------------------------
-function formatConfidencePercent(score: number): string {
-  const pct = score > 1 ? score : score * 100;
-  return pct.toFixed(2);
-}
-
-
-// ---------------------------------------------------------------------------
-// Inline ConfidenceBadge that formats to 2 decimal places
-// Wraps the shared component but overrides the score display
-// ---------------------------------------------------------------------------
-function InlineConfidenceBadge({ score, level }: { score: number; level: ConfidenceLevel }) {
-  const pctString = formatConfidencePercent(score);
-  // We render our own percentage display because the shared component
-  // does `{score}%` which won't give us 2 decimal places.
-  return (
-    <ConfidenceBadge score={Number(pctString)} level={level} />
+function FieldPresenceBadge({ hasValue }: { hasValue: boolean }) {
+  return hasValue ? (
+    <span className="text-green-600 text-xs font-medium">&#10003;</span>
+  ) : (
+    <span className="text-red-500 text-xs font-medium">&#10007;</span>
   );
 }
 
@@ -188,6 +155,17 @@ export function DataValidationTab() {
     return Object.values(sd).reduce((acc, docFields) => ({ ...acc, ...(docFields || {}) }), {} as Record<string, unknown>);
   }, [selectedCase?.supportingData]);
 
+  // Build lookup from extractedFields for bbox and presence checks
+  const fieldsByDoc = useMemo(() => {
+    const fields = selectedCase?.extractedFields || [];
+    const map: Record<string, Record<string, ExtractedField>> = {};
+    for (const f of fields) {
+      if (!map[f.doc]) map[f.doc] = {};
+      map[f.doc][f.key] = f;
+    }
+    return map;
+  }, [selectedCase?.extractedFields]);
+
   if (!selectedCase || !draftHeaderData) return null;
 
   const headerData = { ...selectedCase.headerData, ...draftHeaderData };
@@ -195,14 +173,6 @@ export function DataValidationTab() {
 
   const isReadOnly = !['EXTRACTED', 'IN_REVIEW', 'RETURNED'].includes(selectedCase.status);
 
-  // Build confidence map for ALL fields
-  const getFieldConfidence = (fieldKey: string): { value: number; level: ConfidenceLevel } => {
-    const explicit = selectedCase.confidenceScores[fieldKey];
-    if (explicit) {
-      return { value: explicit.value, level: explicit.level };
-    }
-    return syntheticConfidence(fieldKey, selectedCase.overallConfidence);
-  };
 
   const handleSaveDraft = async () => {
     setIsSaving(true);
@@ -402,7 +372,7 @@ export function DataValidationTab() {
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                   {activeDocumentType === 'JOB_SHEET' ? 'Job Sheet Data' : 'Invoice Data'}
                   {!hideConfidence && selectedCase.overallConfidence > 0 && (
-                    <InlineConfidenceBadge
+                    <ConfidenceBadge
                       score={selectedCase.overallConfidence}
                       level={selectedCase.overallConfidenceLevel}
                     />
@@ -410,8 +380,10 @@ export function DataValidationTab() {
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {headerFields.map((field) => {
-                    const confidence = getFieldConfidence(field.key);
-                    const bbox = selectedCase.confidenceScores[field.key]?.bbox ?? null;
+                    const ef = activeDocumentType === 'JOB_SHEET'
+                      ? Object.entries(fieldsByDoc).filter(([doc]) => doc !== 'Invoice').map(([, fields]) => fields[field.key]).find(f => f)
+                      : fieldsByDoc['Invoice']?.[field.key];
+                    const bbox = ef?.bbox ? { page: ef.page ?? 1, x: ef.bbox.x, y: ef.bbox.y, width: ef.bbox.width, height: ef.bbox.height } as BoundingBox : null;
                     const dataSource = activeDocumentType === 'JOB_SHEET' ? supportingData : headerData as unknown as Record<string, unknown>;
                     const value = dataSource[field.key];
                     const original = (selectedCase.headerData as unknown as Record<string, unknown>)[field.key];
@@ -435,7 +407,7 @@ export function DataValidationTab() {
                                 Edited
                               </Badge>
                             )}
-                            {!hideConfidence && (<InlineConfidenceBadge score={confidence.value} level={confidence.level} />)}
+                            {!hideConfidence && <FieldPresenceBadge hasValue={value != null && value !== ''} />}
                           </div>
                         </div>
                         {field.type === 'select' ? (
