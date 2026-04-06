@@ -116,11 +116,12 @@ async def run_claude_step(
     # Log result summary per step type
     summary = ""
     if step_name == "classify":
-        summary = f"classification={result.get('classification')}, confidence={result.get('confidence')}"
+        summary = f"classification={result.get('classification')}"
     elif step_name == "categorize":
-        summary = f"category={result.get('category')}, entity={result.get('entity')}, poType={result.get('poType')}"
-    elif step_name == "verify_docs":
-        summary = f"verified={result.get('verified')}, present={result.get('presentDocs')}, missing={result.get('missingDocs')}"
+        docs = result.get("documents", [])
+        present = [d["type"] for d in docs if d.get("status") == "PRESENT"]
+        missing = [d["type"] for d in docs if d.get("status") == "MISSING"]
+        summary = f"category={result.get('category')}, entity={result.get('entity')}, poType={result.get('poType')}, freightType={result.get('freightType')}, docs_present={present}, docs_missing={missing}"
     elif step_name == "extract":
         fields = result.get("fields", [])
         inv_count = sum(1 for f in fields if f.get("doc") == "Invoice")

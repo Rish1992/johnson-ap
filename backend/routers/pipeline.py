@@ -26,7 +26,7 @@ from agents.bbox_locator import find_invoice_pdf, locate_bboxes
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
 
-STEPS_BACKEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
+STEPS_BACKEND = ["classify", "categorize", "extract", "validate"]
 
 
 def _load_field_config(ws: Path, db) -> dict | None:
@@ -53,7 +53,7 @@ def _load_field_config(ws: Path, db) -> dict | None:
     }
     log.info(f"[field_config] Loaded config for {cat}: {len(fc['invoiceFields'])} invoice fields, {len(fc['validationRules'])} rules")
     return fc
-STEPS_FRONTEND = ["classify", "categorize", "verify_docs", "extract", "validate"]
+STEPS_FRONTEND = ["classify", "categorize", "extract", "validate"]
 PROMPT_TEXT = (
     "Read PROMPT.md for your instructions and OUTPUT_SCHEMA.json for the expected output format. "
     "Follow the file-reading instructions in PROMPT.md exactly — read only the files it tells you to read. "
@@ -340,7 +340,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
         job.steps = _update_step(job.steps, "classify", "success", output=result, duration_ms=duration)
         email.classification = result.get("classification", "INVOICE")
-        email.classification_confidence = result.get("confidence", 0)
+        email.classification_confidence = 0  # confidence removed from classify schema
         email.status = "CLASSIFIED"
         db.commit()
 
@@ -349,7 +349,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             job.current_step = None
             job.completed_at = utcnow()
             # Mark remaining steps skipped
-            for s in ["categorize", "verify_docs", "extract", "validate"]:
+            for s in ["categorize", "extract", "validate"]:
                 job.steps = _update_step(job.steps, s, "skipped")
             db.commit()
             return
@@ -404,19 +404,42 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         case_id = case_dict["id"]
         job.case_id = case_id
 
-        # Populate vendor info from categorize result
+        # Populate vendor info and doc verification from categorize result
         cat_step = next((s for s in job.steps if s["name"] == "categorize"), None)
         cat_output = cat_step.get("output") if cat_step else None
         if cat_output and isinstance(cat_output, dict):
-            vm = cat_output.get("vendorMatch") or {}
-            if vm:
-                case = db.query(Case).filter(Case.id == case_id).first()
-                if case:
+            case = db.query(Case).filter(Case.id == case_id).first()
+            if case:
+                vm = cat_output.get("vendorMatch") or {}
+                if vm:
                     case.vendor_name = vm.get("vendorName", "") or vm.get("name", "")
                     case.vendor_id = vm.get("vendorId", "")
                     case.vendor_number = vm.get("vendorNumber", "")
                     case.contract_number = vm.get("contractNumber")
                     case.contract_status = vm.get("contractStatus")
+
+                # Store missing docs in business_rule_results (backward compat: key="verify_docs" for frontend)
+                docs = cat_output.get("documents", [])
+                missing = [d["type"] for d in docs if d.get("status") == "MISSING"]
+                if missing:
+                    existing_br = case.business_rule_results or []
+                    existing_br.append({"step": "verify_docs", "output": {"missingDocs": missing, "verified": False}})
+                    case.business_rule_results = existing_br
+                    flag_modified(case, "business_rule_results")
+
+                # Tag attachments with documentType from categorize documents array
+                atts = case.attachments or []
+                for doc in docs:
+                    doc_type = doc.get("type", "")
+                    fname = doc.get("file", "")
+                    if fname and doc.get("status") == "PRESENT":
+                        normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
+                        for att in atts:
+                            if fname in att.get("fileUrl", ""):
+                                att["documentType"] = normalized
+                case.attachments = atts
+                flag_modified(case, "attachments")
+                case.updated_at = utcnow()
         db.commit()
 
         # Copy pre-case results into case workspace
@@ -427,8 +450,8 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         for f in (temp_ws / "attachments").iterdir():
             shutil.copy2(str(f), str(case_ws / "attachments" / f.name))
 
-        # Steps 4-6: verify_docs, extract, validate
-        remaining = [("verify_docs", case_id, temp_ws), ("extract", case_id, temp_ws), ("validate", case_id, temp_ws)]
+        # Steps 3-4: extract, validate
+        remaining = [("extract", case_id, temp_ws), ("validate", case_id, temp_ws)]
         for step_name, sid, ws in remaining:
             template = db.query(PromptTemplate).filter(
                 PromptTemplate.step_name == step_name, PromptTemplate.is_active == True
@@ -488,28 +511,7 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             db.commit()
 
             # Update case record with step results
-            if step_name == "verify_docs" and result:
-                case = db.query(Case).filter(Case.id == case_id).first()
-                if case:
-                    # Store verify_docs output alongside business_rule_results
-                    existing_br = case.business_rule_results or []
-                    verify_entry = {"step": "verify_docs", "output": result}
-                    case.business_rule_results = existing_br + [verify_entry]
-                    flag_modified(case, "business_rule_results")
-                    # Tag attachments with documentType from verify_docs
-                    atts = case.attachments or []
-                    for detail in result.get("details", []):
-                        doc_type = detail.get("documentType", "")
-                        fname = detail.get("fileName", "")
-                        normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
-                        for att in atts:
-                            if fname and fname in att.get("fileUrl", ""):
-                                att["documentType"] = normalized
-                    case.attachments = atts
-                    flag_modified(case, "attachments")
-                    case.updated_at = utcnow()
-                db.commit()
-            elif step_name == "extract" and result:
+            if step_name == "extract" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
                 fields = result.get("fields", [])
                 case.extracted_fields = fields
@@ -543,9 +545,14 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
                 db.commit()
             elif step_name == "validate" and result:
                 case = db.query(Case).filter(Case.id == case_id).first()
-                # Preserve verify_docs entry, append validate results
+                # Compute overallStatus from individual rule results
+                results_list = result.get("results", [])
+                has_fail = any(r.get("status") == "FAIL" for r in results_list)
+                has_warning = any(r.get("status") == "WARNING" for r in results_list)
+                overall = "FAIL" if has_fail else "WARNING" if has_warning else "PASS"
+                # Append validate results to existing business_rule_results
                 existing_br = case.business_rule_results or []
-                validate_entry = {"step": "validate", "output": result.get("results", [])}
+                validate_entry = {"step": "validate", "output": results_list, "overallStatus": overall}
                 case.business_rule_results = existing_br + [validate_entry]
                 flag_modified(case, "business_rule_results")
                 case.status = "IN_REVIEW"

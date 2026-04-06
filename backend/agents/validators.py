@@ -40,11 +40,8 @@ def _validate_classify(result: dict, category: str | None, db, workspace: Path =
         errors.append("missing 'classification' field")
     elif c not in VALID_CLASSIFICATIONS:
         errors.append(f"classification '{c}' not in {VALID_CLASSIFICATIONS}")
-    conf = result.get("confidence")
-    if conf is None:
-        errors.append("missing 'confidence' field")
-    elif not isinstance(conf, (int, float)) or not (0 <= conf <= 1):
-        errors.append(f"confidence must be a number 0-1, got {conf}")
+    if not result.get("reasoning"):
+        errors.append("missing or empty 'reasoning' field")
     return errors
 
 
@@ -65,26 +62,28 @@ def _validate_categorize(result: dict, category: str | None, db, workspace: Path
         errors.append("missing 'poType' field")
     elif pt not in VALID_PO_TYPES:
         errors.append(f"poType '{pt}' not in {VALID_PO_TYPES}")
-    if result.get("confidence") is None:
-        errors.append("missing 'confidence' field")
-    return errors
-
-
-def _validate_verify_docs(result: dict, category: str | None, db, workspace: Path = None) -> list[str]:
-    errors = []
-    if not isinstance(result.get("verified"), bool):
-        errors.append("'verified' must be a boolean")
-    details = result.get("details")
-    if not isinstance(details, list):
-        errors.append("'details' must be a list")
+    ft = result.get("freightType")
+    if ft is not None and ft not in ("SEA", "AIR"):
+        errors.append(f"freightType must be null, 'SEA', or 'AIR', got '{ft}'")
+    vm = result.get("vendorMatch")
+    if not isinstance(vm, dict):
+        errors.append("'vendorMatch' must be an object")
+    elif "vendorId" not in vm or "vendorName" not in vm:
+        errors.append("vendorMatch must have 'vendorId' and 'vendorName' keys")
+    docs = result.get("documents")
+    if not isinstance(docs, list):
+        errors.append("'documents' must be a list")
     else:
-        for i, d in enumerate(details):
+        for i, d in enumerate(docs):
             if not isinstance(d, dict):
-                errors.append(f"details[{i}] must be an object")
+                errors.append(f"documents[{i}] must be an object")
                 continue
-            for key in ("documentType", "fileName", "status"):
-                if key not in d:
-                    errors.append(f"details[{i}] missing '{key}'")
+            if "type" not in d:
+                errors.append(f"documents[{i}] missing 'type'")
+            if "status" not in d:
+                errors.append(f"documents[{i}] missing 'status'")
+    if not result.get("reasoning"):
+        errors.append("missing or empty 'reasoning' field")
     return errors
 
 
@@ -112,16 +111,16 @@ def _validate_extract(result: dict, category: str | None, db, workspace: Path = 
         from models import InvoiceCategoryConfig
         cfg = db.query(InvoiceCategoryConfig).filter(InvoiceCategoryConfig.name == category).first()
         if cfg:
-            # Determine which doc types are actually present (from verify_docs)
+            # Determine which doc types are actually present (from categorize documents)
             present_docs = {"Invoice"}  # Invoice is always expected
             if workspace:
-                verify_file = workspace / "results" / "verify_docs.json"
-                if verify_file.exists():
+                cat_file = workspace / "results" / "categorize.json"
+                if cat_file.exists():
                     try:
-                        vd = json.loads(verify_file.read_text())
-                        for detail in vd.get("details", []):
-                            if detail.get("status") == "PRESENT":
-                                present_docs.add(detail.get("documentType", ""))
+                        cd = json.loads(cat_file.read_text())
+                        for doc in cd.get("documents", []):
+                            if doc.get("status") == "PRESENT":
+                                present_docs.add(doc.get("type", ""))
                     except (json.JSONDecodeError, KeyError):
                         pass
 
@@ -159,17 +158,27 @@ def _validate_validate(result: dict, category: str | None, db, workspace: Path =
             if not isinstance(r, dict):
                 errors.append(f"results[{i}] must be an object")
                 continue
-            if "ruleId" not in r and "ruleName" not in r:
-                errors.append(f"results[{i}] missing 'ruleId' or 'ruleName'")
+            if "ruleId" not in r:
+                errors.append(f"results[{i}] missing 'ruleId'")
             if "status" not in r:
                 errors.append(f"results[{i}] missing 'status'")
+            if "message" not in r:
+                errors.append(f"results[{i}] missing 'message'")
+            # Validate fields array entries if present
+            fields = r.get("fields")
+            if fields is not None:
+                if not isinstance(fields, list):
+                    errors.append(f"results[{i}].fields must be a list")
+                else:
+                    for j, f in enumerate(fields):
+                        if not isinstance(f, dict) or "doc" not in f or "key" not in f:
+                            errors.append(f"results[{i}].fields[{j}] must have 'doc' and 'key'")
     return errors
 
 
 VALIDATORS = {
     "classify": _validate_classify,
     "categorize": _validate_categorize,
-    "verify_docs": _validate_verify_docs,
     "extract": _validate_extract,
     "validate": _validate_validate,
 }

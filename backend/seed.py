@@ -488,10 +488,7 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Your t
 {{BUSINESS_RULES}}
 
 ## Output
-Return a JSON object with:
-- classification: "INVOICE" or "NON_INVOICE"
-- confidence: float 0-1
-- signals: object with sender, body, attachment analysis details
+Output only classification and a brief reasoning sentence for audit.
 
 Read email.json in this workspace for the email content and attachments/ for attachment content.""",
             business_rules="""## Classification Rules
@@ -522,38 +519,31 @@ Non-invoice indicators: "payment reminder", "overdue payment", "statement of acc
                 "type": "object",
                 "properties": {
                     "classification": {"type": "string", "enum": ["INVOICE", "NON_INVOICE", "AMBIGUOUS"]},
-                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-                    "signals": {
-                        "type": "object",
-                        "properties": {
-                            "sender": {"type": "string"},
-                            "body": {"type": "string"},
-                            "attachment": {"type": "string"}
-                        }
-                    }
+                    "reasoning": {"type": "string"}
                 },
-                "required": ["classification", "confidence", "signals"]
+                "required": ["classification", "reasoning"]
             },
         ),
         # --- Step 2: Categorize ---
         PromptTemplate(
             step_name="categorize",
             display_name="Invoice Categorization & Entity ID",
-            technical_prompt="""# Invoice Categorization & Entity Identification Agent
+            technical_prompt="""# Invoice Categorization, Entity ID & Document Verification Agent
 
-You are an AP invoice processing agent for Johnson Health Tech Australia. Classify the invoice into a category and identify the billing entity.
+You are an AP invoice processing agent for Johnson Health Tech Australia. Classify the invoice into a category, identify the billing entity, and verify which supporting documents are present.
 
 {{BUSINESS_RULES}}
 
 ## Output
-Return a JSON object with category, entity, poType, vendorMatch, confidence, reasoning.
+Return a JSON object with category, entity, poType, freightType, vendorMatch, documents, reasoning.
 
 ## Efficiency Protocol — follow this file-reading order exactly
 1. Read results/classify.json — it contains the classify agent's analysis of sender reputation, email body, and attachment content.
 2. Read email.json for sender/subject context.
 3. Read master-data/vendors.json for vendor matching against sender name/domain.
 4. At this point, attempt category determination from: classify signals, email subject (job refs like JAU/CNR/CAS, vendor names, keywords like "freight", "delivery"), and vendor match.
-5. Only open files in attachments/ if steps 1-4 are insufficient — i.e., email subject is generic, no job references found, vendor not matched, and classify attachment analysis doesn't identify the document type clearly enough to determine category.""",
+5. Only open files in attachments/ if steps 1-4 are insufficient — i.e., email subject is generic, no job references found, vendor not matched, and classify attachment analysis doesn't identify the document type clearly enough to determine category.
+6. After determining category, check attachment FILENAMES first — the document splitter names fragments like {stem}_doc1_invoice.pdf, {stem}_doc2_job_sheet.pdf, {stem}_doc3_supporting.pdf. Match filenames against required document types. Only read full PDF content if filenames are ambiguous.""",
             business_rules="""## Categories (Phase 1)
 
 ### SUBCONTRACTOR
@@ -595,39 +585,82 @@ Return a JSON object with category, entity, poType, vendorMatch, confidence, rea
 ## PO Type
 - Determine if PO or NON_PO based on presence of Purchase Order reference
 
+## Freight Type
+- Set freightType to "SEA" or "AIR" for freight categories only (FREIGHT_FINISHED_GOODS, FREIGHT_SPARE_PARTS, FREIGHT_ADDITIONAL_CHARGES).
+- SEA: Container Number/Type present, Import Customs Broker contains "MAINFREIGHT AIR & OCEAN", Ocean Bill of Lading.
+- AIR: Flight Details present, no container details.
+- Default to "AIR" if neither indicator is clearly present.
+- Set to null for non-freight categories.
+
 ## Vendor Matching
 - Compare sender/invoice vendor name against vendors.json in master-data/
-- Return best match with confidence
+- Return best match with vendorId and vendorName
 
 ## Classification Priority
 1. Vendor-based identification (highest priority)
 2. Invoice reference numbers (JAU/CNR/CAS)
-3. Description keywords""",
+3. Description keywords
+
+## Document Verification
+
+After determining category, identify which documents are present in the attachments directory.
+
+### Mandatory Documents Matrix
+| Category | Required Documents |
+|----------|-------------------|
+| SUBCONTRACTOR | Invoice + Contractor Worksheet / Service Job Sheet / Work Order |
+| RUST_SUBCONTRACTOR | Invoice + Contractor Worksheet / Service Job Sheet / Work Order |
+| DELIVERY_INSTALLATION | Invoice + Installation Worksheet |
+| FREIGHT_FINISHED_GOODS | Invoice + Commercial Invoice |
+| FREIGHT_SPARE_PARTS | Invoice + Commercial Invoice |
+| FREIGHT_ADDITIONAL_CHARGES | Invoice only |
+
+For each expected document type for this category (Invoice + supporting docs from FIELD_LIST.md), report whether it is PRESENT or MISSING.
+For PRESENT documents, include the filename. For MISSING documents, set file to null.
+
+### Document Type Identification
+- Invoice: contains "Tax Invoice", "Invoice Number", amounts
+- Contractor Worksheet: contains "JAU"/"CNR" reference, job details, branch code
+- Service Job Sheet: contains service details, technician info
+- Work Order: contains work order reference, task descriptions
+- Installation Worksheet: contains "CAS" reference, delivery/installation details
+- Commercial Invoice: contains shipment details, goods description, origin/destination""",
             output_schema={
                 "type": "object",
                 "properties": {
                     "category": {"type": "string", "enum": ["SUBCONTRACTOR", "RUST_SUBCONTRACTOR", "DELIVERY_INSTALLATION", "FREIGHT_FINISHED_GOODS", "FREIGHT_SPARE_PARTS", "FREIGHT_ADDITIONAL_CHARGES"]},
                     "entity": {"type": "string", "enum": ["AU", "NZ"]},
                     "poType": {"type": "string", "enum": ["PO", "NON_PO"]},
+                    "freightType": {"type": "string", "enum": ["SEA", "AIR"], "nullable": True},
                     "vendorMatch": {
                         "type": "object",
                         "properties": {
                             "vendorId": {"type": "string"},
-                            "vendorNumber": {"type": "string"},
-                            "vendorName": {"type": "string"},
-                            "confidence": {"type": "number"}
+                            "vendorName": {"type": "string"}
                         }
                     },
-                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    "documents": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {"type": "string"},
+                                "file": {"type": "string"},
+                                "status": {"type": "string", "enum": ["PRESENT", "MISSING"]}
+                            },
+                            "required": ["type", "status"]
+                        }
+                    },
                     "reasoning": {"type": "string"}
                 },
-                "required": ["category", "entity", "poType", "confidence"]
+                "required": ["category", "entity", "poType", "vendorMatch", "documents", "reasoning"]
             },
         ),
-        # --- Step 3: Verify Docs ---
+        # --- Step 3: Verify Docs (INACTIVE — absorbed into categorize) ---
         PromptTemplate(
             step_name="verify_docs",
             display_name="Supporting Document Verification",
+            is_active=False,
             technical_prompt="""# Supporting Document Verification Agent
 
 You are an AP invoice processing agent for Johnson Health Tech Australia. Verify that all mandatory supporting documents are present for the identified invoice category.
@@ -791,22 +824,20 @@ You are an AP invoice processing agent for Johnson Health Tech Australia. Valida
 
 ## Rule Results
 For each validation, return:
-- ruleId, ruleName, description
-- status: PASS | FAIL | WARNING | SKIPPED
-- severity: ERROR | WARNING | INFO
-- message explaining the result
-- expectedValue vs actualValue (when applicable)
+- ruleId: unique identifier for the rule
+- ruleName: human-readable name (optional, include for clarity)
+- status: PASS | FAIL | WARNING | INFO
+- message: one-sentence explanation
+- expectedValue, actualValue: include only for FAIL/WARNING rules
+- fields: array of {doc, key} pairs you checked for this rule
 
-## Overall Status
-- All PASS -> "PASS"
-- Any FAIL with ERROR severity -> "FAIL"
-- Any WARNING but no ERROR fails -> "WARNING"
+Do NOT include overallStatus — it is computed by the system.
 
 ## Efficiency Protocol — follow these rules exactly
 - Read ONLY results/extract.json for all extracted data. It contains a flat `fields` array (each entry: {doc, key, text, value, page, file}) and a `lineItems` array.
 - Read master-data/ files (vendors.json, service-rate-cards.json, freight-rate-cards.json, approval-rules.json) for validation rules.
 - Do NOT read files in attachments/. The extract step has already read and interpreted the source documents. All data you need is in extract.json.
-- Keep output CONCISE: one-sentence messages per rule. For PASS rules, omit the details field.""",
+- Keep output CONCISE: one-sentence messages per rule.""",
             business_rules="""## Validation Instructions
 
 **Read FIELD_LIST.md for the specific validation rules defined for this invoice category.** Apply each rule listed in the Validation Rules section.
@@ -815,7 +846,9 @@ For each validation, return:
 Read FIELD_LIST.md for the validation rules defined for this category. For each rule listed:
 - Evaluate the condition against the extracted data
 - Output a result with the exact ruleId from FIELD_LIST.md
-- Use the severity and action specified in the config
+- For each rule, include a `fields` array listing the (doc, key) pairs you checked. Example: `"fields": [{"doc": "Invoice", "key": "grandTotal"}, {"doc": "Invoice", "key": "subTotal"}]`
+- For PASS rules, omit expectedValue and actualValue. For FAIL/WARNING rules, include them.
+- Do NOT include overallStatus — it is computed by the system.
 
 ## Reading extract.json — Flat Fields Format
 Read results/extract.json — it contains a flat `fields` array where each entry has {doc, key, text, value, page, file}.
@@ -898,21 +931,27 @@ Read results/extract.json — it contains a flat `fields` array where each entry
                             "properties": {
                                 "ruleId": {"type": "string"},
                                 "ruleName": {"type": "string"},
-                                "description": {"type": "string"},
-                                "status": {"type": "string", "enum": ["PASS", "FAIL", "WARNING", "SKIPPED"]},
+                                "status": {"type": "string", "enum": ["PASS", "FAIL", "WARNING", "INFO"]},
                                 "message": {"type": "string"},
-                                "severity": {"type": "string", "enum": ["ERROR", "WARNING", "INFO"]},
                                 "expectedValue": {"type": "string"},
                                 "actualValue": {"type": "string"},
-                                "matchedAgainst": {"type": "string"},
-                                "details": {"type": "string"}
+                                "fields": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "doc": {"type": "string"},
+                                            "key": {"type": "string"}
+                                        },
+                                        "required": ["doc", "key"]
+                                    }
+                                }
                             },
-                            "required": ["ruleId", "ruleName", "status", "message", "severity"]
+                            "required": ["ruleId", "status", "message"]
                         }
-                    },
-                    "overallStatus": {"type": "string", "enum": ["PASS", "FAIL", "WARNING"]}
+                    }
                 },
-                "required": ["results", "overallStatus"]
+                "required": ["results"]
             },
         ),
     ]
