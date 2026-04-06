@@ -279,9 +279,14 @@ export function DataValidationTab() {
 
   // Fields shown — dynamic from API, no hardcoded fallback
   const invoiceFields = dynamicInvoiceFields ?? [];
-  const jobSheetFields = dynamicSupportingFields
-    ? Object.values(dynamicSupportingFields).flat()
-    : [];
+  const jobSheetFields = useMemo(() => {
+    if (!dynamicSupportingFields) return [];
+    // Only show fields for doc types that have extracted data
+    const extractedDocTypes = new Set(Object.keys(fieldsByDoc).filter(d => d !== 'Invoice'));
+    return Object.entries(dynamicSupportingFields)
+      .filter(([docType]) => extractedDocTypes.has(docType))
+      .flatMap(([, fields]) => fields);
+  }, [dynamicSupportingFields, fieldsByDoc]);
   const headerFields = activeDocumentType === 'JOB_SHEET' ? jobSheetFields : invoiceFields;
   const fieldConfigMissing = !dynamicInvoiceFields;
 
@@ -558,7 +563,7 @@ export function DataValidationTab() {
                     Approval Sequence
                   </h3>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Auto-identified based on invoice amount ({formatCurrency(headerData.totalAmount, headerData.currency)}). Reorder or modify as needed.
+                    Auto-identified based on invoice amount ({formatCurrency(headerData.grandTotal || headerData.totalAmount, headerData.currency)}). Reorder or modify as needed.
                   </p>
 
                   {/* Selected approvers in order */}
