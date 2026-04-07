@@ -85,10 +85,11 @@ export function DataValidationTab() {
   const [dynamicInvoiceFields, setDynamicInvoiceFields] = useState<{ key: string; label: string; type: string }[] | null>(null);
   const [dynamicSupportingFields, setDynamicSupportingFields] = useState<Record<string, { key: string; label: string; type: string }[]> | null>(null);
 
-  // Determine which document types are available based on category
+  // Determine which document types are available based on category AND actual attachments
   const availableDocTypes = useMemo(() => {
     if (!selectedCase) return ['INVOICE'] as const;
-    if (selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') {
+    const hasJobSheet = (selectedCase.attachments ?? []).some(a => a.documentType === 'JOB_SHEET');
+    if (hasJobSheet && (selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION')) {
       return ['INVOICE', 'JOB_SHEET'] as const;
     }
     return ['INVOICE'] as const;
@@ -99,13 +100,13 @@ export function DataValidationTab() {
     // Load GL accounts from real API
     import('@/lib/handlers').then(({ fetchGLAccounts }) => {
       fetchGLAccounts().then((accounts: { accountNumber: string; name: string }[]) => {
-        setGLAccounts(accounts.map(a => a.accountNumber));
+        setGLAccounts(accounts.map(a => ({ id: a.accountNumber, accountNumber: a.accountNumber, name: a.name })));
       });
     });
     // Load approvers from real API
     import('@/lib/handlers').then(({ fetchUsers }) => {
       fetchUsers().then((users: { id: string; role: string; isActive: boolean; fullName: string; department?: string; approvalLimit?: number }[]) => {
-        const totalAmount = selectedCase?.headerData.totalAmount ?? 0;
+        const totalAmount = selectedCase?.headerData.grandTotal ?? 0;
         const reviewers = users
           .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
           .map((u, idx) => ({
@@ -165,6 +166,16 @@ export function DataValidationTab() {
     }
     return map;
   }, [selectedCase?.extractedFields]);
+
+  // Fields shown — dynamic from API, no hardcoded fallback
+  const invoiceFields = dynamicInvoiceFields ?? [];
+  const jobSheetFields = useMemo(() => {
+    if (!dynamicSupportingFields) return [];
+    const extractedDocTypes = new Set(Object.keys(fieldsByDoc).filter(d => d !== 'Invoice'));
+    return Object.entries(dynamicSupportingFields)
+      .filter(([docType]) => extractedDocTypes.has(docType))
+      .flatMap(([, fields]) => fields);
+  }, [dynamicSupportingFields, fieldsByDoc]);
 
   if (!selectedCase || !draftHeaderData) return null;
 
@@ -277,16 +288,6 @@ export function DataValidationTab() {
 
   const selectedApproversCount = approvers.filter(a => a.selected).length;
 
-  // Fields shown — dynamic from API, no hardcoded fallback
-  const invoiceFields = dynamicInvoiceFields ?? [];
-  const jobSheetFields = useMemo(() => {
-    if (!dynamicSupportingFields) return [];
-    // Only show fields for doc types that have extracted data
-    const extractedDocTypes = new Set(Object.keys(fieldsByDoc).filter(d => d !== 'Invoice'));
-    return Object.entries(dynamicSupportingFields)
-      .filter(([docType]) => extractedDocTypes.has(docType))
-      .flatMap(([, fields]) => fields);
-  }, [dynamicSupportingFields, fieldsByDoc]);
   const headerFields = activeDocumentType === 'JOB_SHEET' ? jobSheetFields : invoiceFields;
   const fieldConfigMissing = !dynamicInvoiceFields;
 
@@ -563,7 +564,7 @@ export function DataValidationTab() {
                     Approval Sequence
                   </h3>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Auto-identified based on invoice amount ({formatCurrency(headerData.grandTotal || headerData.totalAmount, headerData.currency)}). Reorder or modify as needed.
+                    Auto-identified based on invoice amount ({formatCurrency(headerData.grandTotal, headerData.currency)}). Reorder or modify as needed.
                   </p>
 
                   {/* Selected approvers in order */}
@@ -648,7 +649,7 @@ export function DataValidationTab() {
                                   {approver.department} &middot; Limit: {formatCurrency(approver.limit)}
                                 </p>
                               </div>
-                              {approver.limit < headerData.totalAmount && (
+                              {approver.limit < headerData.grandTotal && (
                                 <Badge variant="outline" className="text-[9px] px-1 py-0 bg-amber-50 text-amber-700 border-amber-200 shrink-0">
                                   Below amount
                                 </Badge>

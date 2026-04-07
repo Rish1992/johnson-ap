@@ -129,11 +129,12 @@ export function ApprovalTrackingTab() {
   // Edit Approval Chain handlers
   // ---------------------------------------------------------------------------
   const handleOpenEditChain = async () => {
-    // Load available approvers from mock users
-    const { mockUsers } = await import('@/mock/users');
-    const reviewers = mockUsers
-      .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
-      .map(u => ({
+    // Load available approvers from real API
+    const { fetchUsers } = await import('@/lib/api');
+    const users = await fetchUsers();
+    const reviewers = users
+      .filter((u: any) => u.role === 'AP_REVIEWER' && u.isActive)
+      .map((u: any) => ({
         id: u.id,
         name: u.fullName,
         department: u.department || '',

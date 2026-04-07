@@ -533,21 +533,31 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
                 # Build attachment list from actual files in workspace attachments/.
                 # After the LLM-guided split, fragments are named {stem}_{DocType}.pdf.
-                # For pre-split files, original filenames remain.
+                # For pre-split files, original filenames remain — use categorize's
+                # file→type mapping to tag them correctly.
                 new_atts = []
                 uploads_dir = Path(__file__).parent.parent / "uploads"
                 present_doc_types = {d["type"]: d for d in docs if d.get("status") == "PRESENT"}
+                # Build file→type map from categorize output (handles non-split uploads)
+                file_type_map = {}
+                for d in docs:
+                    if d.get("status") == "PRESENT" and d.get("file"):
+                        dtype = d["type"]
+                        file_type_map[d["file"]] = "INVOICE" if "invoice" in dtype.lower() else "JOB_SHEET"
                 for fpath in sorted((temp_ws / "attachments").iterdir()):
                     if not fpath.suffix.lower() == ".pdf":
                         continue
                     fname = fpath.name
-                    # Determine documentType from filename or categorize docs
-                    normalized = "INVOICE"  # default
-                    for doc_type in present_doc_types:
-                        safe = doc_type.replace(" ", "_").replace("/", "_")
-                        if safe in fname or doc_type.lower().replace(" ", "_") in fname.lower():
-                            normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
-                            break
+                    # 1. Direct match from categorize file→type mapping
+                    normalized = file_type_map.get(fname)
+                    # 2. Fallback: filename pattern match (for split files)
+                    if not normalized:
+                        normalized = "INVOICE"  # default
+                        for doc_type in present_doc_types:
+                            safe = doc_type.replace(" ", "_").replace("/", "_")
+                            if safe in fname or doc_type.lower().replace(" ", "_") in fname.lower():
+                                normalized = "INVOICE" if "invoice" in doc_type.lower() else "JOB_SHEET"
+                                break
                     # Copy to uploads/ for serving
                     shutil.copy2(str(fpath), str(uploads_dir / fname))
                     new_atts.append({
@@ -640,6 +650,9 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
 
                 # Backward compat: populate header_data and supporting_data from flat fields
                 case.header_data = {f["key"]: f["value"] for f in fields if f.get("doc") == "Invoice"}
+                # Alias grandTotal -> totalAmount for frontend compat
+                if "grandTotal" in case.header_data and "totalAmount" not in case.header_data:
+                    case.header_data["totalAmount"] = case.header_data["grandTotal"]
                 case.supporting_data = {}
                 for f in fields:
                     if f.get("doc") and f["doc"] != "Invoice":

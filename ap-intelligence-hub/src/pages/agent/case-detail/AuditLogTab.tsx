@@ -224,7 +224,20 @@ export function AuditLogTab() {
     );
   }
 
-  const businessRules = selectedCase?.businessRuleResults || [];
+  // businessRuleResults from backend is [{step, output: [...rules]}, ...].
+  // Flatten: extract the rules array from the "validate" step entry.
+  const rawResults = selectedCase?.businessRuleResults || [];
+  const businessRules: BusinessRuleResult[] = Array.isArray(rawResults)
+    ? rawResults.flatMap((entry: unknown) => {
+        if (entry && typeof entry === 'object' && 'step' in entry && 'output' in entry) {
+          const e = entry as { step: string; output: unknown };
+          if (e.step === 'validate' && Array.isArray(e.output)) return e.output as BusinessRuleResult[];
+          return [];
+        }
+        // Already a flat rule (legacy/mock data)
+        return [entry as BusinessRuleResult];
+      })
+    : [];
   const passCount = businessRules.filter((r) => r.status === 'PASS').length;
   const warnCount = businessRules.filter((r) => r.status === 'WARNING').length;
   const failCount = businessRules.filter((r) => r.status === 'FAIL').length;

@@ -120,7 +120,7 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
       box-shadow:0 0 8px rgba(255,170,0,0.5);
     `;
     el.appendChild(hl);
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    hl.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [activeBbox]);
 
   if (error) {
