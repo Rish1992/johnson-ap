@@ -29,6 +29,86 @@ RESUME_PROMPT_TEXT = (
 )
 
 
+def build_inline_prompt(workspace: Path, step_name: str, field_config: dict | None = None) -> str | None:
+    """Build a single prompt with all context inlined, eliminating tool-read roundtrips.
+
+    Returns the inlined prompt string, or None if inlining isn't possible for this step.
+    The model still has tool access for reading PDFs (binary files can't be inlined).
+    """
+    ws = workspace
+    prompt_file = ws / "PROMPT.md"
+    schema_file = ws / "OUTPUT_SCHEMA.json"
+    if not prompt_file.exists():
+        return None
+
+    parts = []
+
+    # Always inline the prompt and schema
+    parts.append(f"# INSTRUCTIONS\n\n{prompt_file.read_text()}")
+    if schema_file.exists():
+        parts.append(f"# OUTPUT SCHEMA\n\n{schema_file.read_text()}")
+
+    # Step-specific context inlining
+    if step_name == "classify":
+        # Inline email.json — the only non-PDF file classify needs
+        email_file = ws / "email.json"
+        if email_file.exists():
+            parts.append(f"# EMAIL METADATA (email.json)\n\n{email_file.read_text()}")
+        # Inline DOCUMENT_TEXT.md if it exists (large doc text extraction)
+        doc_text = ws / "DOCUMENT_TEXT.md"
+        if doc_text.exists():
+            parts.append(f"# DOCUMENT TEXT\n\n{doc_text.read_text()}")
+
+    elif step_name == "categorize":
+        # Inline classify result + vendors + email
+        for fname, header in [
+            ("results/classify.json", "CLASSIFY RESULT"),
+            ("email.json", "EMAIL METADATA"),
+            ("master-data/vendors.json", "VENDORS"),
+        ]:
+            f = ws / fname
+            if f.exists():
+                parts.append(f"# {header} ({fname})\n\n{f.read_text()}")
+        doc_text = ws / "DOCUMENT_TEXT.md"
+        if doc_text.exists():
+            parts.append(f"# DOCUMENT TEXT\n\n{doc_text.read_text()}")
+
+    elif step_name == "extract":
+        # Inline categorize result + field list
+        cat_file = ws / "results/categorize.json"
+        if cat_file.exists():
+            parts.append(f"# CATEGORIZE RESULT\n\n{cat_file.read_text()}")
+        field_file = ws / "FIELD_LIST.md"
+        if field_file.exists():
+            parts.append(f"# FIELD DEFINITIONS\n\n{field_file.read_text()}")
+        # List attachments so the model knows what files to read
+        att_dir = ws / "attachments"
+        if att_dir.exists():
+            files = sorted(f.name for f in att_dir.iterdir() if f.is_file())
+            parts.append(f"# ATTACHMENTS DIRECTORY\n\nFiles in attachments/: {', '.join(files)}\n\nRead these PDF files to extract the fields listed above.")
+
+    elif step_name == "validate":
+        # Inline extract result + master data + field list — validate needs NO tool calls
+        for fname, header in [
+            ("results/extract.json", "EXTRACT RESULT"),
+            ("FIELD_LIST.md", "FIELD DEFINITIONS"),
+            ("master-data/vendors.json", "VENDORS"),
+            ("master-data/service-rate-cards.json", "SERVICE RATE CARDS"),
+            ("master-data/freight-rate-cards.json", "FREIGHT RATE CARDS"),
+            ("master-data/approval-rules.json", "APPROVAL RULES"),
+        ]:
+            f = ws / fname
+            if f.exists():
+                content = f.read_text().strip()
+                if content and content != "[]":
+                    parts.append(f"# {header} ({fname})\n\n{content}")
+
+    # Final instruction
+    parts.append("Return ONLY the JSON object matching the OUTPUT SCHEMA above. No other text, no markdown fences.")
+
+    return "\n\n---\n\n".join(parts)
+
+
 async def run_claude_step(
     case_id: str,
     step_name: str,
@@ -43,7 +123,17 @@ async def run_claude_step(
     If session_id is provided, resumes that session (--resume) instead of starting fresh.
     Always returns the session_id for chaining to the next step.
     """
-    cmd = ["claude", "-p", prompt, "--output-format", "json", "--max-turns", str(MAX_TURNS), "--model", model]
+    # Try inlining context to eliminate tool-read roundtrips
+    inline_prompt = build_inline_prompt(Path(workspace), step_name)
+    effective_prompt = inline_prompt if inline_prompt else prompt
+
+    # Steps with inlined context need fewer turns (only extract may need to read PDFs)
+    if inline_prompt:
+        turns = 5 if step_name == "extract" else 3
+    else:
+        turns = MAX_TURNS
+
+    cmd = ["claude", "-p", effective_prompt, "--output-format", "json", "--max-turns", str(turns), "--model", model, "--effort", "low"]
     if session_id:
         cmd.extend(["--resume", session_id])
     else:

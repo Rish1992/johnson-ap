@@ -489,7 +489,16 @@ Output only classification and a brief reasoning sentence for audit.
 
 Read email.json in this workspace for the email content and attachments/ for attachment content.
 
-If DOCUMENT_TEXT.md exists in the workspace, read it for document content instead of reading large PDFs. Read preview_*.pdf files in attachments/ for visual reference (letterhead, logos, formatting).""",
+If DOCUMENT_TEXT.md exists in the workspace, read it for document content instead of reading large PDFs. Read preview_*.pdf files in attachments/ for visual reference (letterhead, logos, formatting).
+
+## Vendor Identification (IMPORTANT)
+You MUST also identify the invoice vendor and output search hints. These hints will be matched against a database of 900+ vendors, so produce multiple variations to maximize match success:
+- **fullName**: The complete vendor/company name exactly as printed on the invoice header or letterhead
+- **shortName**: Any abbreviated or trading name (e.g., "ATS" for "Allied Technical Services")
+- **abn**: The ABN/Tax Number if visible (digits only, no spaces). This is the most reliable match key.
+- **searchTerms**: Array of search phrases, ordered from most specific to least specific. First entry should be the most unique phrase likely to match exactly one vendor (e.g., "Allied Technical Services"). Subsequent entries can be shorter distinctive phrases (e.g., "Allied Technical", "ATS"). Do NOT include generic single words like "Services" or "Pty" or "Ltd" — these match too many vendors.
+
+These hints do NOT need to be perfect — they are used for fuzzy matching, not exact lookup. Output what you can see on the document.""",
             business_rules="""## Classification Rules
 
 Analyze THREE signals and combine them:
@@ -518,9 +527,19 @@ Non-invoice indicators: "payment reminder", "overdue payment", "statement of acc
                 "type": "object",
                 "properties": {
                     "classification": {"type": "string", "enum": ["INVOICE", "NON_INVOICE", "AMBIGUOUS"]},
-                    "reasoning": {"type": "string"}
+                    "reasoning": {"type": "string"},
+                    "vendorHints": {
+                        "type": "object",
+                        "properties": {
+                            "fullName": {"type": "string", "description": "Complete vendor name as printed on invoice"},
+                            "shortName": {"type": "string", "description": "Abbreviated or trading name if visible"},
+                            "abn": {"type": "string", "description": "ABN/Tax Number digits only, no spaces"},
+                            "searchTerms": {"type": "array", "items": {"type": "string"}, "description": "2-3 distinctive keywords for fuzzy matching"}
+                        },
+                        "required": ["fullName", "searchTerms"]
+                    }
                 },
-                "required": ["classification", "reasoning"]
+                "required": ["classification", "reasoning", "vendorHints"]
             },
         ),
         # --- Step 2: Categorize ---

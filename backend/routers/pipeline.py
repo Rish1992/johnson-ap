@@ -15,7 +15,10 @@ from sqlalchemy.orm import Session
 
 from db import get_db, SessionLocal
 from sqlalchemy.orm.attributes import flag_modified
-from models import Email, PromptTemplate, Case, Job, InvoiceCategoryConfig, new_id, utcnow
+from models import (
+    Email, PromptTemplate, Case, Job, InvoiceCategoryConfig, new_id, utcnow,
+    Vendor, ServiceRateCard, FreightRateCard,
+)
 from agents.runner import (
     run_claude_step, create_workspace, prepare_step, write_master_data,
     RESUME_PROMPT_TEXT,
@@ -178,6 +181,132 @@ async def _split_pdfs_in_workspace(ws: Path):
 
 
 # ---------------------------------------------------------------------------
+# Master-data pre-filtering (vendor fuzzy match + rate card lookup)
+# ---------------------------------------------------------------------------
+def _lookup_vendor_candidates(ws: Path, db) -> list[dict]:
+    """Read vendorHints from classify.json, fuzzy-match against vendors DB,
+    write top candidates to master-data/vendors.json. Returns candidate list."""
+    classify_file = ws / "results" / "classify.json"
+    if not classify_file.exists():
+        return []
+    try:
+        classify = json.loads(classify_file.read_text())
+    except (json.JSONDecodeError, KeyError):
+        return []
+
+    hints = classify.get("vendorHints")
+    if not hints:
+        # No hints — leave the full dump from write_master_data untouched
+        return []
+
+    full_name = hints.get("fullName", "")
+    short_name = hints.get("shortName", "")
+    abn = hints.get("abn", "")
+    search_terms = hints.get("searchTerms", [])
+
+    candidates = {}  # vendor_number → dict
+
+    # 1. ABN exact match (strongest signal)
+    if abn:
+        for v in db.query(Vendor).filter(Vendor.tax_id.ilike(f"%{abn}%")).all():
+            candidates[v.vendor_number] = v.to_dict()
+
+    # 2. Search terms — most specific first
+    for term in search_terms:
+        if len(candidates) >= 10:
+            break
+        for v in db.query(Vendor).filter(Vendor.name.ilike(f"%{term}%")).limit(5).all():
+            candidates.setdefault(v.vendor_number, v.to_dict())
+
+    # 3. fullName and shortName
+    for name in [full_name, short_name]:
+        if name and len(candidates) < 10:
+            for v in db.query(Vendor).filter(Vendor.name.ilike(f"%{name}%")).limit(5).all():
+                candidates.setdefault(v.vendor_number, v.to_dict())
+
+    result = list(candidates.values())[:10]
+    if result:
+        md_dir = ws / "master-data"
+        md_dir.mkdir(exist_ok=True)
+        (md_dir / "vendors.json").write_text(json.dumps(result, indent=2))
+        total = db.query(Vendor).count()
+        log.info(f"[vendor_lookup] Reduced {total} vendors → {len(result)} candidates: {[c.get('name','') for c in result[:3]]}")
+    return result
+
+
+def _lookup_rate_cards(ws: Path, db, vendor_candidates: list[dict], category: str | None, categorize_result: dict | None):
+    """Pull rate card rows for matched vendor candidates. Write to master-data/."""
+    if not vendor_candidates:
+        return
+
+    md_dir = ws / "master-data"
+    md_dir.mkdir(exist_ok=True)
+
+    # Collect vendor identifiers for querying
+    v_numbers = [c.get("vendorNumber", "") for c in vendor_candidates]
+    v_names = [c.get("name", "") for c in vendor_candidates]
+    v_ids = [c.get("id", "") for c in vendor_candidates]
+
+    # Service rate cards: match by vendor_id or contractor_name
+    svc_total = db.query(ServiceRateCard).filter(ServiceRateCard.is_active == True).count()
+    if svc_total <= 50:
+        svc_rows = [r.to_dict() for r in db.query(ServiceRateCard).filter(ServiceRateCard.is_active == True).all()]
+    else:
+        from sqlalchemy import or_
+        # Use in_() for IDs to avoid huge OR chains (SQLite depth limit 1000)
+        valid_ids = [vid for vid in v_ids if vid]
+        valid_names = [vn for vn in v_names if vn]
+        seen = set()
+        svc_rows = []
+        # Query by vendor_id using IN (single expression, no depth issue)
+        if valid_ids:
+            for r in db.query(ServiceRateCard).filter(
+                ServiceRateCard.is_active == True,
+                ServiceRateCard.vendor_id.in_(valid_ids)
+            ).all():
+                if r.id not in seen:
+                    seen.add(r.id)
+                    svc_rows.append(r.to_dict())
+        # Query by contractor_name in batches of 50 to stay within limits
+        for i in range(0, len(valid_names), 50):
+            batch = valid_names[i:i+50]
+            name_filters = [ServiceRateCard.contractor_name.ilike(f"%{vn}%") for vn in batch]
+            for r in db.query(ServiceRateCard).filter(
+                ServiceRateCard.is_active == True, or_(*name_filters)
+            ).all():
+                if r.id not in seen:
+                    seen.add(r.id)
+                    svc_rows.append(r.to_dict())
+    (md_dir / "service-rate-cards.json").write_text(json.dumps(svc_rows, indent=2))
+
+    # Freight rate cards: filter by origin/destination if category is freight-related
+    frt_total = db.query(FreightRateCard).filter(FreightRateCard.is_active == True).count()
+    if frt_total <= 50:
+        frt_rows = [r.to_dict() for r in db.query(FreightRateCard).filter(FreightRateCard.is_active == True).all()]
+    else:
+        from sqlalchemy import or_, and_
+        frt_filters = []
+        is_freight = category and "FREIGHT" in category.upper() if category else False
+        if is_freight and categorize_result:
+            # Try to get origin/destination from categorize result
+            origin = categorize_result.get("origin", "")
+            dest = categorize_result.get("destination", "")
+            if origin:
+                frt_filters.append(FreightRateCard.origin_port.ilike(f"%{origin}%"))
+            if dest:
+                frt_filters.append(FreightRateCard.dest_port.ilike(f"%{dest}%"))
+        if frt_filters:
+            frt_rows = [r.to_dict() for r in db.query(FreightRateCard).filter(
+                FreightRateCard.is_active == True, or_(*frt_filters)
+            ).all()]
+        else:
+            # No useful filters — dump all (shouldn't be many per the threshold check)
+            frt_rows = [r.to_dict() for r in db.query(FreightRateCard).filter(FreightRateCard.is_active == True).all()]
+    (md_dir / "freight-rate-cards.json").write_text(json.dumps(frt_rows, indent=2))
+    log.info(f"[rate_cards] Wrote {len(svc_rows)} service, {len(frt_rows)} freight rate cards")
+
+
+# ---------------------------------------------------------------------------
 # Background pipeline runners
 # ---------------------------------------------------------------------------
 async def _run_backend_job(job_id: str, ws: Path, case_id: str):
@@ -258,6 +387,20 @@ async def _run_backend_job(job_id: str, ws: Path, case_id: str):
 
                 job.steps = _update_step(job.steps, step_name, "success", output=result, duration_ms=duration)
                 flag_modified(job, "steps")
+
+                # Post-classify: vendor fuzzy match from vendorHints
+                if step_name == "classify" and result:
+                    _lookup_vendor_candidates(ws, db)
+
+                # Post-categorize: rate card lookup for matched vendors
+                if step_name == "categorize" and result:
+                    # Read vendor candidates written by post-classify step
+                    vendors_file = ws / "master-data" / "vendors.json"
+                    v_cands = json.loads(vendors_file.read_text()) if vendors_file.exists() else []
+                    try:
+                        _lookup_rate_cards(ws, db, v_cands, result.get("category"), result)
+                    except Exception as e:
+                        log.warning(f"[{email.id}] rate_cards lookup failed (non-fatal): {e}")
 
                 # Post-categorize: split PDF by LLM-identified page numbers
                 if step_name == "categorize" and result:
@@ -422,6 +565,9 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             db.commit()
             return
 
+        # Post-classify: vendor fuzzy match from vendorHints
+        _lookup_vendor_candidates(temp_ws, db)
+
         # Step 2: Categorize
         template = db.query(PromptTemplate).filter(PromptTemplate.step_name == "categorize", PromptTemplate.is_active == True).first()
         if template:
@@ -465,6 +611,14 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             email.entity = result.get("entity")
             email.po_type = result.get("poType")
             db.commit()
+
+            # Post-categorize: rate card lookup for matched vendors
+            vendors_file = temp_ws / "master-data" / "vendors.json"
+            v_cands = json.loads(vendors_file.read_text()) if vendors_file.exists() else []
+            try:
+                _lookup_rate_cards(temp_ws, db, v_cands, result.get("category"), result)
+            except Exception as e:
+                log.warning(f"[{email_id}] rate_cards lookup failed (non-fatal): {e}")
 
             # Post-categorize: split PDF by LLM-identified page numbers
             cat_docs = result.get("documents", [])
@@ -580,6 +734,12 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
         # Sync split attachments (temp_ws has split fragments, case_ws has unsplit originals)
         for f in (temp_ws / "attachments").iterdir():
             shutil.copy2(str(f), str(case_ws / "attachments" / f.name))
+        # Overwrite master-data with pre-filtered versions from temp_ws
+        temp_md = temp_ws / "master-data"
+        case_md = case_ws / "master-data"
+        if temp_md.exists() and case_md.exists():
+            for f in temp_md.glob("*.json"):
+                shutil.copy2(str(f), str(case_md / f.name))
 
         # Steps 3-4: extract, validate
         remaining = [("extract", case_id, temp_ws), ("validate", case_id, temp_ws)]
