@@ -203,7 +203,7 @@ export function CaseBrowser() {
                   </TableCell>
                   <TableCell className="py-3">{c.headerData.invoiceNumber || '-'}</TableCell>
                   <TableCell className="text-right font-semibold py-3">
-                    {formatCurrency(c.headerData.totalAmount, c.headerData.currency)}
+                    {formatCurrency(c.headerData.grandTotal, c.headerData.currency)}
                   </TableCell>
                   <TableCell className="py-3">
                     <CaseStatusBadge status={c.status} size="sm" />

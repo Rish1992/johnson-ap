@@ -93,7 +93,7 @@ export function AdminDashboard() {
     : 0;
 
   const avgInvoiceValue = totalCases > 0
-    ? Math.round(allCases.reduce((sum, c) => sum + c.headerData.totalAmount, 0) / totalCases)
+    ? Math.round(allCases.reduce((sum, c) => sum + c.headerData.grandTotal, 0) / totalCases)
     : 0;
 
   // ---- Pipeline counts ----
@@ -514,7 +514,7 @@ export function AdminDashboard() {
                         <CaseStatusBadge status={c.status} size="sm" />
                       </TableCell>
                       <TableCell className="text-right text-sm font-semibold tabular-nums">
-                        {formatCurrency(c.headerData.totalAmount)}
+                        {formatCurrency(c.headerData.grandTotal)}
                       </TableCell>
                       <TableCell className="pr-6 text-sm text-muted-foreground">
                         {formatRelativeTime(c.createdAt)}

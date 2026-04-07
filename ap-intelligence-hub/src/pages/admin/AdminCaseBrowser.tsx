@@ -180,7 +180,7 @@ export function AdminCaseBrowser() {
                   </TableCell>
                   <TableCell>{c.headerData.invoiceNumber || '-'}</TableCell>
                   <TableCell className="text-right font-semibold">
-                    {formatCurrency(c.headerData.totalAmount, c.headerData.currency)}
+                    {formatCurrency(c.headerData.grandTotal, c.headerData.currency)}
                   </TableCell>
                   <TableCell>
                     <CaseStatusBadge status={c.status} size="sm" />
@@ -235,7 +235,7 @@ export function AdminCaseBrowser() {
                       <DollarSign className="h-3 w-3" /> Invoice Amount
                     </span>
                     <p className="text-sm font-bold">
-                      {formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}
+                      {formatCurrency(selectedCase.headerData.grandTotal, selectedCase.headerData.currency)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Net: {formatCurrency(selectedCase.headerData.netAmount, selectedCase.headerData.currency)} | Tax: {formatCurrency(selectedCase.headerData.taxAmount, selectedCase.headerData.currency)}

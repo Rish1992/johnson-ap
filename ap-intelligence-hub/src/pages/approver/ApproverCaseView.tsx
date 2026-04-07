@@ -150,7 +150,7 @@ export function ApproverCaseView() {
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Amount</p>
               <p className="text-xl font-bold text-foreground">
-                {formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}
+                {formatCurrency(selectedCase.headerData.grandTotal, selectedCase.headerData.currency)}
               </p>
             </div>
             <div className="space-y-1">

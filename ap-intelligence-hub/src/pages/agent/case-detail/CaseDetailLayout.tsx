@@ -64,7 +64,7 @@ export function CaseDetailLayout() {
             />
           )}
           <span className="text-lg font-bold text-foreground ml-auto">
-            {formatCurrency(selectedCase.headerData.totalAmount, selectedCase.headerData.currency)}
+            {formatCurrency(selectedCase.headerData?.grandTotal ?? 0, selectedCase.headerData?.currency)}
           </span>
         </div>
       </div>

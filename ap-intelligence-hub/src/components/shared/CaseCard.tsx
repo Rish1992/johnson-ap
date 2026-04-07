@@ -68,7 +68,7 @@ export function CaseCard({ caseData, variant, onClick }: CaseCardProps) {
             {caseData.headerData.invoiceNumber || 'No Invoice #'}
           </span>
           <span className="text-base font-bold text-foreground">
-            {formatCurrency(caseData.headerData.totalAmount, caseData.headerData.currency)}
+            {formatCurrency(caseData.headerData.grandTotal, caseData.headerData.currency)}
           </span>
         </div>
 

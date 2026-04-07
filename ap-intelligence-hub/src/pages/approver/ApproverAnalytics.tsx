@@ -175,7 +175,7 @@ export function ApproverAnalytics() {
       { label: '500K+', min: 500000, max: Infinity, count: 0 },
     ];
     myCases.forEach((c) => {
-      const amt = c.headerData.totalAmount;
+      const amt = c.headerData.grandTotal;
       const bucket = buckets.find((b) => amt >= b.min && amt < b.max);
       if (bucket) bucket.count++;
     });

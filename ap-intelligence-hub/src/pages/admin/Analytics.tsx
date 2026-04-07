@@ -108,10 +108,10 @@ export function Analytics() {
       if (!map[c.vendorName]) map[c.vendorName] = { wCount: 0, nwCount: 0, wValue: 0, nwValue: 0 };
       if (c.category === 'RUST_SUBCONTRACTOR') {
         map[c.vendorName].wCount++;
-        map[c.vendorName].wValue += c.headerData.totalAmount;
+        map[c.vendorName].wValue += c.headerData.grandTotal;
       } else {
         map[c.vendorName].nwCount++;
-        map[c.vendorName].nwValue += c.headerData.totalAmount;
+        map[c.vendorName].nwValue += c.headerData.grandTotal;
       }
     });
     return Object.entries(map).map(([vendorName, d]) => ({
@@ -138,7 +138,7 @@ export function Analytics() {
     spmCases.forEach(c => {
       if (!map[c.vendorName]) map[c.vendorName] = { count: 0, total: 0 };
       map[c.vendorName].count++;
-      map[c.vendorName].total += c.headerData.totalAmount;
+      map[c.vendorName].total += c.headerData.grandTotal;
     });
     return Object.entries(map).map(([vendorName, d]) => ({
       vendorName,
@@ -160,7 +160,7 @@ export function Analytics() {
     delCases.forEach(c => {
       if (!map[c.vendorName]) map[c.vendorName] = { count: 0, total: 0 };
       map[c.vendorName].count++;
-      map[c.vendorName].total += c.headerData.totalAmount;
+      map[c.vendorName].total += c.headerData.grandTotal;
     });
     return Object.entries(map).map(([vendorName, d]) => ({
       vendorName,
@@ -178,8 +178,8 @@ export function Analytics() {
       // Simulate a quoted value: deterministic per-case factor (0.88–1.08)
       const seed = c.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
       const factor = 0.88 + (seed % 21) / 100;
-      const quoted = Math.round(c.headerData.totalAmount * factor);
-      const actual = c.headerData.totalAmount;
+      const quoted = Math.round(c.headerData.grandTotal * factor);
+      const actual = c.headerData.grandTotal;
       const variancePct = quoted > 0 ? ((actual - quoted) / quoted) * 100 : 0;
       const isBreach = variancePct > 10;
       if (!map[c.vendorName]) map[c.vendorName] = { totalJobs: 0, totalQuoted: 0, totalActual: 0, breachCount: 0 };
@@ -221,7 +221,7 @@ export function Analytics() {
       const key = `${catLabel}|${branch}|${glCode}`;
       if (!map[key]) map[key] = { category: catLabel, branch, glCode, totalInvoices: 0, totalExpense: 0 };
       map[key].totalInvoices++;
-      map[key].totalExpense += c.headerData.totalAmount;
+      map[key].totalExpense += c.headerData.grandTotal;
     });
     return Object.values(map)
       .map(d => ({ ...d, totalExpense: Math.round(d.totalExpense) }))

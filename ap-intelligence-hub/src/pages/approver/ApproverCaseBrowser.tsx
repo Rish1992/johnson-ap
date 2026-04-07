@@ -120,7 +120,7 @@ export function ApproverCaseBrowser() {
                   </TableCell>
                   <TableCell>{c.headerData.invoiceNumber || '-'}</TableCell>
                   <TableCell className="text-right font-semibold">
-                    {formatCurrency(c.headerData.totalAmount, c.headerData.currency)}
+                    {formatCurrency(c.headerData.grandTotal, c.headerData.currency)}
                   </TableCell>
                   <TableCell>
                     <CaseStatusBadge status={c.status} size="sm" />

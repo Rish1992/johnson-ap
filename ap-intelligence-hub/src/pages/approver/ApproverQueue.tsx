@@ -54,9 +54,9 @@ export function ApproverQueue() {
     const created = new Date(c.approvalChain?.createdAt || c.createdAt).getTime();
     return Date.now() - created > 48 * 60 * 60 * 1000;
   });
-  const pendingTotal = pendingCases.reduce((s, c) => s + (c.headerData?.totalAmount || 0), 0);
+  const pendingTotal = pendingCases.reduce((s, c) => s + (c.headerData?.grandTotal || 0), 0);
   const selectedCases = pendingCases.filter(c => selectedIds.has(c.id));
-  const selectedTotal = selectedCases.reduce((s, c) => s + (c.headerData?.totalAmount || 0), 0);
+  const selectedTotal = selectedCases.reduce((s, c) => s + (c.headerData?.grandTotal || 0), 0);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -148,7 +148,7 @@ export function ApproverQueue() {
                     <TableCell>{c.vendorName}</TableCell>
                     <TableCell><CategoryBadge category={c.category} /></TableCell>
                     <TableCell className="text-right font-semibold">
-                      {formatCurrency(c.headerData.totalAmount, c.headerData.currency)}
+                      {formatCurrency(c.headerData.grandTotal, c.headerData.currency)}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
@@ -203,7 +203,7 @@ export function ApproverQueue() {
                     <div key={c.id} className="flex items-center justify-between px-3 py-2">
                       <span className="font-mono font-medium">{c.id}</span>
                       <span className="text-muted-foreground">{c.vendorName}</span>
-                      <span className="font-semibold">{formatCurrency(c.headerData.totalAmount, c.headerData.currency)}</span>
+                      <span className="font-semibold">{formatCurrency(c.headerData.grandTotal, c.headerData.currency)}</span>
                     </div>
                   ))}
                 </div>
@@ -257,7 +257,7 @@ export function ApproverQueue() {
                     <thead><tr className="border-b"><th className="text-left py-1">Case</th><th className="text-left py-1">Vendor</th><th className="text-right py-1">Amount</th><th className="text-right py-1">Waiting Since</th></tr></thead>
                     <tbody>
                       {pendingCases.slice(0, 10).map(c => (
-                        <tr key={c.id} className="border-b border-dashed"><td className="py-1">{c.id}</td><td>{c.vendorName}</td><td className="text-right">{formatCurrency(c.headerData.totalAmount, c.headerData.currency)}</td><td className="text-right">{formatRelativeTime(c.approvalChain?.createdAt || c.createdAt)}</td></tr>
+                        <tr key={c.id} className="border-b border-dashed"><td className="py-1">{c.id}</td><td>{c.vendorName}</td><td className="text-right">{formatCurrency(c.headerData.grandTotal, c.headerData.currency)}</td><td className="text-right">{formatRelativeTime(c.approvalChain?.createdAt || c.createdAt)}</td></tr>
                       ))}
                     </tbody>
                   </table>
@@ -285,7 +285,7 @@ export function ApproverQueue() {
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                           <div>Approver: <strong>{user?.fullName || 'You'}</strong></div>
                           <div>Vendor: <strong>{c.vendorName}</strong></div>
-                          <div>Amount: <strong>{formatCurrency(c.headerData.totalAmount, c.headerData.currency)}</strong></div>
+                          <div>Amount: <strong>{formatCurrency(c.headerData.grandTotal, c.headerData.currency)}</strong></div>
                           <div>Submitted: <strong>{daysAgo} days ago</strong></div>
                         </div>
                         <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">This case has exceeded the 48-hour SLA. Please take action immediately.</p>

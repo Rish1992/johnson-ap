@@ -88,7 +88,7 @@ export interface InvoiceHeaderData {
   dueDate: string;
   invoiceType: InvoiceType;
   currency: string;
-  totalAmount: number;
+  grandTotal: number;
   taxAmount: number;
   netAmount: number;
   purchaseOrderNumber: string;
