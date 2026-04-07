@@ -381,6 +381,10 @@ class Vendor(Base):
     currency = Column(String, default="AUD")
     is_active = Column(Boolean, default=True)
     contracts = Column(JSON, default=list)  # [{id, contractNumber, category, ...}]
+    raw_data = Column(JSON, default=dict)  # full SAP row (49 cols) for lossless upload/download
+    company_code = Column(String, default="")  # AU01 or NZ01
+    bank_key = Column(String, default="")  # BSB number
+    bank_account_number = Column(String, default="")  # account number
 
     def to_dict(self):
         return {
@@ -398,6 +402,10 @@ class Vendor(Base):
             "currency": self.currency,
             "isActive": self.is_active,
             "contracts": self.contracts or [],
+            "rawData": self.raw_data or {},
+            "companyCode": self.company_code,
+            "bankKey": self.bank_key,
+            "bankAccountNumber": self.bank_account_number,
         }
 
 
@@ -541,12 +549,23 @@ class FreightRateCard(Base):
     currency = Column(String, default="AUD")
     vendor_id = Column(String, default="")
     is_active = Column(Boolean, default=True)
+    raw_data = Column(JSON, default=dict)  # full Excel row for lossless upload/download
+    origin_port = Column(String, default="")  # port of loading
+    dest_port = Column(String, default="")  # port of destination
+    shipping_line = Column(String, default="")
+    incoterm = Column(String, default="")
+    freight_currency = Column(String, default="USD")
+    dest_currency = Column(String, default="AUD")
 
     def to_dict(self):
         return {
             "id": self.id, "origin": self.origin, "destination": self.destination,
             "containerType": self.container_type, "rate": self.rate,
             "currency": self.currency, "vendorId": self.vendor_id, "isActive": self.is_active,
+            "rawData": self.raw_data or {},
+            "originPort": self.origin_port, "destPort": self.dest_port,
+            "shippingLine": self.shipping_line, "incoterm": self.incoterm,
+            "freightCurrency": self.freight_currency, "destCurrency": self.dest_currency,
         }
 
 
@@ -559,11 +578,18 @@ class ServiceRateCard(Base):
     currency = Column(String, default="AUD")
     vendor_id = Column(String, default="")
     is_active = Column(Boolean, default=True)
+    raw_data = Column(JSON, default=dict)  # full Excel row for lossless upload/download
+    fee_type = Column(String, default="")  # Call Out Fee, Labor Costs, Travel Rate, Day Rate, Consumables
+    contractor_name = Column(String, default="")
+    charge_description = Column(String, default="")  # e.g. "incl first 30 min"
 
     def to_dict(self):
         return {
             "id": self.id, "service": self.service, "rate": self.rate,
             "currency": self.currency, "vendorId": self.vendor_id, "isActive": self.is_active,
+            "rawData": self.raw_data or {},
+            "feeType": self.fee_type, "contractorName": self.contractor_name,
+            "chargeDescription": self.charge_description,
         }
 
 
@@ -653,10 +679,12 @@ class ApprovalSequenceMaster(Base):
     description = Column(String, default="")
     steps = Column(JSON, default=list)  # [{stepNumber, approverRole, approverName, approverId}]
     is_active = Column(Boolean, default=True)
+    raw_data = Column(JSON, default=dict)  # full Excel row for lossless upload/download
 
     def to_dict(self):
         return {
             "id": self.id, "invoiceType": self.invoice_type, "name": self.name,
             "description": self.description, "steps": self.steps or [],
             "isActive": self.is_active,
+            "rawData": self.raw_data or {},
         }

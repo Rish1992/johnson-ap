@@ -394,3 +394,22 @@ export async function fetchCategoryFields(category: string): Promise<CategoryFie
 export async function updateCategoryFields(category: string, fields: CategoryFieldConfig): Promise<void> {
   return put<void>(`/api/admin/category-configs/${category}/fields`, fields);
 }
+
+// ---------------------------------------------------------------------------
+// Master Upload / Download
+// ---------------------------------------------------------------------------
+
+export async function uploadMaster(masterType: string, file: File): Promise<{ inserted: number; updated: number; errors: { row: number; message: string }[] }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request(`/api/masters/${masterType}/upload`, { method: 'POST', body: formData });
+}
+
+export async function downloadMaster(masterType: string): Promise<Blob> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${BASE_URL}/api/masters/${masterType}/download`, { headers });
+  if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
+  return res.blob();
+}
