@@ -1,6 +1,4 @@
 import { useEffect, useState, useMemo } from 'react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useCaseStore } from '@/stores/caseStore';
 import { Input } from '@/components/ui/input';
@@ -34,6 +32,8 @@ import { formatCurrency } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { ConfidenceLevel, BoundingBox, ExtractedField } from '@/types/case';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 
 // ---------------------------------------------------------------------------
 // Simple field presence indicator (green check / red X)

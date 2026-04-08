@@ -81,7 +81,7 @@ export function AdminDashboard() {
       fetchAllCases().then((data) => {
         setAllCases(data);
         setIsLoading(false);
-      });
+      }).catch(() => setIsLoading(false));
     });
   }, []);
 

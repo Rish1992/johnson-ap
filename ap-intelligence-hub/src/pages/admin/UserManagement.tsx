@@ -71,7 +71,7 @@ export function UserManagement() {
       fetchUsers().then((data) => {
         setUsers(data);
         setIsLoading(false);
-      });
+      }).catch(() => setIsLoading(false));
     });
   }, []);
 

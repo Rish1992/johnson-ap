@@ -22,9 +22,9 @@ import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 // MockInvoiceDocument removed — replaced with real PDF viewer
 import { StatCard } from '@/components/shared/StatCard';
 import { PdfViewer } from '@/components/shared/PdfViewer';
+import { StatCardsSkeleton, EmailReviewSkeleton } from '@/components/shared/PageSkeleton';
 
 const ATTACHMENT_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
-import { StatCardsSkeleton, EmailReviewSkeleton } from '@/components/shared/PageSkeleton';
 import {
   Inbox,
   Search,
@@ -599,6 +599,7 @@ export function EmailReview() {
           !!dateFromFilter,
           !!dateToFilter,
           sortOrder !== 'NEWEST',
+          !!searchQuery,
         ].filter(Boolean).length;
 
         return (

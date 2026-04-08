@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { Flag, ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -10,6 +8,8 @@ import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
 import { useAuthStore } from '@/stores/authStore';
 import { useCaseStore } from '@/stores/caseStore';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 
 type Severity = 'critical' | 'high' | 'minor' | 'cosmetic';
 type ReportType = 'bug' | 'enhancement' | 'question';

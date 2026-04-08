@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { useCaseStore } from '@/stores/caseStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +11,8 @@ import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { PdfViewer } from '@/components/shared/PdfViewer';
 import { formatDateTime, formatFileSize } from '@/lib/formatters';
 import type { Vendor } from '@/types/masterData';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 
 function SapExportButton({ caseId, isPosted }: { caseId: string; isPosted: boolean }) {
   const [loading, setLoading] = useState(false);
