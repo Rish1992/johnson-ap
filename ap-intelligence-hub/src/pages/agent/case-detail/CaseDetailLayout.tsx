@@ -57,12 +57,12 @@ export function CaseDetailLayout() {
           <h1 className="text-xl font-bold font-mono">{selectedCase.id}</h1>
           <CaseStatusBadge status={selectedCase.status} />
           <CategoryBadge category={selectedCase.category} />
-          {selectedCase.overallConfidence > 0 && (
+          {/* {selectedCase.overallConfidence > 0 && (
             <ConfidenceBadge
               score={selectedCase.overallConfidence}
               level={selectedCase.overallConfidenceLevel}
             />
-          )}
+          )} */}
           <span className="text-lg font-bold text-foreground ml-auto">
             {formatCurrency(selectedCase.headerData?.grandTotal ?? 0, selectedCase.headerData?.currency)}
           </span>

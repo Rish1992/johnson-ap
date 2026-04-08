@@ -11,6 +11,7 @@ import {
   FileText, Clock, AlertTriangle, CheckCircle, Search,
   DollarSign, Gauge, Activity, Zap, BarChart3,
 } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/shared/PageSkeleton';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import type { Case } from '@/types/case';
 import {
@@ -73,11 +74,13 @@ function AreaTooltip({ active, payload, label }: { active?: boolean; payload?: {
 export function AdminDashboard() {
   const [allCases, setAllCases] = useState<Case[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     import('@/lib/handlers').then(({ fetchAllCases }) => {
       fetchAllCases().then((data) => {
         setAllCases(data);
+        setIsLoading(false);
       });
     });
   }, []);
@@ -144,6 +147,18 @@ export function AdminDashboard() {
   // ========================================================================
   // RENDER
   // ========================================================================
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title="Dashboard" />
+        <p className="text-sm text-muted-foreground -mt-4 mb-4">
+          Real-time overview of invoice processing activity across the organization.
+        </p>
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}

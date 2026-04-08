@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { Flag, ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -203,7 +205,7 @@ export function FeedbackWidget() {
       // POST to backend, fall back to localStorage
       let taskId: string | null = null;
       try {
-        const res = await window.fetch('/johnson-api/api/feedback', {
+        const res = await window.fetch(`${BASE_URL}/api/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ report, screenshot: screenshotBase64 }),

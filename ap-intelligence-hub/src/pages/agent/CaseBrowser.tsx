@@ -25,6 +25,7 @@ import {
   LayoutGrid, List, Search,
   Inbox, CheckCircle, XCircle, Clock, RotateCcw, AlertTriangle,
 } from 'lucide-react';
+import { StatCardsSkeleton, CardGridSkeleton, TableSkeleton } from '@/components/shared/PageSkeleton';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import type { FilterState } from '@/types/filters';
 
@@ -115,25 +116,22 @@ export function CaseBrowser() {
         showConfidenceFilter={true}
         showCategoryFilter={true}
         showDateRange={true}
+        extraFilters={
+          <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
+            <SelectTrigger className="w-[120px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All PO Types</SelectItem>
+              <SelectItem value="PO">PO</SelectItem>
+              <SelectItem value="NON_PO">Non-PO</SelectItem>
+            </SelectContent>
+          </Select>
+        }
       />
 
-      {/* Inline PO Type filter */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs text-muted-foreground">PO Type:</span>
-        <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
-          <SelectTrigger className="w-[120px] h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All</SelectItem>
-            <SelectItem value="PO">PO</SelectItem>
-            <SelectItem value="NON_PO">Non-PO</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Summary Stat Cards */}
-      {!isLoadingCases && filteredCases.length > 0 && (
+      {isLoadingCases ? <StatCardsSkeleton count={6} /> : filteredCases.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
           {stats.map((stat) => (
             <StatCard
@@ -149,11 +147,7 @@ export function CaseBrowser() {
       )}
 
       {isLoadingCases ? (
-        <div className="space-y-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-accent/30 rounded animate-pulse" />
-          ))}
-        </div>
+        viewMode === 'table' ? <TableSkeleton rows={8} cols={8} /> : <CardGridSkeleton count={6} />
       ) : filteredCases.length === 0 ? (
         <EmptyState
           title="No cases found"

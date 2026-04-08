@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, ClipboardCheck, Check, X, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TableSkeleton } from '@/components/shared/PageSkeleton';
 import { cn } from '@/lib/utils';
 import { INVOICE_TYPE_CONFIG } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -568,11 +569,7 @@ export function MastersHub() {
       <Card>
         <CardContent className="p-0 overflow-hidden rounded-lg">
           {store.isLoading ? (
-            <div className="p-8 space-y-2">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="h-10 bg-accent/30 rounded animate-pulse" />
-              ))}
-            </div>
+            <TableSkeleton rows={6} cols={6} className="rounded-none border-0" />
           ) : (
             renderContent()
           )}

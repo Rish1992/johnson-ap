@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { useCaseStore } from '@/stores/caseStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Hash, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
+import { PdfViewer } from '@/components/shared/PdfViewer';
 import { formatDateTime, formatFileSize } from '@/lib/formatters';
 import type { Vendor } from '@/types/masterData';
 
@@ -281,7 +284,7 @@ export function CaseDetailsTab() {
 
       {/* Document Preview Dialog */}
       <Dialog open={viewingAttachment !== null} onOpenChange={(open) => { if (!open) setViewingAttachment(null); }}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-[85vw] h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5" />
@@ -293,12 +296,11 @@ export function CaseDetailsTab() {
               </p>
             )}
           </DialogHeader>
-          <div className="flex-1 bg-accent/10">
+          <div className="flex-1 overflow-hidden">
             {viewedAtt?.fileUrl ? (
-              <iframe
-                src={`/johnson-api${viewedAtt.fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`}
-                className="w-full h-full border-0"
-                title={viewedAtt.fileName}
+              <PdfViewer
+                url={`${API_BASE}${viewedAtt.fileUrl}`}
+                className="h-full"
               />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">

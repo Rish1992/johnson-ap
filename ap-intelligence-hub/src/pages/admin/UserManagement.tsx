@@ -21,9 +21,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { ROLE_CONFIG } from '@/lib/constants';
 import { formatRelativeTime } from '@/lib/formatters';
+import { TableSkeleton } from '@/components/shared/PageSkeleton';
 import type { User, UserRole } from '@/types/user';
 
 interface UserFormData {
@@ -46,8 +48,12 @@ const emptyFormData: UserFormData = {
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  // Add User dialog state
+  const [showFilters, setShowFilters] = useState(false);
 
   // Add User dialog state
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -64,6 +70,7 @@ export function UserManagement() {
     import('@/lib/handlers').then(({ fetchUsers }) => {
       fetchUsers().then((data) => {
         setUsers(data);
+        setIsLoading(false);
       });
     });
   }, []);
@@ -173,30 +180,75 @@ export function UserManagement() {
       </PageHeader>
       <p className="text-sm text-muted-foreground -mt-4 mb-4">Manage user accounts, roles, and access permissions.</p>
 
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Button
+            variant={showFilters ? 'default' : 'outline'}
+            size="sm"
+            className="gap-2 shrink-0"
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+            {roleFilter !== 'all' && (
+              <Badge variant={showFilters ? 'secondary' : 'default'} className="h-5 min-w-5 px-1.5 text-[11px] rounded-full">
+                1
+              </Badge>
+            )}
+          </Button>
+          {(roleFilter !== 'all' || searchQuery) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground shrink-0"
+              onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </Button>
+          )}
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Roles" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="AP_AGENT">AP Agent</SelectItem>
-            <SelectItem value="AP_REVIEWER">AP Reviewer</SelectItem>
-            <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className={cn(
+          'overflow-hidden transition-all duration-300 ease-in-out',
+          showFilters ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+        )}>
+          <div className="flex items-center gap-2 flex-wrap p-3 bg-muted/40 rounded-lg border">
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="AP_AGENT">AP Agent</SelectItem>
+                <SelectItem value="AP_REVIEWER">AP Reviewer</SelectItem>
+                <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
-      <Card>
+      {isLoading ? (
+        <TableSkeleton rows={6} cols={6} />
+      ) : null}
+      <Card className={isLoading ? 'hidden' : ''}>
         <CardContent className="p-0">
           <Table>
             <TableHeader>

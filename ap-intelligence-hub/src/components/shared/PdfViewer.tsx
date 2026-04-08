@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import { Loader2 } from 'lucide-react';
 import type { BoundingBox } from '@/types/case';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -16,6 +17,7 @@ interface PdfViewerProps {
 export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const renderedRef = useRef(false);
   const pageWrappersRef = useRef<Map<number, { el: HTMLElement; w: number; h: number }>>(new Map());
 
@@ -23,6 +25,8 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
   useEffect(() => {
     renderedRef.current = false;
     pageWrappersRef.current.clear();
+    setIsLoading(true);
+    setError(false);
   }, [url]);
 
   // Load PDF — fetch as blob first to bypass CORS
@@ -78,11 +82,12 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
 
         renderedRef.current = true;
         setError(false);
+        if (!cancelled) setIsLoading(false);
         URL.revokeObjectURL(blobUrl);
       } catch (e: unknown) {
         const err = e as Error;
         console.warn('PdfViewer: failed to render PDF, falling back to iframe', err?.message, err?.stack?.slice(0, 300));
-        if (!cancelled) setError(true);
+        if (!cancelled) { setError(true); setIsLoading(false); }
       }
     })();
 
@@ -143,11 +148,26 @@ export function PdfViewer({ url, activeBbox, className = '' }: PdfViewerProps) {
           100% { background:rgba(255,213,0,0.15); box-shadow:none; }
         }
       `}</style>
-      <div
-        ref={containerRef}
-        className={`overflow-auto bg-muted/30 ${className}`}
-        style={{ minHeight: 0 }}
-      />
+      <div className={`relative overflow-hidden ${className}`} style={{ minHeight: 0 }}>
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-muted/30">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading document…</p>
+            {/* Skeleton pages hint */}
+            <div className="w-2/3 space-y-2 mt-2">
+              <div className="h-3 bg-muted rounded animate-pulse w-full" />
+              <div className="h-3 bg-muted rounded animate-pulse w-5/6" />
+              <div className="h-3 bg-muted rounded animate-pulse w-4/6" />
+            </div>
+          </div>
+        )}
+        <div
+          ref={containerRef}
+          className="overflow-auto h-full w-full bg-muted/30"
+          style={{ minHeight: 0 }}
+        />
+      </div>
     </>
   );
 }

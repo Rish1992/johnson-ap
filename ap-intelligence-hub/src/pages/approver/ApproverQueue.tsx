@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { CaseCard } from '@/components/shared/CaseCard';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, Clock, ShieldAlert, Bell, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Clock, ShieldAlert, Bell, AlertTriangle, LayoutGrid, List } from 'lucide-react';
+import { TableSkeleton } from '@/components/shared/PageSkeleton';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import { toast } from 'sonner';
 import type { Case } from '@/types/case';
@@ -35,6 +37,7 @@ export function ApproverQueue() {
   const [overrideCaseId, setOverrideCaseId] = useState<string | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
   useEffect(() => {
     if (user) {
@@ -75,11 +78,7 @@ export function ApproverQueue() {
       <div>
         <PageHeader title="My Approval Queue" />
         <p className="text-sm text-muted-foreground -mt-4 mb-4">Invoices submitted by AP agents awaiting your review and decision.</p>
-        <div className="space-y-2">
-          {[1,2,3].map(i => (
-            <div key={i} className="h-16 bg-accent/30 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <TableSkeleton rows={6} cols={7} />
       </div>
     );
   }
@@ -87,7 +86,26 @@ export function ApproverQueue() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <PageHeader title="My Approval Queue" count={cases.length} />
+        <PageHeader title="My Approval Queue" count={cases.length}>
+          <div className="flex items-center gap-1 border rounded-lg p-0.5">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('table')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </PageHeader>
         <Button variant="outline" size="sm" className="gap-2 relative" onClick={() => setShowNotifications(true)}>
           <Bell className="h-4 w-4" />
           Notifications
@@ -113,6 +131,17 @@ export function ApproverQueue() {
           description="No invoices require your approval at this time."
           icon={<CheckCircle className="h-16 w-16" />}
         />
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {pendingCases.map((c) => (
+            <CaseCard
+              key={c.id}
+              caseData={c}
+              variant="browser"
+              onClick={(id) => navigate(`/approver/cases/${id}`)}
+            />
+          ))}
+        </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
           <Table>

@@ -73,7 +73,7 @@ export function CaseCard({ caseData, variant, onClick }: CaseCardProps) {
         </div>
 
         {/* Row 4: Confidence (for validation/browser/approver) */}
-        {caseData.overallConfidence > 0 && (variant === 'validation' || variant === 'browser' || variant === 'approver') && (
+        {/* {caseData.overallConfidence > 0 && (variant === 'validation' || variant === 'browser' || variant === 'approver') && (
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs text-muted-foreground">Confidence:</span>
             <ConfidenceBadge
@@ -82,7 +82,7 @@ export function CaseCard({ caseData, variant, onClick }: CaseCardProps) {
               deEmphasized={variant === 'approver'}
             />
           </div>
-        )}
+        )} */}
 
         {/* Row 5: Approval Steps (for pending variant) */}
         {variant === 'pending' && caseData.approvalChain && (

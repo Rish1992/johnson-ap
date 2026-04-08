@@ -13,6 +13,8 @@ interface StatCardProps {
   secondary?: boolean;
   /** Icon background/text color override (e.g. 'bg-red-50 text-red-700') */
   iconClassName?: string;
+  onClick?: () => void;
+  active?: boolean;
 }
 
 const VARIANT_DOT_COLOR: Record<string, string> = {
@@ -22,9 +24,17 @@ const VARIANT_DOT_COLOR: Record<string, string> = {
   danger: 'bg-red-500',
 };
 
-export function StatCard({ title, value, trend, icon, description, variant = 'default', secondary, iconClassName }: StatCardProps) {
+export function StatCard({ title, value, trend, icon, description, variant = 'default', secondary, iconClassName, onClick, active }: StatCardProps) {
   return (
-    <Card className={cn('hover:shadow-md transition-shadow duration-200', secondary && 'opacity-60')}>
+    <Card
+      className={cn(
+        'hover:shadow-md transition-shadow duration-200',
+        secondary && 'opacity-60',
+        onClick && 'cursor-pointer',
+        active && 'ring-2 ring-primary shadow-md',
+      )}
+      onClick={onClick}
+    >
       <CardContent className={secondary ? 'p-3' : 'p-5'}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

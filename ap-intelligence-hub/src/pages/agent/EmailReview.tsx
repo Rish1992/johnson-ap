@@ -21,6 +21,10 @@ import { CategoryBadge } from '@/components/shared/CategoryBadge';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 // MockInvoiceDocument removed — replaced with real PDF viewer
 import { StatCard } from '@/components/shared/StatCard';
+import { PdfViewer } from '@/components/shared/PdfViewer';
+
+const ATTACHMENT_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
+import { StatCardsSkeleton, EmailReviewSkeleton } from '@/components/shared/PageSkeleton';
 import {
   Inbox,
   Search,
@@ -42,6 +46,8 @@ import {
   XCircle,
   Download,
   Loader2,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRelativeTime, formatDateTime, formatFileSize } from '@/lib/formatters';
@@ -248,13 +254,13 @@ function EmailDetail({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Confidence</p>
               <ConfidenceBadge
                 score={email.classificationConfidence}
                 level={email.classificationConfidence >= 0.85 ? 'HIGH' : email.classificationConfidence >= 0.6 ? 'MEDIUM' : 'LOW'}
               />
-            </div>
+            </div> */}
             {email.classification === 'INVOICE' && (
               <>
                 <div className="space-y-1">
@@ -410,7 +416,7 @@ function EmailDetail({
 
       {/* Attachment Preview Dialog */}
       <Dialog open={viewingAttachmentIdx !== null} onOpenChange={(open) => { if (!open) setViewingAttachmentIdx(null); }}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-[85vw] h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5" />
@@ -420,16 +426,16 @@ function EmailDetail({
               {viewedAtt?.fileType} &middot; {viewedAtt ? formatFileSize(viewedAtt.fileSize) : ''} &middot; {email.fromName}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 bg-accent/10">
+          <div className="flex-1 overflow-hidden">
             {viewedAtt?.fileUrl ? (
-              <iframe
-                src={`/johnson-api${viewedAtt.fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`}
-                className="w-full h-full border-0"
-                title={viewedAtt.fileName}
+              <PdfViewer
+                url={`${ATTACHMENT_BASE_URL}${viewedAtt.fileUrl}`}
+                className="h-full"
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                No document preview available
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3 p-8">
+                <FileText className="h-12 w-12 opacity-30" />
+                <p className="text-sm">No preview available for this attachment</p>
               </div>
             )}
           </div>
@@ -456,6 +462,7 @@ export function EmailReview() {
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<string>('NEWEST');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     import('@/lib/handlers').then(({ fetchEmails }) => {
@@ -570,7 +577,7 @@ export function EmailReview() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-full min-h-0">
       <PageHeader title="Email Review" count={filteredEmails.length}>
         {unreadCount > 0 && (
           <Badge variant="default" className="gap-1">
@@ -580,129 +587,200 @@ export function EmailReview() {
         )}
       </PageHeader>
 
-      {/* Search and Filter bar */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by subject or sender..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={classificationFilter} onValueChange={setClassificationFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="INVOICE">Invoice</SelectItem>
-            <SelectItem value="NON_INVOICE">Non-Invoice</SelectItem>
-            <SelectItem value="UNCLASSIFIED">Unclassified</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={readFilter} onValueChange={setReadFilter}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="UNREAD">Unread</SelectItem>
-            <SelectItem value="READ">Read</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Categories</SelectItem>
-            <SelectItem value="SUBCONTRACTOR">Subcontractor</SelectItem>
-            <SelectItem value="RUST_SUBCONTRACTOR">Rust - Subcontractor</SelectItem>
-            <SelectItem value="DELIVERY_INSTALLATION">D&I</SelectItem>
-            <SelectItem value="FREIGHT_FINISHED_GOODS">Freight - Finished Goods</SelectItem>
-            <SelectItem value="FREIGHT_SPARE_PARTS">Freight - Spare Parts</SelectItem>
-            <SelectItem value="FREIGHT_ADDITIONAL_CHARGES">Freight - Add. Charges</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={attachmentFilter} onValueChange={setAttachmentFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Attachments</SelectItem>
-            <SelectItem value="WITH">Has Attachments</SelectItem>
-            <SelectItem value="WITHOUT">No Attachments</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All PO Types</SelectItem>
-            <SelectItem value="PO">PO</SelectItem>
-            <SelectItem value="NON_PO">Non-PO</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={entityFilter} onValueChange={setEntityFilter}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Entities</SelectItem>
-            <SelectItem value="AU">AU</SelectItem>
-            <SelectItem value="NZ">NZ</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={dateFromFilter}
-          onChange={(e) => setDateFromFilter(e.target.value)}
-          className="w-[140px]"
-          placeholder="From date"
-        />
-        <Input
-          type="date"
-          value={dateToFilter}
-          onChange={(e) => setDateToFilter(e.target.value)}
-          className="w-[140px]"
-          placeholder="To date"
-        />
-        <Select value={sortOrder} onValueChange={setSortOrder}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="NEWEST">Newest First</SelectItem>
-            <SelectItem value="OLDEST">Oldest First</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Search + Filter toggle bar */}
+      {(() => {
+        const activeCount = [
+          classificationFilter !== 'ALL',
+          readFilter !== 'ALL',
+          categoryFilter !== 'ALL',
+          attachmentFilter !== 'ALL',
+          poTypeFilter !== 'ALL',
+          entityFilter !== 'ALL',
+          !!dateFromFilter,
+          !!dateToFilter,
+          sortOrder !== 'NEWEST',
+        ].filter(Boolean).length;
+
+        return (
+          <div className="mb-4 shrink-0 space-y-2">
+            {/* Row: search + filters button */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by subject or sender..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Button
+                variant={showFilters ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2 shrink-0"
+                onClick={() => setShowFilters(v => !v)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+                {activeCount > 0 && (
+                  <Badge variant={showFilters ? 'secondary' : 'default'} className="h-5 min-w-5 px-1.5 text-[11px] rounded-full">
+                    {activeCount}
+                  </Badge>
+                )}
+              </Button>
+              {activeCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground shrink-0"
+                  onClick={() => {
+                    setClassificationFilter('ALL');
+                    setReadFilter('ALL');
+                    setCategoryFilter('ALL');
+                    setAttachmentFilter('ALL');
+                    setPoTypeFilter('ALL');
+                    setEntityFilter('ALL');
+                    setDateFromFilter('');
+                    setDateToFilter('');
+                    setSortOrder('NEWEST');
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Expandable filter row */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-300 ease-in-out',
+                showFilters ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+              )}
+            >
+              <div className="flex items-center gap-2 flex-wrap p-3 bg-muted/40 rounded-lg border">
+                <Select value={classificationFilter} onValueChange={setClassificationFilter}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Types</SelectItem>
+                    <SelectItem value="INVOICE">Invoice</SelectItem>
+                    <SelectItem value="NON_INVOICE">Non-Invoice</SelectItem>
+                    <SelectItem value="UNCLASSIFIED">Unclassified</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={readFilter} onValueChange={setReadFilter}>
+                  <SelectTrigger className="w-[120px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                    <SelectItem value="UNREAD">Unread</SelectItem>
+                    <SelectItem value="READ">Read</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[145px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Categories</SelectItem>
+                    <SelectItem value="SUBCONTRACTOR">Subcontractor</SelectItem>
+                    <SelectItem value="RUST_SUBCONTRACTOR">Rust - Subcontractor</SelectItem>
+                    <SelectItem value="DELIVERY_INSTALLATION">D&I</SelectItem>
+                    <SelectItem value="FREIGHT_FINISHED_GOODS">Freight - Finished Goods</SelectItem>
+                    <SelectItem value="FREIGHT_SPARE_PARTS">Freight - Spare Parts</SelectItem>
+                    <SelectItem value="FREIGHT_ADDITIONAL_CHARGES">Freight - Add. Charges</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={attachmentFilter} onValueChange={setAttachmentFilter}>
+                  <SelectTrigger className="w-[145px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Attachments</SelectItem>
+                    <SelectItem value="WITH">Has Attachments</SelectItem>
+                    <SelectItem value="WITHOUT">No Attachments</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={poTypeFilter} onValueChange={setPoTypeFilter}>
+                  <SelectTrigger className="w-[120px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All PO Types</SelectItem>
+                    <SelectItem value="PO">PO</SelectItem>
+                    <SelectItem value="NON_PO">Non-PO</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={entityFilter} onValueChange={setEntityFilter}>
+                  <SelectTrigger className="w-[110px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Entities</SelectItem>
+                    <SelectItem value="AU">AU</SelectItem>
+                    <SelectItem value="NZ">NZ</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="date"
+                  value={dateFromFilter}
+                  onChange={(e) => setDateFromFilter(e.target.value)}
+                  className="w-[135px] h-8 text-xs"
+                />
+                <Input
+                  type="date"
+                  value={dateToFilter}
+                  onChange={(e) => setDateToFilter(e.target.value)}
+                  className="w-[135px] h-8 text-xs"
+                />
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NEWEST">Newest First</SelectItem>
+                    <SelectItem value="OLDEST">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Stat Cards */}
-      {!isLoading && emails.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <StatCard title="Total Emails" value={emailStats.total} icon={<Inbox className="h-4 w-4" />} />
-          <StatCard title="Invoice Emails" value={emailStats.invoice} icon={<ShieldCheck className="h-4 w-4" />} variant="success" />
-          <StatCard title="Non-Invoice Emails" value={emailStats.nonInvoice} icon={<ShieldAlert className="h-4 w-4" />} />
+      {isLoading ? <StatCardsSkeleton count={3} className="shrink-0" /> : emails.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-4 shrink-0">
+          <StatCard
+            title="Total Emails"
+            value={emailStats.total}
+            icon={<Inbox className="h-4 w-4" />}
+            onClick={() => setClassificationFilter('ALL')}
+            active={classificationFilter === 'ALL'}
+          />
+          <StatCard
+            title="Invoice Emails"
+            value={emailStats.invoice}
+            icon={<ShieldCheck className="h-4 w-4" />}
+            variant="success"
+            onClick={() => setClassificationFilter(classificationFilter === 'INVOICE' ? 'ALL' : 'INVOICE')}
+            active={classificationFilter === 'INVOICE'}
+          />
+          <StatCard
+            title="Non-Invoice Emails"
+            value={emailStats.nonInvoice}
+            icon={<ShieldAlert className="h-4 w-4" />}
+            onClick={() => setClassificationFilter(classificationFilter === 'NON_INVOICE' ? 'ALL' : 'NON_INVOICE')}
+            active={classificationFilter === 'NON_INVOICE'}
+          />
         </div>
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-0 border rounded-lg min-h-[600px]">
-          <div className="space-y-0 border-r">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-24 bg-accent/30 animate-pulse border-b" />
-            ))}
-          </div>
-          <div className="p-8">
-            <div className="h-6 w-2/3 bg-accent/30 rounded animate-pulse mb-4" />
-            <div className="h-4 w-1/3 bg-accent/30 rounded animate-pulse mb-8" />
-            <div className="h-40 bg-accent/30 rounded animate-pulse" />
-          </div>
-        </div>
+        <EmailReviewSkeleton />
       ) : filteredEmails.length === 0 ? (
         <EmptyState
           title="No emails found"
@@ -710,13 +788,13 @@ export function EmailReview() {
           icon={<Inbox className="h-16 w-16" />}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] border rounded-lg min-h-[600px] max-h-[calc(100vh-260px)] overflow-hidden">
+        <div className="flex-1 min-h-[500px] grid grid-cols-1 lg:grid-cols-[2fr_3fr] border rounded-lg overflow-hidden">
           {/* Left panel: Email list */}
           <div className={cn(
             'border-r overflow-hidden flex flex-col',
             selectedEmail && 'hidden lg:flex'
           )}>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
               {filteredEmails.map((email) => (
                 <EmailListItem
                   key={email.id}
@@ -730,7 +808,7 @@ export function EmailReview() {
 
           {/* Right panel: Email detail */}
           <div className={cn(
-            'overflow-y-auto h-full',
+            'overflow-hidden flex flex-col',
             !selectedEmail && 'hidden lg:flex'
           )}>
             {selectedEmail ? (

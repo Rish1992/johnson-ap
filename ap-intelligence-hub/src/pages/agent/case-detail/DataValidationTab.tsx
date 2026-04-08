@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/johnson-api';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useCaseStore } from '@/stores/caseStore';
 import { Input } from '@/components/ui/input';
@@ -19,13 +21,14 @@ import {
 } from '@/components/ui/dialog';
 import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 import { PdfViewer } from '@/components/shared/PdfViewer';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { useAuthStore } from '@/stores/authStore';
 import { Separator } from '@/components/ui/separator';
 import {
   Save, CheckCircle, X, Plus, Trash2, Upload, Mail, AlertTriangle,
   FileText, ZoomIn, ZoomOut, Loader2, Maximize2, MapPin,
-  GripVertical, ChevronUp, ChevronDown, UserCheck, Users,
+  GripVertical, ChevronUp, ChevronDown, UserCheck, Users, Search, ChevronsUpDown,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { CURRENCIES, INVOICE_TYPES } from '@/lib/constants';
@@ -82,6 +85,8 @@ export function DataValidationTab() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [missingDocsDismissed, setMissingDocsDismissed] = useState(false);
   const [activeBbox, setActiveBbox] = useState<BoundingBox | null>(null);
+  const [approverDropdownOpen, setApproverDropdownOpen] = useState(false);
+  const [approverSearch, setApproverSearch] = useState('');
   const [dynamicInvoiceFields, setDynamicInvoiceFields] = useState<{ key: string; label: string; type: string }[] | null>(null);
   const [dynamicSupportingFields, setDynamicSupportingFields] = useState<Record<string, { key: string; label: string; type: string }[]> | null>(null);
 
@@ -354,7 +359,7 @@ export function DataValidationTab() {
               const fileUrl = att?.fileUrl;
               return fileUrl ? (
                 <PdfViewer
-                  url={`/johnson-api${fileUrl}`}
+                  url={`${API_BASE}${fileUrl}`}
                   activeBbox={activeBbox}
                   className="flex-1"
                 />
@@ -624,40 +629,68 @@ export function DataValidationTab() {
                     )}
                   </div>
 
-                  {/* Available approvers to add */}
+                  {/* Add approvers — multi-select dropdown */}
                   {approvers.some(a => !a.selected) && (
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground font-medium">Add approvers</span>
-                      </div>
-                      <div className="space-y-1">
-                        {approvers
-                          .filter(a => !a.selected)
-                          .map((approver) => (
-                            <label
-                              key={approver.id}
-                              className="flex items-center gap-3 p-2 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
-                            >
-                              <Checkbox
-                                checked={false}
-                                onCheckedChange={() => toggleApprover(approver.id)}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{approver.name}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {approver.department} &middot; Limit: {formatCurrency(approver.limit)}
-                                </p>
-                              </div>
-                              {approver.limit < headerData.grandTotal && (
-                                <Badge variant="outline" className="text-[9px] px-1 py-0 bg-amber-50 text-amber-700 border-amber-200 shrink-0">
-                                  Below amount
-                                </Badge>
-                              )}
-                            </label>
-                          ))}
-                      </div>
-                    </div>
+                    <Popover open={approverDropdownOpen} onOpenChange={(o) => { setApproverDropdownOpen(o); if (!o) setApproverSearch(''); }}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full justify-between gap-2 h-8 text-xs font-normal text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5" />
+                            Add approvers…
+                          </span>
+                          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        {/* Search */}
+                        <div className="p-2 border-b">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <input
+                              className="w-full pl-8 pr-3 py-1.5 text-xs bg-transparent outline-none placeholder:text-muted-foreground"
+                              placeholder="Search approvers…"
+                              value={approverSearch}
+                              onChange={e => setApproverSearch(e.target.value)}
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+                        {/* List */}
+                        <div className="max-h-52 overflow-y-auto">
+                          {approvers
+                            .filter(a => !a.selected && (
+                              !approverSearch ||
+                              a.name.toLowerCase().includes(approverSearch.toLowerCase()) ||
+                              a.department.toLowerCase().includes(approverSearch.toLowerCase())
+                            ))
+                            .map(approver => (
+                              <label
+                                key={approver.id}
+                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-accent/50 transition-colors"
+                              >
+                                <Checkbox
+                                  checked={false}
+                                  onCheckedChange={() => { toggleApprover(approver.id); }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{approver.name}</p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {approver.department} · Limit: {formatCurrency(approver.limit)}
+                                  </p>
+                                </div>
+                                {approver.limit < headerData.grandTotal && (
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0 bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+                                    Below limit
+                                  </Badge>
+                                )}
+                              </label>
+                            ))}
+                          {approvers.filter(a => !a.selected).length === 0 && (
+                            <p className="text-center text-xs text-muted-foreground py-4">All approvers added</p>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </div>
               )}
@@ -884,7 +917,7 @@ export function DataValidationTab() {
 
       {/* Document Preview Modal */}
       <Dialog open={docPreviewOpen} onOpenChange={setDocPreviewOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-[85vw] h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5" />
@@ -907,7 +940,7 @@ export function DataValidationTab() {
               : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
             const fileUrl = att?.fileUrl;
             return fileUrl ? (
-              <iframe src={`/johnson-api${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width`} className="flex-1 w-full border-0" title={att?.fileName || 'Document'} />
+              <PdfViewer url={`${API_BASE}${fileUrl}`} className="flex-1" />
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">No document available</div>
             );
