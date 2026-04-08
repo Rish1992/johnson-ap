@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Johnson AP Backend", version="0.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://chat.dev.fiscalix.com", "http://localhost:5180", "http://localhost:5181", "http://localhost:5191", "http://localhost:5190", "https://johnson.dev.fiscalix.com"],
+    allow_origins=["https://chat.dev.fiscalix.com", "http://localhost:5173", "http://localhost:5180", "http://localhost:5181", "http://localhost:5191", "http://localhost:5190", "https://johnson.dev.fiscalix.com"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

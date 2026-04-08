@@ -164,7 +164,7 @@ export function ApproverCaseView() {
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rule Failures</p>
               <p className="text-sm font-semibold">
-                {selectedCase.businessRuleResults.filter(r => r.status === 'FAIL').length} failures
+                {(selectedCase.businessRuleResults || []).flatMap((e: any) => e?.output || [e]).filter(r => r.status === 'FAIL').length} failures
               </p>
             </div>
             <div className="space-y-1">
@@ -175,30 +175,35 @@ export function ApproverCaseView() {
         </CardContent>
       </Card>
 
-      {/* Rule Failures Summary */}
+      {/* Business Rules Summary */}
       {(() => {
-        const failedRules = selectedCase.businessRuleResults.filter(r => r.status === 'FAIL');
-        return failedRules.length > 0 ? (
-          <Card className="mb-6 border-red-200 dark:border-red-900/30">
+        const rawResults = selectedCase.businessRuleResults || [];
+        const rules = rawResults.flatMap((entry: any) =>
+          entry && typeof entry === 'object' && 'step' in entry && Array.isArray(entry.output)
+            ? entry.output : [entry]
+        );
+        const failedRules = rules.filter(r => r.status === 'FAIL');
+        const allPassed = failedRules.length === 0;
+        return (
+          <Card className={cn('mb-6', allPassed ? 'border-green-200 dark:border-green-900/30' : 'border-red-200 dark:border-red-900/30')}>
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Shield className="h-4 w-4 text-red-600" />
-                <span className="text-sm font-semibold">Rule Failures</span>
-                <Badge className="bg-red-100 text-red-700 border-0 text-xs dark:bg-red-900/30 dark:text-red-400 ml-auto">
-                  {failedRules.length} Failed
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                {failedRules.map(rule => <BusinessRuleCard key={rule.ruleId} rule={rule} />)}
-              </div>
+              <details>
+                <summary className="flex items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <Shield className={cn('h-4 w-4', allPassed ? 'text-green-600' : 'text-red-600')} />
+                  <span className="text-sm font-semibold">{allPassed ? 'All Rules Passed' : 'Rule Failures'}</span>
+                  <Badge className={cn('border-0 text-xs ml-auto', allPassed
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  )}>
+                    {allPassed ? `${rules.length} Passed` : `${failedRules.length} Failed`}
+                  </Badge>
+                </summary>
+                <div className="space-y-2 mt-3">
+                  {rules.map(rule => <BusinessRuleCard key={rule.ruleId} rule={rule} />)}
+                </div>
+              </details>
             </CardContent>
           </Card>
-        ) : (
-          <div className="mb-6 flex items-center gap-2">
-            <Badge className="bg-green-100 text-green-700 border-0 dark:bg-green-900/30 dark:text-green-400">
-              <CheckCircle className="h-3 w-3 mr-1" /> All rules passed
-            </Badge>
-          </div>
         );
       })()}
 

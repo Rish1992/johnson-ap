@@ -74,6 +74,8 @@ def _seed_users(db: Session):
              first_name="Ken", last_name="Mori", role="AP_REVIEWER", department="Spare Parts", approval_limit=75000),
         User(id="approver-sam", email="sam.forbes@jhta.com.au", password_hash=PW,
              first_name="Sam", last_name="Forbes", role="AP_REVIEWER", department="Commercial", approval_limit=50000),
+        User(id="approver-priya", email="priya.nair@company.com", password_hash=PW,
+             first_name="Priya", last_name="Nair", role="AP_REVIEWER", department="Finance", approval_limit=50000),
     ]
     db.add_all(users)
 

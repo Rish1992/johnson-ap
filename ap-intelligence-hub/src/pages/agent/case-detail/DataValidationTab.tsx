@@ -182,7 +182,7 @@ export function DataValidationTab() {
   const headerData = { ...selectedCase.headerData, ...draftHeaderData };
   const lineItems = draftLineItems || selectedCase.lineItems;
 
-  const isReadOnly = !['EXTRACTED', 'IN_REVIEW', 'RETURNED'].includes(selectedCase.status);
+  const isReadOnly = ['APPROVED', 'POSTED', 'CLOSED', 'REJECTED', 'DISCARDED'].includes(selectedCase.status);
 
 
   const handleSaveDraft = async () => {

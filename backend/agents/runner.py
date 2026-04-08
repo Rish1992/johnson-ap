@@ -129,7 +129,7 @@ async def run_claude_step(
 
     # Steps with inlined context need fewer turns (only extract may need to read PDFs)
     if inline_prompt:
-        turns = 5 if step_name == "extract" else 3
+        turns = 15
     else:
         turns = MAX_TURNS
 
