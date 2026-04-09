@@ -87,7 +87,19 @@ export function ApproverQueue() {
     <div>
       <div className="flex items-center justify-between">
         <PageHeader title="My Approval Queue" count={cases.length}>
-          <div className="flex items-center gap-1 border rounded-lg p-0.5">
+          
+        </PageHeader>
+        
+        <div className="flex items-center gap-2">
+          
+          <Button variant="outline" size="sm" className="gap-2 relative" onClick={() => setShowNotifications(true)}>
+          <Bell className="h-4 w-4" />
+          Notifications
+          {overdueCases.length > 0 && (
+            <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{overdueCases.length}</Badge>
+          )}
+        </Button>
+        <div className="flex items-center gap-1 border rounded-lg p-0.5">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="icon"
@@ -105,14 +117,7 @@ export function ApproverQueue() {
               <List className="h-4 w-4" />
             </Button>
           </div>
-        </PageHeader>
-        <Button variant="outline" size="sm" className="gap-2 relative" onClick={() => setShowNotifications(true)}>
-          <Bell className="h-4 w-4" />
-          Notifications
-          {overdueCases.length > 0 && (
-            <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{overdueCases.length}</Badge>
-          )}
-        </Button>
+        </div>
       </div>
       <p className="text-sm text-muted-foreground -mt-4 mb-4">Invoices submitted by AP agents awaiting your review and decision.</p>
 

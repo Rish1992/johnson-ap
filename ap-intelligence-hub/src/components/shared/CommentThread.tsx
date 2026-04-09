@@ -108,9 +108,9 @@ export function CommentThread({
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground/60 mt-1.5 ml-1">
+          {/* <p className="text-[11px] text-muted-foreground/60 mt-1.5 ml-1">
             Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">&#8984;Enter</kbd> to send
-          </p>
+          </p> */}
         </div>
       )}
     </div>
