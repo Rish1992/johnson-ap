@@ -18,7 +18,6 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
-import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 // MockInvoiceDocument removed — replaced with real PDF viewer
 import { StatCard } from '@/components/shared/StatCard';
 import { PdfViewer } from '@/components/shared/PdfViewer';
@@ -254,13 +253,6 @@ function EmailDetail({
                 </SelectContent>
               </Select>
             </div>
-            {/* <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Confidence</p>
-              <ConfidenceBadge
-                score={email.classificationConfidence}
-                level={email.classificationConfidence >= 0.85 ? 'HIGH' : email.classificationConfidence >= 0.6 ? 'MEDIUM' : 'LOW'}
-              />
-            </div> */}
             {email.classification === 'INVOICE' && (
               <>
                 <div className="space-y-1">
@@ -292,10 +284,12 @@ function EmailDetail({
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Mandatory Attachment</p>
               <div className="flex items-center gap-1 text-sm">
-                {email.attachments.length > 0 ? (
+                {email.mandatoryDocsPresent === true ? (
                   <><CheckCircle className="h-4 w-4 text-emerald-600" /> <span className="text-emerald-700">Present</span></>
-                ) : (
+                ) : email.mandatoryDocsPresent === false ? (
                   <><XCircle className="h-4 w-4 text-red-500" /> <span className="text-red-600">Missing</span></>
+                ) : (
+                  <><Clock className="h-4 w-4 text-muted-foreground" /> <span className="text-muted-foreground">Pending</span></>
                 )}
               </div>
             </div>

@@ -19,6 +19,7 @@ import { ArrowLeft, CheckCircle, X, RotateCcw, Loader2, Shield } from 'lucide-re
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/authStore';
 import type { AuditLogEntry } from '@/types/audit';
 
 // Import agent tab components for reuse
@@ -34,6 +35,7 @@ export function ApproverCaseView() {
     comments, fetchComments, addComment, approveCase, sendBackCase, rejectCaseAsApprover,
   } = useCaseStore();
 
+  const user = useAuthStore((s) => s.user);
   const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'sendback' | null>(null);
   const [actionComment, setActionComment] = useState('');
@@ -163,9 +165,23 @@ export function ApproverCaseView() {
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rule Failures</p>
-              <p className="text-sm font-semibold">
-                {(selectedCase.businessRuleResults || []).flatMap((e: any) => e?.output || [e]).filter(r => r.status === 'FAIL').length} failures
-              </p>
+              {(() => {
+                const failed = (selectedCase.businessRuleResults || [])
+                  .flatMap((e: any) => e?.output || [e])
+                  .filter((r: any) => r.status === 'FAIL');
+                if (failed.length === 0) {
+                  return <p className="text-sm font-semibold text-green-600">None</p>;
+                }
+                return (
+                  <div className="space-y-0.5">
+                    {failed.map((r: any) => (
+                      <p key={r.ruleId} className="text-sm text-red-600 font-medium truncate" title={r.message}>
+                        {r.ruleName}
+                      </p>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Invoice Date</p>

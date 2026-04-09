@@ -5,10 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Phone, Hash, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Mail, Paperclip, Building2, FileText, AlertTriangle, MapPin, CreditCard, Hash, FileCheck, Send, AtSign, MessageSquare, Clock, Eye, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ReturnReasonBanner } from '@/components/shared/ReturnReasonBanner';
 import { PdfViewer } from '@/components/shared/PdfViewer';
+import { useAuthStore } from '@/stores/authStore';
 import { formatDateTime, formatFileSize } from '@/lib/formatters';
 import type { Vendor } from '@/types/masterData';
 
@@ -51,6 +52,7 @@ function SapExportButton({ caseId, isPosted }: { caseId: string; isPosted: boole
 
 export function CaseDetailsTab() {
   const selectedCase = useCaseStore((s) => s.selectedCase);
+  const currentUser = useAuthStore((s) => s.user);
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [viewingAttachment, setViewingAttachment] = useState<string | null>(null);
 
@@ -71,7 +73,15 @@ export function CaseDetailsTab() {
 
   if (!selectedCase) return null;
 
-  const { email, attachments = [], vendorName, vendorNumber } = selectedCase;
+  const { email, attachments = [], vendorName, vendorNumber, extractedFields = [] } = selectedCase;
+
+  // Extract vendor fields from invoice extraction
+  const extractedVendor = {
+    name: extractedFields.find((f) => f.key === 'vendorName')?.value as string | undefined,
+    address: extractedFields.find((f) => f.key === 'vendorAddress')?.value as string | undefined,
+    abn: extractedFields.find((f) => f.key === 'vendorABN')?.value as string | undefined,
+    bank: extractedFields.find((f) => f.key === 'bankDetails')?.value as string | undefined,
+  };
   const viewedAtt = attachments.find((a: Record<string, unknown>) => (a.id || a.fileName) === viewingAttachment);
 
   return (
@@ -111,9 +121,21 @@ export function CaseDetailsTab() {
                 </Badge>
               </div>
 
+              {/* Extracted from Invoice */}
+              {(extractedVendor.name || extractedVendor.address || extractedVendor.abn || extractedVendor.bank) && (
+                <div className="bg-accent/40 rounded-md p-3 space-y-1.5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Extracted from Invoice</p>
+                  {extractedVendor.name && <p className="text-xs"><span className="text-muted-foreground">Name:</span> {extractedVendor.name}</p>}
+                  {extractedVendor.address && <p className="text-xs"><span className="text-muted-foreground">Address:</span> {extractedVendor.address}</p>}
+                  {extractedVendor.abn && <p className="text-xs font-mono"><span className="text-muted-foreground font-sans">ABN:</span> {extractedVendor.abn}</p>}
+                  {extractedVendor.bank && <p className="text-xs font-mono"><span className="text-muted-foreground font-sans">Bank:</span> {extractedVendor.bank}</p>}
+                </div>
+              )}
+
               {vendor && (
                 <>
                   <div className="space-y-2">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Master Data</p>
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
@@ -135,13 +157,6 @@ export function CaseDetailsTab() {
                         <p className="text-sm font-mono">{vendor.bankAccount}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Payment Terms</p>
-                        <p className="text-sm">{vendor.paymentTerms}</p>
-                      </div>
-                    </div>
                   </div>
                 </>
               )}
@@ -159,8 +174,9 @@ export function CaseDetailsTab() {
                 <div className="space-y-1.5 mb-3">
                   {[
                     { label: 'Name', value: vendor.name, matched: vendorName === vendor.name },
-                    { label: 'Address', value: `${vendor.address}, ${vendor.city}`, matched: !!vendor.address },
-                    { label: 'ABN', value: vendor.taxId, matched: !!vendor.taxId },
+                    { label: 'Address', value: `${vendor.address}, ${vendor.city}`, matched: !!extractedVendor.address && !!vendor.address && vendor.address.toLowerCase().includes(String(extractedVendor.address).toLowerCase().slice(0, 20)) },
+                    { label: 'ABN', value: vendor.taxId, matched: !!extractedVendor.abn && !!vendor.taxId && String(extractedVendor.abn).replace(/\s/g, '') === vendor.taxId.replace(/\s/g, '') },
+                    { label: 'Bank', value: vendor.bankAccount, matched: !!extractedVendor.bank && !!vendor.bankAccount && String(extractedVendor.bank).replace(/[\s-]/g, '').includes(vendor.bankAccount.replace(/[\s-]/g, '')) },
                   ].map(({ label, value, matched }) => (
                     <div key={label} className="flex items-center gap-2 text-sm">
                       {matched
@@ -259,28 +275,44 @@ export function CaseDetailsTab() {
         </CardContent>
       </Card>
 
-      {/* SAP Export Button */}
-      {(selectedCase.status === 'APPROVED' || selectedCase.status === 'POSTED') && (
+      {/* SAP Export Button — hidden for L1 approvers */}
+      {currentUser?.role !== 'AP_REVIEWER' && (selectedCase.status === 'APPROVED' || selectedCase.status === 'POSTED') && (
         <SapExportButton caseId={selectedCase.id} isPosted={selectedCase.status === 'POSTED'} />
       )}
 
-      {/* Missing Document Warning - only shows if genuinely missing (edge case) */}
-      {(selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION') &&
-        !attachments.some((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                Missing: Job Sheet / Worksheet
-              </p>
-              <p className="text-xs text-red-600 dark:text-red-400">
-                This case requires a job sheet or worksheet. The case must be rejected — no hold/wait state is available. The vendor must resubmit with the required document.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Missing Document Warning — dynamic per category required_docs */}
+      {(() => {
+        const REQUIRED_DOCS: Record<string, string[]> = {
+          SUBCONTRACTOR: ['Invoice', 'Contractor Worksheet / Service Job Sheet / Work Order'],
+          RUST_SUBCONTRACTOR: ['Invoice', 'Contractor Worksheet / Service Job Sheet / Work Order'],
+          DELIVERY_INSTALLATION: ['Invoice', 'Installation Worksheet'],
+          FREIGHT_FINISHED_GOODS: ['Invoice', 'Commercial Invoice'],
+          FREIGHT_SPARE_PARTS: ['Invoice', 'Commercial Invoice'],
+          FREIGHT_ADDITIONAL_CHARGES: ['Invoice'],
+        };
+        const required = REQUIRED_DOCS[selectedCase.category || ''];
+        if (!required) return null;
+        const requiredSupporting = required.filter(d => d !== 'Invoice');
+        if (requiredSupporting.length === 0) return null;
+        const hasSupporting = attachments.some((a: Record<string, unknown>) =>
+          a.documentType === 'JOB_SHEET' || a.documentType === 'SUPPORTING');
+        if (hasSupporting) return null;
+        return (
+          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                  Missing: {requiredSupporting.join(', ')}
+                </p>
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  This case requires: {requiredSupporting.join(', ')}. The case must be rejected — no hold/wait state is available. The vendor must resubmit with the required document.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Document Preview Dialog */}
       <Dialog open={viewingAttachment !== null} onOpenChange={(open) => { if (!open) setViewingAttachment(null); }}>

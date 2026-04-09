@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -20,8 +20,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, Clock, ShieldAlert, Bell, AlertTriangle, LayoutGrid, List } from 'lucide-react';
-import { TableSkeleton } from '@/components/shared/PageSkeleton';
+import { CheckCircle, Clock, ShieldAlert, Bell, AlertTriangle, LayoutGrid, List, FileText, XCircle, RotateCcw, Hourglass } from 'lucide-react';
+import { StatCard } from '@/components/shared/StatCard';
+import { TableSkeleton, StatCardsSkeleton } from '@/components/shared/PageSkeleton';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import { toast } from 'sonner';
 import type { Case } from '@/types/case';
@@ -61,6 +62,17 @@ export function ApproverQueue() {
   const selectedCases = pendingCases.filter(c => selectedIds.has(c.id));
   const selectedTotal = selectedCases.reduce((s, c) => s + (c.headerData?.grandTotal || 0), 0);
 
+  const approvalStats = useMemo(() => {
+    const getMyStep = (c: Case) => c.approvalChain?.steps.find(s => s.approverId === user?.id) ?? null;
+    return {
+      total: cases.length,
+      approved: cases.filter(c => getMyStep(c)?.decision === 'APPROVE').length,
+      rejected: cases.filter(c => getMyStep(c)?.decision === 'REJECT').length,
+      sentBack: cases.filter(c => getMyStep(c)?.decision === 'SEND_BACK').length,
+      pending: pendingCases.length,
+    };
+  }, [cases, pendingCases.length, user?.id]);
+
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -78,6 +90,7 @@ export function ApproverQueue() {
       <div>
         <PageHeader title="My Approval Queue" />
         <p className="text-sm text-muted-foreground -mt-4 mb-4">Invoices submitted by AP agents awaiting your review and decision.</p>
+        <StatCardsSkeleton count={5} />
         <TableSkeleton rows={6} cols={7} />
       </div>
     );
@@ -115,6 +128,16 @@ export function ApproverQueue() {
         </Button>
       </div>
       <p className="text-sm text-muted-foreground -mt-4 mb-4">Invoices submitted by AP agents awaiting your review and decision.</p>
+
+      {cases.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+          <StatCard title="Total Received" value={approvalStats.total} icon={<FileText className="h-4 w-4" />} />
+          <StatCard title="Approved" value={approvalStats.approved} icon={<CheckCircle className="h-4 w-4" />} variant="success" />
+          <StatCard title="Rejected" value={approvalStats.rejected} icon={<XCircle className="h-4 w-4" />} variant="danger" secondary={!approvalStats.rejected} />
+          <StatCard title="Sent Back" value={approvalStats.sentBack} icon={<RotateCcw className="h-4 w-4" />} variant="warning" secondary={!approvalStats.sentBack} />
+          <StatCard title="Pending Action" value={approvalStats.pending} icon={<Hourglass className="h-4 w-4" />} />
+        </div>
+      )}
 
       {pendingCases.length > 0 && (
         <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">

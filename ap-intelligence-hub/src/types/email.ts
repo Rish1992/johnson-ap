@@ -17,5 +17,6 @@ export interface EmailRecord {
   isRead: boolean;
   poType: 'PO' | 'NON_PO';
   entity: 'AU' | 'NZ';
+  mandatoryDocsPresent: boolean | null;
   xeroLink?: string;
 }

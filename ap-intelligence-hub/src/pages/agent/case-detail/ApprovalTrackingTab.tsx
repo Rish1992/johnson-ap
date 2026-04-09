@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCaseStore } from '@/stores/caseStore';
 import { ApprovalChainStepper } from '@/components/shared/ApprovalChainStepper';
 import { CommentThread } from '@/components/shared/CommentThread';
@@ -65,7 +65,21 @@ export function ApprovalTrackingTab() {
 
   if (!selectedCase) return null;
 
-  const { approvalChain } = selectedCase;
+  const { approvalChain: fullApprovalChain } = selectedCase;
+
+  // For AP_REVIEWER (L1), only show steps up to and including their own step
+  const approvalChain = useMemo(() => {
+    if (!fullApprovalChain) return null;
+    if (user?.role !== 'AP_REVIEWER') return fullApprovalChain;
+    const myStepIdx = fullApprovalChain.steps.findIndex(s => s.approverId === user.id);
+    if (myStepIdx === -1) return fullApprovalChain; // fallback: show all if not found
+    const filteredSteps = fullApprovalChain.steps.slice(0, myStepIdx + 1);
+    return {
+      ...fullApprovalChain,
+      steps: filteredSteps,
+      currentStepIndex: Math.min(fullApprovalChain.currentStepIndex, myStepIdx),
+    };
+  }, [fullApprovalChain, user]);
 
   // Determine if the current user can edit the approval chain
   const canEditChain =

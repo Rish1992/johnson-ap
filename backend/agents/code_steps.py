@@ -366,6 +366,7 @@ def process_approval(case_id: str, action: str, user: User, db: Session,
         chain["steps"] = all_steps
         chain["currentStepIndex"] = first_pending
         case.approval_chain = chain
+        flag_modified(case, "approval_chain")
         case.updated_at = now
         if reason:
             db.add(Comment(case_id=case_id, author_id=user.id,

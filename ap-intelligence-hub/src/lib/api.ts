@@ -145,6 +145,11 @@ export async function fetchAllCases(): Promise<Case[]> {
   return get<Case[]>('/api/cases/all');
 }
 
+export async function fetchCaseStats(): Promise<Record<string, number>> {
+  const resp = await get<{ stats: Record<string, number> }>('/api/cases/stats');
+  return resp.stats;
+}
+
 export async function fetchCaseById(id: string): Promise<Case> {
   return get<Case>(`/api/cases/${id}`);
 }

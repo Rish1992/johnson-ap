@@ -162,7 +162,6 @@ export function AdminCaseBrowser() {
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Assigned Agent</TableHead>
-                <TableHead>Confidence</TableHead>
                 <TableHead>Received</TableHead>
               </TableRow>
             </TableHeader>
@@ -187,13 +186,6 @@ export function AdminCaseBrowser() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {c.assignedAgentName || '-'}
-                  </TableCell>
-                  <TableCell>
-                    {c.overallConfidence > 0 ? (
-                      <ConfidenceBadge score={c.overallConfidence} level={c.overallConfidenceLevel} />
-                    ) : (
-                      '-'
-                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {formatRelativeTime(c.createdAt)}
@@ -271,16 +263,6 @@ export function AdminCaseBrowser() {
                     </span>
                     <p className="text-sm">{selectedCase.assignedAgentName || 'Unassigned'}</p>
                   </div>
-                  {/* <div className="space-y-1">
-                    <span className="text-xs text-muted-foreground font-medium">Confidence</span>
-                    <div>
-                      {selectedCase.overallConfidence > 0 ? (
-                        <ConfidenceBadge score={selectedCase.overallConfidence} level={selectedCase.overallConfidenceLevel} />
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
-                    </div>
-                  </div> */}
                   <div className="space-y-1">
                     <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Created

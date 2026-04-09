@@ -3,7 +3,6 @@ import { useParams, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useCaseStore } from '@/stores/caseStore';
 import { CaseStatusBadge } from '@/components/shared/CaseStatusBadge';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
-import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
@@ -43,12 +42,14 @@ export function CaseDetailLayout() {
 
   return (
     <div>
-      {/* Back button */}
-      <div className="mb-4">
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => navigate('/agent/validation')}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Back to Dashboard</span>
+      {/* Breadcrumb */}
+      <div className="mb-4 flex items-center gap-1 text-sm text-muted-foreground">
+        <Button variant="ghost" size="sm" className="gap-1.5 px-2 text-muted-foreground hover:text-foreground" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
         </Button>
+        <span>/</span>
+        <span className="font-medium text-foreground">Case {selectedCase.id}</span>
       </div>
 
       {/* Case Header Summary Card */}
@@ -57,12 +58,6 @@ export function CaseDetailLayout() {
           <h1 className="text-xl font-bold font-mono">{selectedCase.id}</h1>
           <CaseStatusBadge status={selectedCase.status} />
           <CategoryBadge category={selectedCase.category} />
-          {/* {selectedCase.overallConfidence > 0 && (
-            <ConfidenceBadge
-              score={selectedCase.overallConfidence}
-              level={selectedCase.overallConfidenceLevel}
-            />
-          )} */}
           <span className="text-lg font-bold text-foreground ml-auto">
             {formatCurrency(selectedCase.headerData?.grandTotal ?? 0, selectedCase.headerData?.currency)}
           </span>

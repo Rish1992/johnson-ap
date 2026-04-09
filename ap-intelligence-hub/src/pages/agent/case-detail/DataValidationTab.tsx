@@ -77,7 +77,7 @@ export function DataValidationTab() {
   const [rejectReason, setRejectReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [approvers, setApprovers] = useState<Approver[]>([]);
-  const [activeDocumentType, setActiveDocumentType] = useState<'INVOICE' | 'JOB_SHEET'>('INVOICE');
+  const [activeDocumentType, setActiveDocumentType] = useState<string>('INVOICE');
   const [docPreviewOpen, setDocPreviewOpen] = useState(false);
   const [glAccounts, setGLAccounts] = useState<{ id: string; accountNumber: string; name: string }[]>([]);
   const [showDraftEmailDialog, setShowDraftEmailDialog] = useState(false);
@@ -91,13 +91,18 @@ export function DataValidationTab() {
   const [dynamicSupportingFields, setDynamicSupportingFields] = useState<Record<string, { key: string; label: string; type: string }[]> | null>(null);
 
   // Determine which document types are available based on category AND actual attachments
+  const EXTRACTION_DOC_TYPES = ['INVOICE', 'JOB_SHEET'];
   const availableDocTypes = useMemo(() => {
-    if (!selectedCase) return ['INVOICE'] as const;
-    const hasJobSheet = (selectedCase.attachments ?? []).some(a => a.documentType === 'JOB_SHEET');
-    if (hasJobSheet && (selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION')) {
-      return ['INVOICE', 'JOB_SHEET'] as const;
+    if (!selectedCase) return ['INVOICE'];
+    const types = new Set<string>(['INVOICE']);
+    for (const a of selectedCase.attachments ?? []) {
+      if (a.documentType === 'JOB_SHEET' && (selectedCase.category === 'SUBCONTRACTOR' || selectedCase.category === 'RUST_SUBCONTRACTOR' || selectedCase.category === 'DELIVERY_INSTALLATION')) {
+        types.add('JOB_SHEET');
+      } else if (a.documentType && a.documentType !== 'INVOICE') {
+        types.add(a.documentType);
+      }
     }
-    return ['INVOICE'] as const;
+    return Array.from(types);
   }, [selectedCase]);
 
   useEffect(() => {
@@ -327,16 +332,17 @@ export function DataValidationTab() {
                 <FileText className="h-4 w-4" />
                 <Select
                   value={activeDocumentType}
-                  onValueChange={(v) => setActiveDocumentType(v as 'INVOICE' | 'JOB_SHEET')}
+                  onValueChange={(v) => setActiveDocumentType(v)}
                 >
                   <SelectTrigger className="h-7 w-[180px] text-xs font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INVOICE">Invoice Document</SelectItem>
-                    {(availableDocTypes as readonly string[]).includes('JOB_SHEET') && (
-                      <SelectItem value="JOB_SHEET">Job Sheet</SelectItem>
-                    )}
+                    {availableDocTypes.map(dt => (
+                      <SelectItem key={dt} value={dt}>
+                        {dt === 'INVOICE' ? 'Invoice Document' : dt === 'JOB_SHEET' ? 'Job Sheet' : dt.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -353,14 +359,12 @@ export function DataValidationTab() {
             {/* Document content - PDF viewer with bbox highlighting */}
             {(() => {
               const atts = selectedCase.attachments || [];
-              const att = activeDocumentType === 'INVOICE'
-                ? (atts.find((a: Record<string, unknown>) => a.documentType === 'INVOICE') || atts[0])
-                : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
+              const att = atts.find((a: Record<string, unknown>) => a.documentType === activeDocumentType) || atts[0];
               const fileUrl = att?.fileUrl;
               return fileUrl ? (
                 <PdfViewer
                   url={`${API_BASE}${fileUrl}`}
-                  activeBbox={activeBbox}
+                  activeBbox={EXTRACTION_DOC_TYPES.includes(activeDocumentType) ? activeBbox : null}
                   className="flex-1"
                 />
               ) : (
@@ -372,22 +376,16 @@ export function DataValidationTab() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle withHandle />
+        {EXTRACTION_DOC_TYPES.includes(activeDocumentType) && <ResizableHandle withHandle />}
 
-        {/* Right Panel - Extracted Data */}
-        <ResizablePanel defaultSize={60} minSize={35}>
+        {/* Right Panel - Extracted Data (only for extraction doc types) */}
+        {EXTRACTION_DOC_TYPES.includes(activeDocumentType) && <ResizablePanel defaultSize={60} minSize={35}>
           <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
               {/* Header Data */}
               <div>
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                   {activeDocumentType === 'JOB_SHEET' ? 'Job Sheet Data' : 'Invoice Data'}
-                  {!hideConfidence && selectedCase.overallConfidence > 0 && (
-                    <ConfidenceBadge
-                      score={selectedCase.overallConfidence}
-                      level={selectedCase.overallConfidenceLevel}
-                    />
-                  )}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {headerFields.map((field) => {
@@ -418,7 +416,6 @@ export function DataValidationTab() {
                                 Edited
                               </Badge>
                             )}
-                            {!hideConfidence && <FieldPresenceBadge hasValue={value != null && value !== ''} />}
                           </div>
                         </div>
                         {field.type === 'select' ? (
@@ -696,7 +693,7 @@ export function DataValidationTab() {
               )}
             </div>
           </ScrollArea>
-        </ResizablePanel>
+        </ResizablePanel>}
       </ResizablePanelGroup>
 
       {/* File Upload Area */}
@@ -797,13 +794,15 @@ export function DataValidationTab() {
       <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Submit for Approval</DialogTitle>
+            <DialogTitle>{selectedCase.status === 'RETURNED' ? 'Resubmit for Approval' : 'Submit for Approval'}</DialogTitle>
             <DialogDescription>
-              Add a comment for the approval team (optional)
+              {selectedCase.status === 'RETURNED'
+                ? 'Describe what was corrected (required)'
+                : 'Add a comment for the approval team (optional)'}
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Enter a comment for the approvers..."
+            placeholder={selectedCase.status === 'RETURNED' ? "Describe the corrections made..." : "Enter a comment for the approvers..."}
             value={submitComment}
             onChange={(e) => setSubmitComment(e.target.value)}
             className="min-h-[100px]"
@@ -812,9 +811,9 @@ export function DataValidationTab() {
             <Button variant="outline" onClick={() => setShowSubmitDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmSubmit} className="gap-1">
+            <Button onClick={handleConfirmSubmit} disabled={selectedCase.status === 'RETURNED' && !submitComment.trim()} className="gap-1">
               <CheckCircle className="h-4 w-4" />
-              Submit for Approval
+              {selectedCase.status === 'RETURNED' ? 'Resubmit for Approval' : 'Submit for Approval'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -921,23 +920,17 @@ export function DataValidationTab() {
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5" />
-              {activeDocumentType === 'INVOICE'
-                ? (selectedCase.attachments.find(a => a.documentType === 'INVOICE')?.fileName
-                    || selectedCase.attachments[0]?.fileName
-                    || 'invoice.pdf')
-                : (selectedCase.attachments.find(a => a.documentType === 'JOB_SHEET')?.fileName
-                    || 'job-sheet.pdf')
-              }
+              {selectedCase.attachments.find(a => a.documentType === activeDocumentType)?.fileName
+                || selectedCase.attachments[0]?.fileName
+                || 'document.pdf'}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {activeDocumentType === 'INVOICE' ? 'Tax Invoice Document' : 'Job Completion Sheet'} &middot; {selectedCase.vendorName}
+              {activeDocumentType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} &middot; {selectedCase.vendorName}
             </DialogDescription>
           </DialogHeader>
           {(() => {
             const atts = selectedCase.attachments || [];
-            const att = activeDocumentType === 'INVOICE'
-              ? (atts.find((a: Record<string, unknown>) => a.documentType === 'INVOICE') || atts[0])
-              : atts.find((a: Record<string, unknown>) => a.documentType === 'JOB_SHEET') || atts[0];
+            const att = atts.find((a: Record<string, unknown>) => a.documentType === activeDocumentType) || atts[0];
             const fileUrl = att?.fileUrl;
             return fileUrl ? (
               <PdfViewer url={`${API_BASE}${fileUrl}`} className="flex-1" />

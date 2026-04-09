@@ -71,6 +71,7 @@ class Email(Base):
     linked_case_id = Column(String, nullable=True)
     po_type = Column(String, nullable=True)  # PO | NON_PO
     entity = Column(String, nullable=True)  # AU | NZ
+    mandatory_docs_present = Column(Boolean, nullable=True)  # True/False/None(pending)
     status = Column(String, default="UNCLASSIFIED")  # UNCLASSIFIED | CLASSIFIED | LINKED
     received_at = Column(DateTime, default=utcnow)
     created_at = Column(DateTime, default=utcnow)
@@ -93,6 +94,7 @@ class Email(Base):
             "isRead": self.status == "LINKED",  # read once linked to a case
             "poType": self.po_type,
             "entity": self.entity,
+            "mandatoryDocsPresent": self.mandatory_docs_present,
             "status": self.status,
             "receivedAt": self.received_at.isoformat() + "Z" if self.received_at else None,
             "createdAt": self.created_at.isoformat() + "Z" if self.created_at else None,

@@ -4,7 +4,6 @@ import { useCaseStore } from '@/stores/caseStore';
 import { CaseCard } from '@/components/shared/CaseCard';
 import { CaseStatusBadge } from '@/components/shared/CaseStatusBadge';
 import { CategoryBadge } from '@/components/shared/CategoryBadge';
-import { ConfidenceBadge } from '@/components/shared/ConfidenceBadge';
 import { FilterBar } from '@/components/shared/FilterBar';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -13,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { ClipboardCheck, FileText, Clock, CheckCircle, ShieldCheck, LayoutGrid, List } from 'lucide-react';
+import { ClipboardCheck, FileText, Clock, CheckCircle, ShieldCheck, LayoutGrid, List, XCircle, RotateCcw } from 'lucide-react';
 import { StatCardsSkeleton, CardGridSkeleton, TableSkeleton } from '@/components/shared/PageSkeleton';
 import { formatCurrency, formatRelativeTime } from '@/lib/formatters';
 import type { CaseStatus } from '@/types/case';
@@ -25,20 +24,27 @@ export function DataValidationQueue() {
   const navigate = useNavigate();
   const { cases, filters, isLoadingCases, fetchCases, setFilters, resetFilters, markAsRead } = useCaseStore();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, approval: 0, sentBack: 0, rejected: 0 });
 
   useEffect(() => {
     fetchCases({ status: QUEUE_STATUSES });
+    import('@/lib/handlers').then(({ fetchCaseStats }) =>
+      fetchCaseStats().then((s: Record<string, number>) => {
+        const g = (k: string) => s[k] || 0;
+        const total = Object.values(s).reduce((a, b) => a + b, 0);
+        setStats({
+          total,
+          pending: g('EXTRACTED') + g('IN_REVIEW'),
+          completed: g('POSTED') + g('CLOSED'),
+          approval: g('APPROVAL_PENDING'),
+          sentBack: g('RETURNED'),
+          rejected: g('REJECTED'),
+        });
+      }).catch(() => {})
+    );
   }, [fetchCases]);
 
   const filteredCases = cases.filter((c) => QUEUE_STATUSES.includes(c.status));
-
-  const stats = useMemo(() => {
-    const total = cases.length;
-    const pending = cases.filter((c) => ['EXTRACTED', 'IN_REVIEW'].includes(c.status)).length;
-    const completed = cases.filter((c) => ['POSTED', 'CLOSED'].includes(c.status)).length;
-    const approval = cases.filter((c) => c.status === 'APPROVAL_PENDING').length;
-    return { total, pending, completed, approval };
-  }, [cases]);
 
   const handleFilterChange = useCallback(
     (newFilters: Partial<FilterState>) => {
@@ -71,11 +77,13 @@ export function DataValidationQueue() {
       </PageHeader>
       <p className="text-sm text-muted-foreground -mt-2 mb-4">Review and validate AI-extracted invoice data before submitting for approval.</p>
       {isLoadingCases ? <StatCardsSkeleton count={4} /> : cases.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
           <StatCard title="Total Cases" value={stats.total} icon={<FileText className="h-4 w-4" />} />
           <StatCard title="Pending Review" value={stats.pending} icon={<Clock className="h-4 w-4" />} variant="warning" />
           <StatCard title="Completed" value={stats.completed} icon={<CheckCircle className="h-4 w-4" />} variant="success" />
           <StatCard title="Pending Approval" value={stats.approval} icon={<ShieldCheck className="h-4 w-4" />} />
+          <StatCard title="Sent Back" value={stats.sentBack} icon={<RotateCcw className="h-4 w-4" />} variant="warning" secondary={!stats.sentBack} />
+          <StatCard title="Rejected" value={stats.rejected} icon={<XCircle className="h-4 w-4" />} variant="danger" secondary={!stats.rejected} />
         </div>
       )}
       <FilterBar
@@ -83,7 +91,6 @@ export function DataValidationQueue() {
         onFilterChange={handleFilterChange}
         onReset={resetFilters}
         showStatusFilter={false}
-        showConfidenceFilter={true}
         availableStatuses={QUEUE_STATUSES}
       />
       {isLoadingCases ? (
@@ -116,7 +123,6 @@ export function DataValidationQueue() {
                 <TableHead>Invoice #</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Confidence</TableHead>
                 <TableHead>Received</TableHead>
               </TableRow>
             </TableHeader>
@@ -141,11 +147,6 @@ export function DataValidationQueue() {
                   </TableCell>
                   <TableCell className="py-3">
                     <CaseStatusBadge status={c.status} size="sm" />
-                  </TableCell>
-                  <TableCell className="py-3">
-                    {c.overallConfidence > 0 ? (
-                      <ConfidenceBadge score={c.overallConfidence} level={c.overallConfidenceLevel} />
-                    ) : '-'}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm py-3">
                     {formatRelativeTime(c.createdAt)}

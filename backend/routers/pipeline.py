@@ -610,6 +610,9 @@ async def _run_frontend_job(job_id: str, email_id: str, attachments: list[dict])
             email.invoice_category = result.get("category")
             email.entity = result.get("entity")
             email.po_type = result.get("poType")
+            # Check if all mandatory docs are present from categorize output
+            cat_docs = result.get("documents", [])
+            email.mandatory_docs_present = all(d.get("status") == "PRESENT" for d in cat_docs) if cat_docs else None
             db.commit()
 
             # Post-categorize: rate card lookup for matched vendors

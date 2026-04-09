@@ -176,7 +176,6 @@ export function CaseBrowser() {
                 <TableHead>Invoice #</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Confidence</TableHead>
                 <TableHead>Received</TableHead>
               </TableRow>
             </TableHeader>
@@ -201,13 +200,6 @@ export function CaseBrowser() {
                   </TableCell>
                   <TableCell className="py-3">
                     <CaseStatusBadge status={c.status} size="sm" />
-                  </TableCell>
-                  <TableCell className="py-3">
-                    {c.overallConfidence > 0 ? (
-                      <ConfidenceBadge score={c.overallConfidence} level={c.overallConfidenceLevel} />
-                    ) : (
-                      '-'
-                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm py-3">
                     {formatRelativeTime(c.createdAt)}

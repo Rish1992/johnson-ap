@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, func
 
 from db import get_db
 from models import Case, Email, Comment, AuditLog, Notification, User as UserModel, utcnow, new_id
@@ -61,6 +61,12 @@ def list_cases(
     total = q.count()
     cases = q.offset((page - 1) * page_size).limit(page_size).all()
     return {"cases": [c.to_dict() for c in cases], "total": total, "page": page, "pageSize": page_size}
+
+
+@router.get("/cases/stats")
+def case_stats(db: Session = Depends(get_db)):
+    rows = db.query(Case.status, func.count()).group_by(Case.status).all()
+    return {"stats": {status: count for status, count in rows}}
 
 
 @router.get("/cases/all")
