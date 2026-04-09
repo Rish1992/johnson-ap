@@ -160,7 +160,14 @@ function EmailListItem({
 
       {/* Row 3: Badges */}
       <div className="flex items-center gap-1.5 pl-5 flex-wrap">
-        <ClassificationBadge classification={email.classification} />
+        {email.activeJobStatus === 'RUNNING' || email.activeJobStatus === 'PENDING' ? (
+          <Badge className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50 animate-pulse">
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            Processing…
+          </Badge>
+        ) : (
+          <ClassificationBadge classification={email.classification} />
+        )}
         <Badge variant={email.poType === 'PO' ? 'default' : 'outline'} className="text-[10px] px-1.5 py-0">
           {email.poType === 'PO' ? 'PO' : 'Non-PO'}
         </Badge>
@@ -238,6 +245,12 @@ function EmailDetail({
         <Separator />
 
         {/* Classification Details */}
+        {email.activeJobStatus === 'RUNNING' || email.activeJobStatus === 'PENDING' ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-2 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <p className="text-sm font-medium">Processing email…{email.activeJobStep ? ` Step: ${email.activeJobStep}` : ''}</p>
+          </div>
+        ) : (
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-3">Classification Details</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -327,6 +340,7 @@ function EmailDetail({
             )}
           </div>
         </div>
+        )}
 
         <Separator />
 
@@ -466,6 +480,16 @@ export function EmailReview() {
       });
     });
   }, []);
+
+  // Poll while any email has an active job
+  useEffect(() => {
+    const hasActive = emails.some((e) => e.activeJobStatus === 'RUNNING' || e.activeJobStatus === 'PENDING');
+    if (!hasActive) return;
+    const id = setInterval(() => {
+      import('@/lib/handlers').then(({ fetchEmails }) => fetchEmails().then(setEmails));
+    }, 5000);
+    return () => clearInterval(id);
+  }, [emails]);
 
   // Filter emails
   const filteredEmails = useMemo(() => {

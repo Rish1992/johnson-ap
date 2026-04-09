@@ -105,17 +105,21 @@ export function DataValidationTab() {
     return Array.from(types);
   }, [selectedCase]);
 
+  // Load GL accounts once on mount (case-independent)
   useEffect(() => {
-    initDraft();
-    // Load GL accounts from real API
     import('@/lib/handlers').then(({ fetchGLAccounts }) => {
       fetchGLAccounts().then((accounts: { accountNumber: string; name: string }[]) => {
         setGLAccounts(accounts.map(a => ({ id: a.accountNumber, accountNumber: a.accountNumber, name: a.name })));
       });
     });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCase) return;
+    initDraft();
     // Load approvers: prefer category-specific recommended chain, fallback to all users
     import('@/lib/handlers').then(({ fetchRecommendedApprovers, fetchUsers }) => {
-      fetchRecommendedApprovers(selectedCase!.id).then((rec) => {
+      fetchRecommendedApprovers(selectedCase.id).then((rec) => {
         if (rec && rec.length > 0) {
           setApprovers(rec.map((a, idx) => ({
             id: a.id, name: a.name, department: a.department,
@@ -151,7 +155,7 @@ export function DataValidationTab() {
         });
       });
     });
-  }, [initDraft, selectedCase]);
+  }, [selectedCase?.id]);
 
   // Fetch dynamic field definitions from API (fallback to hardcoded on failure)
   useEffect(() => {

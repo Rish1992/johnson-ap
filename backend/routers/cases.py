@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, func
 
 from db import get_db
-from models import Case, Email, Comment, AuditLog, Notification, User as UserModel, ApprovalSequenceMaster, utcnow, new_id
+from models import Case, Email, Comment, AuditLog, Notification, User as UserModel, ApprovalSequenceMaster, Job, utcnow, new_id
 from auth import get_current_user
 from agents.code_steps import (
     create_case, process_approval, export_sap, assert_transition, _audit,
@@ -399,4 +399,17 @@ def list_emails(
         s = f"%{search}%"
         q = q.filter(Email.subject.ilike(s) | Email.from_address.ilike(s))
     emails = q.order_by(desc(Email.received_at)).all()
-    return [e.to_dict() for e in emails]
+    # Attach active job status (single query)
+    email_ids = [e.id for e in emails]
+    active_jobs = db.query(Job.email_id, Job.status, Job.current_step).filter(
+        Job.email_id.in_(email_ids), Job.status.in_(["PENDING", "RUNNING"])
+    ).all() if email_ids else []
+    job_map = {j.email_id: {"status": j.status, "step": j.current_step} for j in active_jobs}
+    result = []
+    for e in emails:
+        d = e.to_dict()
+        j = job_map.get(e.id)
+        d["activeJobStatus"] = j["status"] if j else None
+        d["activeJobStep"] = j["step"] if j else None
+        result.append(d)
+    return result

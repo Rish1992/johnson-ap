@@ -19,4 +19,6 @@ export interface EmailRecord {
   entity: 'AU' | 'NZ';
   mandatoryDocsPresent: boolean | null;
   xeroLink?: string;
+  activeJobStatus?: string | null;
+  activeJobStep?: string | null;
 }
