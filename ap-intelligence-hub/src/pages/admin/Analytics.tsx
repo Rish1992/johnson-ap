@@ -457,9 +457,9 @@ export function Analytics() {
                   <XAxis
                     dataKey="vendor"
                     axisLine={false} tickLine={false}
-                    tick={{ fontSize: 11 }}
-                    angle={-40} textAnchor="end" interval={0}
-                    height={80}
+                    tick={<AngledTick />}
+                    interval={0}
+                    height={72}
                   />
                   <YAxis
                     axisLine={false} tickLine={false}

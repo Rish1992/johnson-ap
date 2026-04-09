@@ -271,7 +271,7 @@ export function AdminCaseBrowser() {
                     </span>
                     <p className="text-sm">{selectedCase.assignedAgentName || 'Unassigned'}</p>
                   </div>
-                  <div className="space-y-1">
+                  {/* <div className="space-y-1">
                     <span className="text-xs text-muted-foreground font-medium">Confidence</span>
                     <div>
                       {selectedCase.overallConfidence > 0 ? (
@@ -280,7 +280,7 @@ export function AdminCaseBrowser() {
                         <span className="text-sm text-muted-foreground">-</span>
                       )}
                     </div>
-                  </div>
+                  </div> */}
                   <div className="space-y-1">
                     <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Created
