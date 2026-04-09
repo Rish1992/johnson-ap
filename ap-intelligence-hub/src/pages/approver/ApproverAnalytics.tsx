@@ -546,19 +546,17 @@ export function ApproverAnalytics() {
                     dataKey="value"
                     stroke="none"
                     paddingAngle={3}
-                    label={({ name, percent }) =>
-                      `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
                   >
                     {decisionData.map((_, i) => (
                       <Cell key={`dec-${i}`} fill={DECISION_COLORS[i % DECISION_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
               {/* Centered overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: 0, bottom: 40 }}>
                 <span className="text-3xl font-bold text-foreground">{totalDecisions}</span>
                 <span className="text-xs text-muted-foreground">Total Decisions</span>
               </div>
@@ -620,13 +618,13 @@ export function ApproverAnalytics() {
                   dataKey="value"
                   stroke="none"
                   paddingAngle={2}
-                  label={({ name, value }) => `${name}: ${value}`}
                 >
                   {categoryData.map((_, i) => (
                     <Cell key={`cat-${i}`} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -646,10 +644,16 @@ export function ApproverAnalytics() {
             </p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={timeOfDayData}>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={timeOfDayData} margin={{ top: 10, right: 16, left: 0, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                <XAxis
+                  dataKey="period"
+                  axisLine={false} tickLine={false}
+                  tick={{ fontSize: 11, angle: -35, textAnchor: 'end', dy: 6 }}
+                  interval={0}
+                  height={64}
+                />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]} name="Decisions">

@@ -345,60 +345,40 @@ export function AdminDashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-start justify-between overflow-x-auto pb-2 px-2">
-            {PIPELINE_STAGES.map((stage, index) => {
-              const count = pipelineCounts[stage.status] || 0;
-              return (
-                <div key={stage.status} className="flex items-start flex-1 min-w-0">
-                  {/* Stage node */}
-                  <div className="flex flex-col items-center w-full">
-                    {/* Connector line + circle row */}
-                    <div className="flex items-center w-full">
-                      {/* Left connector */}
-                      {index > 0 ? (
-                        <div className="flex-1 h-[2px] bg-border" />
-                      ) : (
-                        <div className="flex-1" />
-                      )}
-                      {/* Circle */}
-                      <div
-                        className={cn(
-                          'relative flex items-center justify-center rounded-full shrink-0 transition-all duration-300',
-                          count > 0
-                            ? 'h-12 w-12 shadow-lg'
-                            : 'h-10 w-10 opacity-50'
-                        )}
-                        style={{
-                          backgroundColor: count > 0 ? stage.hex : 'transparent',
-                          border: count > 0 ? 'none' : `2px solid ${stage.hex}`,
-                          boxShadow: count > 0 ? `0 4px 14px ${stage.hex}33` : 'none',
-                        }}
+        <CardContent className="pb-5">
+          <div className="relative overflow-x-auto">
+            {/* Connector track — sits behind all nodes */}
+            <div className="absolute top-[22px] left-[calc(100%/16)] right-[calc(100%/16)] h-[2px] bg-border" />
+
+            <div className="relative grid gap-0" style={{ gridTemplateColumns: `repeat(${PIPELINE_STAGES.length}, 1fr)` }}>
+              {PIPELINE_STAGES.map((stage) => {
+                const count = pipelineCounts[stage.status] || 0;
+                return (
+                  <div key={stage.status} className="flex flex-col items-center gap-2.5 px-1 py-1">
+                    {/* Node */}
+                    <div
+                      className="relative z-10 h-11 w-11 rounded-full flex items-center justify-center shrink-0 transition-all duration-300"
+                      style={
+                        count > 0
+                          ? { backgroundColor: stage.hex, boxShadow: `0 0 0 3px ${stage.hex}22, 0 4px 12px ${stage.hex}44` }
+                          : { backgroundColor: '#fff', border: `2px solid ${stage.hex}66` }
+                      }
+                    >
+                      <span
+                        className="text-sm font-bold leading-none"
+                        style={{ color: count > 0 ? '#0b0a0aff' : 'hsl(var(--muted-foreground))' }}
                       >
-                        <span
-                          className={cn(
-                            'font-bold leading-none',
-                            count > 0 ? 'text-white text-base' : 'text-muted-foreground text-sm'
-                          )}
-                        >
-                          {count}
-                        </span>
-                      </div>
-                      {/* Right connector */}
-                      {index < PIPELINE_STAGES.length - 1 ? (
-                        <div className="flex-1 h-[2px] bg-border" />
-                      ) : (
-                        <div className="flex-1" />
-                      )}
+                        {count}
+                      </span>
                     </div>
                     {/* Label */}
-                    <span className="text-[11px] font-medium text-muted-foreground mt-2 text-center whitespace-nowrap">
+                    <span className="text-[11px] font-medium text-muted-foreground text-center leading-tight">
                       {stage.label}
                     </span>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>
