@@ -222,6 +222,10 @@ export async function updateApprovalChain(
   return put<Case>(`/api/cases/${caseId}/approval-chain`, { steps: newSteps, reason });
 }
 
+export async function fetchRecommendedApprovers(caseId: string) {
+  return get<{ id: string; name: string; email: string; department: string; approvalLimit: number | null; stepNumber: number; approverRole: string }[]>(`/api/cases/${caseId}/recommended-approvers`);
+}
+
 export async function fetchApproverCases(approverId: string, _role?: string): Promise<Case[]> {
   return get<Case[]>('/api/approver/cases');
 }

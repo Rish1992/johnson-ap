@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, func
 
 from db import get_db
-from models import Case, Email, Comment, AuditLog, Notification, User as UserModel, utcnow, new_id
+from models import Case, Email, Comment, AuditLog, Notification, User as UserModel, ApprovalSequenceMaster, utcnow, new_id
 from auth import get_current_user
 from agents.code_steps import (
     create_case, process_approval, export_sap, assert_transition, _audit,
@@ -81,6 +81,38 @@ def get_case(case_id: str, db: Session = Depends(get_db)):
     if not case:
         raise HTTPException(404, "Case not found")
     return case.to_dict()
+
+
+@router.get("/cases/{case_id}/recommended-approvers")
+def recommended_approvers(case_id: str, db: Session = Depends(get_db)):
+    case = db.query(Case).filter(Case.id == case_id).first()
+    if not case:
+        raise HTTPException(404, "Case not found")
+    seq = db.query(ApprovalSequenceMaster).filter(
+        ApprovalSequenceMaster.invoice_type == case.category,
+        ApprovalSequenceMaster.is_active == True,
+    ).first()
+    if not seq or not seq.steps:
+        return []
+    result = []
+    for step in seq.steps:
+        user = None
+        if step.get("approverId"):
+            user = db.query(UserModel).filter(UserModel.id == step["approverId"]).first()
+        if not user and step.get("approverName"):
+            user = db.query(UserModel).filter(
+                (UserModel.first_name + " " + UserModel.last_name) == step["approverName"]
+            ).first()
+        result.append({
+            "id": user.id if user else step.get("approverId", ""),
+            "name": f"{user.first_name} {user.last_name}".strip() if user else step.get("approverName", ""),
+            "email": user.email if user else "",
+            "department": user.department if user else "",
+            "approvalLimit": user.approval_limit if user else None,
+            "stepNumber": step.get("stepNumber", len(result) + 1),
+            "approverRole": step.get("approverRole", user.role if user else "AP_REVIEWER"),
+        })
+    return result
 
 
 @router.put("/cases/{case_id}/draft")

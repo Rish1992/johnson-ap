@@ -113,35 +113,42 @@ export function DataValidationTab() {
         setGLAccounts(accounts.map(a => ({ id: a.accountNumber, accountNumber: a.accountNumber, name: a.name })));
       });
     });
-    // Load approvers from real API
-    import('@/lib/handlers').then(({ fetchUsers }) => {
-      fetchUsers().then((users: { id: string; role: string; isActive: boolean; fullName: string; department?: string; approvalLimit?: number }[]) => {
-        const totalAmount = selectedCase?.headerData.grandTotal ?? 0;
-        const reviewers = users
-          .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
-          .map((u, idx) => ({
-            id: u.id,
-            name: u.fullName,
-            department: u.department || '',
-            limit: u.approvalLimit || 0,
-            selected: (u.approvalLimit || 0) >= totalAmount,
-            order: idx,
-          }))
-          .sort((a, b) => b.limit - a.limit);
-
-        const anySelected = reviewers.some(a => a.selected);
-        if (!anySelected && reviewers.length > 0) {
-          reviewers[0].selected = true;
+    // Load approvers: prefer category-specific recommended chain, fallback to all users
+    import('@/lib/handlers').then(({ fetchRecommendedApprovers, fetchUsers }) => {
+      fetchRecommendedApprovers(selectedCase!.id).then((rec) => {
+        if (rec && rec.length > 0) {
+          setApprovers(rec.map((a, idx) => ({
+            id: a.id, name: a.name, department: a.department,
+            limit: a.approvalLimit || 0, selected: true, order: idx,
+          })));
+        } else {
+          // Fallback: load all reviewers sorted by limit
+          fetchUsers().then((users: { id: string; role: string; isActive: boolean; fullName: string; department?: string; approvalLimit?: number }[]) => {
+            const totalAmount = selectedCase?.headerData.grandTotal ?? 0;
+            const reviewers = users
+              .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
+              .map((u, idx) => ({
+                id: u.id, name: u.fullName, department: u.department || '',
+                limit: u.approvalLimit || 0,
+                selected: (u.approvalLimit || 0) >= totalAmount, order: idx,
+              }))
+              .sort((a, b) => b.limit - a.limit);
+            if (!reviewers.some(a => a.selected) && reviewers.length > 0) reviewers[0].selected = true;
+            let order = 0;
+            for (const a of reviewers) { if (a.selected) a.order = order++; }
+            setApprovers(reviewers);
+          });
         }
-
-        let order = 0;
-        for (const a of reviewers) {
-          if (a.selected) {
-            a.order = order++;
-          }
-        }
-
-        setApprovers(reviewers);
+      }).catch(() => {
+        // On error, fallback to all users
+        fetchUsers().then((users: { id: string; role: string; isActive: boolean; fullName: string; department?: string; approvalLimit?: number }[]) => {
+          const reviewers = users
+            .filter(u => u.role === 'AP_REVIEWER' && u.isActive)
+            .map((u, idx) => ({ id: u.id, name: u.fullName, department: u.department || '', limit: u.approvalLimit || 0, selected: false, order: idx }))
+            .sort((a, b) => b.limit - a.limit);
+          if (reviewers.length > 0) reviewers[0].selected = true;
+          setApprovers(reviewers);
+        });
       });
     });
   }, [initDraft, selectedCase]);
